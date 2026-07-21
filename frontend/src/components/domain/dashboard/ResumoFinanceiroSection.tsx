@@ -62,7 +62,7 @@ export function ResumoFinanceiroSection({ ano, mes }: ResumoFinanceiroSectionPro
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
           <LoadingCard key={index} lines={2} />
         ))}
@@ -119,7 +119,17 @@ export function ResumoFinanceiroSection({ ano, mes }: ResumoFinanceiroSectionPro
   );
 
   return (
-    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
+    // `items-stretch` (default do Grid, explícito aqui - bug relatado pelo
+    // usuário, 2026-07-21): os 3 heroes têm alturas de conteúdo diferentes
+    // ("Saldo total"/"Visão mensal" têm bloco `extra` com gráfico/barra,
+    // "Metas ativas" não) - com `items-start` cada card só tinha a altura
+    // do PRÓPRIO conteúdo, deixando as bordas inferiores desalinhadas
+    // (degrau visual). Esticando os 3 para a altura da linha, o topo
+    // (label/ícone/valor) sempre alinha e a diferença de conteúdo vira só
+    // espaço em branco no rodapé do card mais curto - nunca um problema
+    // aqui porque nenhum dos 3 tem ação/rodapé que precise ficar colado
+    // embaixo.
+    <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
       <StatCard
         label="Saldo total"
         value={data.saldo_total}

@@ -524,13 +524,27 @@ class CentralFinanceiraService:
         `criado_em` (timestamp de auditoria de quando a linha foi
         inserida no banco), que fazia tudo aparecer com a data/hora de
         HOJE independente da data real do lançamento (bug relatado pelo
-        usuário, 2026-07-21). Nenhuma tabela/campo novo: cada fonte já
-        vem de um Service de domínio existente, e a combinação/ordenação
-        abaixo é só Python sobre 3 listas já pequenas e limitadas (regra
-        3 do cabeçalho deste arquivo), nunca uma query nova."""
-        atividades = []
+        usuário, 2026-07-21).
 
-        transacoes = self.transacao_service.listar(usuario_id, limit=limit)
+        `data_fim=hoje` é obrigatório aqui (bug de continuação relatado pelo
+        mesmo dia): Financiamento/Empréstimo/ContaRecorrente pré-geram TODAS
+        as parcelas futuras (até dezenas de anos à frente) na hora da
+        criação do contrato. Sem o corte, `transacao_service.listar` (que
+        ordena por `data DESC`) sempre trazia as parcelas mais DISTANTES no
+        futuro primeiro - elas têm o maior valor de `data` de toda a tabela
+        -, enchendo "Transações recentes" com parcelas de 2030 em vez do
+        que de fato já aconteceu. "Recente" é sempre passado (já ocorrido),
+        nunca agendado; o que ainda vai vencer já tem sua própria seção
+        ("Hoje"/Agenda). Mesmo corte aplicado à Transferência por
+        consistência (mesma semântica, mesmo risco em teoria). Nenhuma
+        tabela/campo novo: cada fonte já vem de um Service de domínio
+        existente, e a combinação/ordenação abaixo é só Python sobre 3
+        listas já pequenas e limitadas (regra 3 do cabeçalho deste
+        arquivo), nunca uma query nova."""
+        atividades = []
+        hoje = date.today()
+
+        transacoes = self.transacao_service.listar(usuario_id, data_fim=hoje, limit=limit)
         for transacao in transacoes:
             origem_tipo, origem_id = self._origem_da_transacao(transacao)
             atividades.append(
@@ -552,7 +566,7 @@ class CentralFinanceiraService:
                 }
             )
 
-        transferencias = self.transferencia_service.listar(usuario_id, apenas_ativas=True, limit=limit)
+        transferencias = self.transferencia_service.listar(usuario_id, apenas_ativas=True, data_fim=hoje, limit=limit)
         for transferencia in transferencias:
             atividades.append(
                 {

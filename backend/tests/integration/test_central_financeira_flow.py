@@ -674,6 +674,34 @@ def test_atividades_recentes_inclui_meta_concluida_via_aporte(client):
     assert metas_concluidas[0]["valor"] == "2000.00"
 
 
+def test_atividades_recentes_exclui_parcelas_futuras_de_financiamento(client):
+    """Bug de continuação relatado pelo usuário (2026-07-21, mesmo dia da
+    correção de `criado_em` → `data`): Financiamento pré-gera TODAS as
+    parcelas na criação do contrato, muitas décadas à frente - sem um
+    corte por data, "Transações recentes" (que ordena por `data DESC`)
+    sempre mostrava as parcelas MAIS distantes no futuro primeiro (maior
+    valor de `data` de toda a tabela), em vez do que de fato já
+    aconteceu. "Recente" é sempre passado; agendado futuro já tem sua
+    própria seção (Hoje/Agenda)."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    # Financiamento com data_inicio bem no futuro: TODAS as parcelas
+    # nascem com `data` > hoje (nenhuma delas deve aparecer aqui).
+    _criar_financiamento(
+        client, headers, conta["id"], num_parcelas=3, data_inicio=str(date.today() + timedelta(days=60)),
+    )
+    _criar_transacao(
+        client, headers, tipo="DESPESA", valor="50.00", descricao="Compra de hoje", conta_id=conta["id"],
+    )
+
+    dados = client.get("/central-financeira/atividades", headers=headers).json()
+
+    origens = [a["origem_tipo"] for a in dados["atividades"]]
+    assert "FINANCIAMENTO" not in origens
+    descricoes = [a["descricao"] for a in dados["atividades"]]
+    assert descricoes == ["Compra de hoje"]
+
+
 def test_atividades_recentes_ordenadas_da_mais_recente_para_a_mais_antiga(client):
     headers = _registrar_e_logar(client)
     conta = _criar_conta(client, headers)

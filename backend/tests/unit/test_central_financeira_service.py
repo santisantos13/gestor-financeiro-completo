@@ -266,10 +266,14 @@ class FakeTransferenciaService:
     def __init__(self, transferencias):
         self._transferencias = transferencias
 
-    def listar(self, usuario_id, *, apenas_ativas=True, skip=0, limit=100):
+    def listar(self, usuario_id, *, apenas_ativas=True, data_inicio=None, data_fim=None, skip=0, limit=100):
         resultado = list(self._transferencias)
         if apenas_ativas:
             resultado = [t for t in resultado if t.ativo]
+        if data_inicio is not None:
+            resultado = [t for t in resultado if t.data >= data_inicio]
+        if data_fim is not None:
+            resultado = [t for t in resultado if t.data <= data_fim]
         return resultado[skip : skip + limit]
 
 
