@@ -178,3 +178,34 @@ histórico do doc arquitetural.
   configurado nesta etapa.
 - **Downgrades de migration não auditados para Postgres**: só o caminho
   `upgrade` (o único que roda em produção) foi validado linha a linha.
+
+## 7. Execução real do deploy — problemas encontrados e resolvidos
+
+A validação da seção 3.1 rodou contra um Postgres genérico efêmero, então
+não pegou dois problemas específicos do Supabase e um erro de digitação -
+registrados aqui para a próxima vez (ou se um novo usuário selecionado
+precisar de outra instância):
+
+1. **Conexão direta do Supabase é IPv6-only** (a menos que se pague o
+   add-on de IPv4) e o Render não tem saída IPv6 - `psycopg2` falhava com
+   `Network is unreachable`. Resolvido usando o **Transaction pooler** do
+   Supabase (host `aws-N-<regiao>.pooler.supabase.com`, porta `6543`,
+   usuário no formato `postgres.<project-ref>`, não só `postgres`) - essa
+   é a via de conexão IPv4 recomendada pelo próprio Supabase para
+   plataformas externas.
+2. **`configparser` do Alembic quebra com senha percent-encoded**: `%3F`
+   (por exemplo) é interpretado como início de uma interpolação
+   (`%(nome)s`), levantando `ValueError: invalid interpolation syntax`
+   mesmo só ao *armazenar* o valor. Corrigido em `alembic/env.py`
+   escapando `%` como `%%` antes de `config.set_main_option` (o
+   configparser decodifica de volta ao ler).
+3. **CORS_ORIGINS precisa bater EXATAMENTE com a URL do frontend** (sem
+   barra final, protocolo+host idênticos) - qualquer divergência de um
+   caractere (fonte do dashboard pode confundir "0" com "o", por exemplo)
+   quebra silenciosamente com "blocked by CORS policy" no console do
+   navegador. Mais seguro sempre copiar a URL com o botão de copiar do
+   Render em vez de digitar/ler visualmente.
+
+Com os três ajustes, o deploy ficou estável: backend e frontend "Live" no
+Render, login/registro funcionando de ponta a ponta contra o Postgres do
+Supabase.
