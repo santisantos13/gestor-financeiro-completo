@@ -81,21 +81,25 @@ export function buildTransacaoTableColumns({
             : "",
       hideOnMobile: true,
       render: (transacao) => {
+        // mesma correção de `transferenciaTableColumns.tsx` (responsividade,
+        // 2026-07-21): `truncate` no container flex não faz nada sozinho -
+        // o span de texto precisa do próprio `min-w-0` para poder encolher
+        // abaixo do conteúdo antes do `truncate` ter efeito.
         if (transacao.conta_id != null) {
           const conta = contasPorId.get(transacao.conta_id);
           return (
-            <span className="flex items-center gap-1.5 truncate">
+            <span className="flex min-w-0 items-center gap-1.5">
               <InstitutionBadge nome={conta?.instituicao} size="sm" />
-              <span className="truncate">{conta?.nome ?? "Conta"}</span>
+              <span className="min-w-0 truncate">{conta?.nome ?? "Conta"}</span>
             </span>
           );
         }
         if (transacao.cartao_id != null) {
           const cartao = cartoesPorId.get(transacao.cartao_id);
           return (
-            <span className="flex items-center gap-1.5 truncate">
+            <span className="flex min-w-0 items-center gap-1.5">
               {cartao && <BandeiraBadge bandeira={cartao.bandeira} size="sm" />}
-              <span className="truncate">{cartao?.nome ?? "Cartão"}</span>
+              <span className="min-w-0 truncate">{cartao?.nome ?? "Cartão"}</span>
             </span>
           );
         }

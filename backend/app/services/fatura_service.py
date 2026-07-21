@@ -143,6 +143,18 @@ class FaturaService:
         faturas = self.fatura_repo.listar_do_cartao(cartao_id, skip=skip, limit=limit)
         return [self._com_valores_calculados(fatura) for fatura in faturas]
 
+    def listar_recentes(self, cartao_id: int, usuario_id: int, *, limit: int = 100) -> list[Fatura]:
+        """Mais recente primeiro - só para
+        `CentralFinanceiraService.calendario_financeiro`/
+        `agenda_financeira`, que buscam com `limit` pequeno esperando "o
+        ciclo atual + folga de ciclos próximos" (ver docstring de
+        `FaturaRepository.listar_recentes_do_cartao`). Nunca usar para a
+        tela de listagem de faturas - essa quer `listar()` (ordem
+        cronológica ascendente)."""
+        self._validar_cartao_do_usuario(cartao_id, usuario_id)
+        faturas = self.fatura_repo.listar_recentes_do_cartao(cartao_id, limit=limit)
+        return [self._com_valores_calculados(fatura) for fatura in faturas]
+
     def resolver_fatura_aberta(self, cartao_id: int, data_transacao: date, usuario_id: int) -> Fatura:
         """Find-or-create da fatura cujo ciclo cobre `data_transacao` neste
         cartão - usada por `TransacaoService` para resolver `fatura_id` ao

@@ -119,24 +119,28 @@ export function DashboardPage() {
           sozinho quando não há eventos (ver `HojeCard.tsx`). */}
       <HojeCard />
 
-      {/* Linha fixa de destaque (Refinamento Visual, decisão 7-8): "Contas e
-          Cartões" + "Transações Recentes" ficam no mesmo nível de destaque
-          do print de referência do usuário — fora da personalização do
-          Bento Grid abaixo. */}
+      {/* Linha fixa ("Contas e Cartões" + "Transações Recentes", Refinamento
+          Visual decisão 7-8) e o Bento Grid personalizável agora dividem
+          UMA ÚNICA grade de 2 colunas (não mais duas grades empilhadas) —
+          correção de bug relatado pelo usuário (2026-07-21): com duas
+          grades separadas, a segunda só começava depois da altura TOTAL da
+          primeira (definida pelo card mais alto, Transações Recentes), o
+          que deixava um vão vazio enorme sob "Contas e Cartões" sempre que
+          ela fosse mais curta - o card seguinte (ex.: Metas) nunca conseguia
+          "subir" para preencher aquele espaço porque estava numa grade
+          diferente. Numa grade só, cada linha nova (Metas, Faturas...) só
+          depende da altura da linha ANTERIOR dela mesma, não da grade
+          anterior inteira. `items-start`: sem isso, o CSS Grid padrão
+          estica cada card para a altura da linha inteira (a do vizinho
+          mais alto) - com conteúdo de densidade tão variável entre estes
+          cards, o resultado era cards curtos "esticados" com um vazio
+          embaixo. Efeito colateral aceito: os cards personalizáveis (antes
+          em até 3 colunas em telas grandes) agora ficam em 2, para se
+          alinhar com "Contas e Cartões"/"Transações Recentes" - a
+          personalização em si (ordem/ocultar) continua idêntica. */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         <ContasCartoesCard />
         <TransacoesRecentesCard />
-      </div>
-
-      {/* `items-start`: sem isso, o CSS Grid padrão estica cada card para a
-          altura da linha inteira (a do vizinho mais alto) — com conteúdo de
-          densidade tão variável entre estes cards (uma lista de 1 linha
-          por item em Faturas vs. 3 linhas + barra de progresso em Metas),
-          o resultado era cards curtos "esticados" com um vazio enorme
-          embaixo. Cada card agora só ocupa a própria altura natural
-          (Etapa de Refinamento UX/UI, itens 1-2: hierarquia visual e
-          densidade). */}
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
         {layout.ordem
           .filter((id) => !layout.ocultos.includes(id))
           .map((id) => {

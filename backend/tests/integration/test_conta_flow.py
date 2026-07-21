@@ -428,6 +428,40 @@ def test_excluir_conta_permanente_com_apagar_vinculos_remove_financiamento_e_rec
     assert client.get(f"/contas-recorrentes/{recorrente['id']}", headers=headers).status_code == 404
 
 
+def test_excluir_conta_permanente_com_apagar_vinculos_remove_parcelamento_da_conta(client):
+    """Parcelamento direto na Conta (sem passar por Cartão): o cabeçalho
+    tem que ser apagado junto, não só desvinculado -
+    `ck_parcelamento_cartao_xor_conta` é XOR/NOT NULL em conjunto, não
+    existe deixar `conta_id` nulo sozinho. Bug real corrigido em
+    2026-07-21 ("excluir cartão/conta falha com Falha de conexão com o
+    servidor"): esse cabeçalho ficava órfão silenciosamente no SQLite de
+    desenvolvimento, mas bloqueava a exclusão da conta com `IntegrityError`
+    no Postgres de produção, onde a FK é enforced de verdade."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+
+    parcelamento = client.post(
+        "/parcelamentos",
+        json={
+            "descricao": "Móveis",
+            "valor_total": "900.00",
+            "num_parcelas": 3,
+            "data_inicio": "2026-06-15",
+            "conta_id": conta["id"],
+        },
+        headers=headers,
+    ).json()
+    assert parcelamento["conta_id"] == conta["id"]
+
+    resposta = client.delete(
+        f"/contas/{conta['id']}/permanente?apagar_vinculos=true", headers=headers
+    )
+    assert resposta.status_code == 204
+
+    assert client.get(f"/contas/{conta['id']}", headers=headers).status_code == 404
+    assert client.get(f"/parcelamentos/{parcelamento['id']}", headers=headers).status_code == 404
+
+
 def test_excluir_conta_oculta_cofrinho_de_meta_sempre_bloqueia_mesmo_com_apagar_vinculos(client):
     """Conta oculta = cofrinho automático de uma Meta - a relação é
     invertida (a Meta é dona da conta). Nunca deve ser apagável

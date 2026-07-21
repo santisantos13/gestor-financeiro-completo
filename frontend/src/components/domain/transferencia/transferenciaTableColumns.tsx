@@ -42,16 +42,26 @@ export function buildTransferenciaTableColumns({ contasPorId }: BuildColumnsOpti
       render: (transferencia) => {
         const origem = contasPorId.get(transferencia.conta_origem_id);
         const destino = contasPorId.get(transferencia.conta_destino_id);
+        // Bug real corrigido (responsividade mobile, 2026-07-21): os dois
+        // spans "origem"/"destino" tinham `truncate` no container flex
+        // (não faz nada ali - `truncate` só afeta texto de verdade, e o
+        // container só tem elementos filhos) e NENHUM `min-w-0` no span de
+        // texto que de fato precisa truncar - sem isso, o item flex nunca
+        // encolhe abaixo do próprio conteúdo (min-width:auto é o default
+        // do navegador), e o nome era cortado sem reticências em vez de
+        // truncar graciosamente. `flex-1` em cada lado faz origem/destino
+        // dividirem o espaço disponível igualmente, em vez de um lado
+        // "roubar" espaço do outro.
         return (
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="flex min-w-0 items-center gap-1.5 truncate">
+            <span className="flex min-w-0 flex-1 items-center gap-1.5">
               <InstitutionBadge nome={origem?.instituicao} size="sm" />
-              <span className="truncate">{origem?.nome ?? "Conta"}</span>
+              <span className="min-w-0 truncate">{origem?.nome ?? "Conta"}</span>
             </span>
             <ArrowRight size={14} className="shrink-0 text-text-tertiary" aria-hidden="true" />
-            <span className="flex min-w-0 items-center gap-1.5 truncate">
+            <span className="flex min-w-0 flex-1 items-center gap-1.5">
               <InstitutionBadge nome={destino?.instituicao} size="sm" />
-              <span className="truncate">{destino?.nome ?? "Conta"}</span>
+              <span className="min-w-0 truncate">{destino?.nome ?? "Conta"}</span>
             </span>
           </div>
         );

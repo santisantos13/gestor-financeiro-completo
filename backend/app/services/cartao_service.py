@@ -9,14 +9,18 @@ Depende de `FaturaService` (não só do próprio `CartaoRepository`) desde a
 correção do bug "limite disponível não volta ao pagar fatura" (2026-07):
 `FaturaService.ids_faturas_pagas()` é a única fonte de verdade sobre "o que
 conta como pago" - `_com_limite_disponivel` reusa esse cálculo em vez de
-duplicar a regra.
-"""
+duplicar a regra. Também depende de `ParcelamentoService`/
+`ContaRecorrenteService` desde a correção do bug "excluir cartão falha com
+Falha de conexão com o servidor" (2026-07-21, ver
+`_apagar_faturas_e_transacoes`)."""
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.models import Cartao
 from app.repositories.cartao_repository import CartaoRepository
 from app.repositories.conta_repository import ContaRepository
 from app.schemas.cartao import CartaoCreate, CartaoUpdate
+from app.services.conta_recorrente_service import ContaRecorrenteService
 from app.services.fatura_service import FaturaService
+from app.services.parcelamento_service import ParcelamentoService
 from app.services.transacao_service import TransacaoService
 
 # Limite alto o suficiente pra cobrir qualquer cartão real (nenhum usuário
@@ -32,11 +36,15 @@ class CartaoService:
         conta_repo: ContaRepository,
         fatura_service: FaturaService,
         transacao_service: TransacaoService,
+        parcelamento_service: ParcelamentoService,
+        conta_recorrente_service: ContaRecorrenteService,
     ) -> None:
         self.cartao_repo = cartao_repo
         self.conta_repo = conta_repo
         self.fatura_service = fatura_service
         self.transacao_service = transacao_service
+        self.parcelamento_service = parcelamento_service
+        self.conta_recorrente_service = conta_recorrente_service
 
     def criar(self, dados: CartaoCreate, usuario_id: int) -> Cartao:
         """Cria um cartão novo - ou REATIVA um existente, se o nome colidir
@@ -116,25 +124,51 @@ class CartaoService:
         """Exclusão DEFINITIVA (hard delete) - Etapa F10,
         `docs/analise-arquitetural-exclusao.md`, seção 1: uma AÇÃO NOVA,
         nunca substitui `desativar()` acima. Bloqueia se houver qualquer
-        fatura vinculada, em qualquer status (seção 2.4) - decisão
-        deliberadamente NÃO estendida para `desativar()` nesta etapa (fora
-        do pedido original).
+        fatura, parcelamento ou recorrência vinculados (seção 2.4 +
+        correção 2026-07-21) - decisão deliberadamente NÃO estendida para
+        `desativar()` nesta etapa (fora do pedido original).
 
         `apagar_transacoes=True` (pedido explícito do usuário, ver
         docs/analise-arquitetural-exclusao-cartao-com-historico.md): em vez
-        de bloquear, apaga faturas E as transações feitas neste cartão antes
-        de apagar o cartão - ver `_apagar_faturas_e_transacoes` para o
-        detalhe da cascata. Default `False` preserva o comportamento
-        original (nunca apaga histórico sem confirmação explícita)."""
+        de bloquear, apaga faturas, transações, parcelamentos e
+        recorrências deste cartão antes de apagar o cartão - ver
+        `_apagar_faturas_e_transacoes` para o detalhe da cascata. Default
+        `False` preserva o comportamento original (nunca apaga histórico
+        sem confirmação explícita).
+
+        `_possui_vinculo_bloqueante` checa faturas E parcelamentos/
+        recorrências (não só faturas, como antes da correção de
+        2026-07-21): um cartão pode ter uma compra parcelada ou uma
+        recorrência SEM nenhuma Fatura ainda existir (fatura é resolvida/
+        criada à parte) - checar só `existe_fatura_vinculada` deixava esses
+        dois casos passarem direto para `self.cartao_repo.delete(cartao)`
+        sem cascata nem bloqueio nenhum, o que no Postgres de produção
+        batia direto no `IntegrityError` da FK de Parcelamento/
+        ContaRecorrente (`cartao_id` sem `ondelete`, ao contrário de
+        Fatura/Transacao que já têm `ondelete=CASCADE`) - bug relatado
+        pelo usuário como "Falha de conexão com o servidor" ao excluir
+        cartão."""
         cartao = self._buscar_da_propriedade_do_usuario(cartao_id, usuario_id)
-        if self.cartao_repo.existe_fatura_vinculada(cartao_id):
+        if self._possui_vinculo_bloqueante(cartao_id, usuario_id):
             if not apagar_transacoes:
                 raise BusinessRuleError(
-                    "Este cartão possui faturas vinculadas e não pode ser excluído definitivamente. "
-                    "Desative-o em vez disso, ou confirme a exclusão junto com o histórico de transações."
+                    "Este cartão possui faturas, compras parceladas ou recorrências vinculadas e não "
+                    "pode ser excluído definitivamente. Desative-o em vez disso, ou confirme a exclusão "
+                    "junto com o histórico de transações."
                 )
             self._apagar_faturas_e_transacoes(cartao_id, usuario_id)
         self.cartao_repo.delete(cartao)
+
+    def _possui_vinculo_bloqueante(self, cartao_id: int, usuario_id: int) -> bool:
+        if self.cartao_repo.existe_fatura_vinculada(cartao_id):
+            return True
+        parcelamentos = self.parcelamento_service.listar(
+            usuario_id, apenas_ativos=False, limit=_LIMITE_CASCATA_EXCLUSAO
+        )
+        if any(parcelamento.cartao_id == cartao_id for parcelamento in parcelamentos):
+            return True
+        recorrentes = self.conta_recorrente_service.listar(usuario_id, status=None, limit=_LIMITE_CASCATA_EXCLUSAO)
+        return any(recorrente.cartao_id == cartao_id for recorrente in recorrentes)
 
     def _apagar_faturas_e_transacoes(self, cartao_id: int, usuario_id: int) -> None:
         """Cascata explícita (Python, não `ondelete` do banco - este
@@ -152,12 +186,25 @@ class CartaoService:
            todas elas, a trava de "fatura fechada" nunca dispara. Delega
            automaticamente para `cancelar_parcelas_do_parcelamento` quando a
            transação pertence a um Parcelamento (mesmo método que
-           `ParcelamentoService.cancelar()` usa) - o cabeçalho do
-           Parcelamento nunca é apagado, só fica `ativo=False` (mesmo
-           comportamento de cancelar um parcelamento hoje). Uma chamada pode
+           `ParcelamentoService.cancelar()` usa). Uma chamada pode
            cascatear e já remover outras parcelas do mesmo Parcelamento
            antes do loop chegar nelas - `NotFoundError` é ignorado por
-           esse motivo."""
+           esse motivo.
+        3. `ParcelamentoService.excluir()` por parcelamento cujo `cartao_id`
+           é este cartão - ao contrário da cascata de Transação/Fatura, o
+           cabeçalho do Parcelamento NÃO pode só ficar `ativo=False`:
+           `cartao_id`/`conta_id` são XOR e NOT NULL em conjunto
+           (`ck_parcelamento_cartao_xor_conta`), não existe "desvincular"
+           um Parcelamento do Cartão que está sendo apagado. Bug real
+           (relatado pelo usuário, 2026-07-21): esse cabeçalho ficava
+           orfão silenciosamente no SQLite (sem `PRAGMA foreign_keys=ON`),
+           mas no Postgres de produção a FK é enforced e bloqueava a
+           exclusão do cartão com `IntegrityError` não tratado -
+           aparecendo no frontend como "Falha de conexão com o servidor".
+        4. `ContaRecorrenteService.excluir()` por recorrência cujo
+           `cartao_id` é este cartão - mesmo raciocínio do item 3
+           (`ck_conta_recorrente_cartao_xor_conta` também é XOR/NOT NULL
+           em conjunto)."""
         faturas = self.fatura_service.listar(cartao_id, usuario_id, limit=_LIMITE_CASCATA_EXCLUSAO)
         for fatura in faturas:
             self.fatura_service.excluir(fatura.id, usuario_id)
@@ -170,6 +217,24 @@ class CartaoService:
                 self.transacao_service.excluir(transacao.id, usuario_id)
             except NotFoundError:
                 continue
+
+        # `apenas_ativos=False`/`status=None`: um Parcelamento cancelado ou
+        # uma recorrência encerrada continuam com `cartao_id` preenchido -
+        # a cascata precisa apagar/desvincular independente do ciclo de
+        # vida (mesmo raciocínio já usado para Fatura/Transação acima).
+        parcelamentos = self.parcelamento_service.listar(
+            usuario_id, apenas_ativos=False, limit=_LIMITE_CASCATA_EXCLUSAO
+        )
+        for parcelamento in parcelamentos:
+            if parcelamento.cartao_id == cartao_id:
+                self.parcelamento_service.excluir(parcelamento.id, usuario_id)
+
+        recorrentes = self.conta_recorrente_service.listar(
+            usuario_id, status=None, limit=_LIMITE_CASCATA_EXCLUSAO
+        )
+        for recorrente in recorrentes:
+            if recorrente.cartao_id == cartao_id:
+                self.conta_recorrente_service.excluir(recorrente.id, usuario_id)
 
     def _validar_conta_do_usuario(self, conta_id: int, usuario_id: int) -> None:
         """Garante que `conta_pagamento_id` aponta para uma Conta que

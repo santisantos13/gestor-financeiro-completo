@@ -33,6 +33,7 @@ from app.services.cartao_service import CartaoService
 from app.services.conta_recorrente_service import ContaRecorrenteService
 from app.services.emprestimo_service import EmprestimoService
 from app.services.financiamento_service import FinanciamentoService
+from app.services.parcelamento_service import ParcelamentoService
 from app.services.transacao_service import TransacaoService
 from app.services.transferencia_service import TransferenciaService
 
@@ -57,6 +58,7 @@ class ContaService:
         financiamento_service: FinanciamentoService,
         emprestimo_service: EmprestimoService,
         conta_recorrente_service: ContaRecorrenteService,
+        parcelamento_service: ParcelamentoService,
     ) -> None:
         self.conta_repo = conta_repo
         self.transacao_service = transacao_service
@@ -65,6 +67,7 @@ class ContaService:
         self.financiamento_service = financiamento_service
         self.emprestimo_service = emprestimo_service
         self.conta_recorrente_service = conta_recorrente_service
+        self.parcelamento_service = parcelamento_service
 
     def criar(self, dados: ContaCreate, usuario_id: int) -> Conta:
         # ativo=True e passado explicitamente (em vez de depender do default
@@ -182,7 +185,16 @@ class ContaService:
            transação pertence a um Parcelamento (mesmo comportamento já
            usado na cascata de Cartão) - cobre parcelamento de conta e de
            cartão. `NotFoundError` é ignorado (mesma tolerância a corrida de
-           cascata já usada na exclusão de Cartão)."""
+           cascata já usada na exclusão de Cartão).
+        6. `ParcelamentoService.excluir()` por parcelamento cujo `conta_id`
+           é esta conta - mesmo motivo da cascata de Cartão
+           (`ck_parcelamento_cartao_xor_conta` é XOR/NOT NULL em conjunto,
+           não existe "desvincular" um Parcelamento da Conta que está sendo
+           apagada; bug real de FK enforced só no Postgres de produção,
+           nunca no SQLite de desenvolvimento - ver docstring de
+           `ParcelamentoService.excluir`). Parcelamento de Cartão já é
+           coberto pelo passo 3 acima (a cascata de `CartaoService` cuida
+           do próprio)."""
         financiamentos = self.financiamento_service.listar(
             usuario_id, apenas_ativos=False, limit=_LIMITE_CASCATA_EXCLUSAO
         )
@@ -229,6 +241,17 @@ class ContaService:
                 self.transacao_service.excluir(transacao.id, usuario_id)
             except NotFoundError:
                 continue
+
+        # Só depois de TODA parcela já apagada/desvinculada (passo acima) -
+        # `ParcelamentoService.excluir` espera 0 Transacao restante
+        # apontando para o parcelamento (mesma ordem já usada em
+        # `CartaoService._apagar_faturas_e_transacoes`).
+        parcelamentos = self.parcelamento_service.listar(
+            usuario_id, apenas_ativos=False, limit=_LIMITE_CASCATA_EXCLUSAO
+        )
+        for parcelamento in parcelamentos:
+            if parcelamento.conta_id == conta_id:
+                self.parcelamento_service.excluir(parcelamento.id, usuario_id)
 
     def _buscar_da_propriedade_do_usuario(self, conta_id: int, usuario_id: int) -> Conta:
         conta = self.conta_repo.get(conta_id)

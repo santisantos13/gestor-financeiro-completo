@@ -102,6 +102,29 @@ class ParcelamentoService:
         self.transacao_service.cancelar_parcelas_do_parcelamento(parcelamento_id, usuario_id)
         return self._buscar_da_propriedade_do_usuario(parcelamento_id, usuario_id)
 
+    def excluir(self, parcelamento_id: int, usuario_id: int) -> None:
+        """Hard delete - NÃO exposto em rota própria (a ação do usuário
+        continua sendo `cancelar`, que preserva o cabeçalho como
+        histórico). Existe exclusivamente para as cascatas de exclusão
+        DEFINITIVA de Cartão/Conta (`CartaoService.excluir(...,
+        apagar_transacoes=True)` / `ContaService.excluir(...,
+        apagar_vinculos=True)`, docs/analise-arquitetural-exclusao-cartao-
+        com-historico.md): `cartao_id`/`conta_id` são XOR e NOT NULL em
+        conjunto (`ck_parcelamento_cartao_xor_conta`), então não existe
+        "desvincular" um Parcelamento do Cartão/Conta que está sendo
+        apagado - o cabeçalho tem que ser apagado junto. Chamado só depois
+        que a cascata já removeu toda parcela deste parcelamento (nenhuma
+        Transacao órfã a limpar aqui). Bug real: como o SQLite usado em
+        desenvolvimento nunca teve `PRAGMA foreign_keys=ON` ligado, esse
+        cabeçalho ficava órfão silenciosamente sem nunca dar erro; no
+        Postgres de produção a FK é enforced de verdade e bloqueava a
+        exclusão do Cartão/Conta com `IntegrityError` (bug relatado pelo
+        usuário como "Falha de conexão com o servidor" ao excluir cartão,
+        2026-07-21 - o erro real ficava só no log do servidor, nunca
+        chegava ao frontend)."""
+        parcelamento = self._buscar_da_propriedade_do_usuario(parcelamento_id, usuario_id)
+        self.parcelamento_repo.delete(parcelamento)
+
     def _gerar_parcelas(
         self, parcelamento: Parcelamento, usuario_id: int, valor_parcela: Decimal | None = None
     ) -> None:

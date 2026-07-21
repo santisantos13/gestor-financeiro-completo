@@ -296,7 +296,14 @@ export function CartaoDetalhePage() {
 
       <h1 className="text-h1 font-semibold text-text-primary">{cartao.nome}</h1>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
+      {/* `minmax(0, ...)` nas DUAS trilhas, não só a esquerda - responsividade
+          mobile (2026-07-21): uma trilha `1fr` sozinha ainda tem largura
+          mínima implícita igual ao conteúdo (`min-width: auto` da spec do
+          Grid), então qualquer linha larga por dentro (ex: item de fatura
+          com nome+valor+badge) empurrava a coluna INTEIRA além do viewport
+          em vez de encolher - o "corte"/"desalinhamento no zoom out"
+          relatado pelo usuário. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         {/* Coluna esquerda: identidade + números (perguntas 1-3 da ordem de leitura). */}
         <div className="space-y-4">
           <CartaoVisual
@@ -521,17 +528,24 @@ export function CartaoDetalhePage() {
                               checked={faturasSelecionadasIds.has(fatura.id)}
                               onChange={() => alternarSelecaoFatura(fatura.id)}
                             />
+                            {/* `min-w-0` + `flex-wrap` no lado esquerdo (responsividade
+                                mobile, 2026-07-21): sem isso, "Julho/2026 · vence
+                                20/07/2026" + badge "Importada" nunca quebrava linha
+                                nem encolhia, empurrando o valor/status do lado direito
+                                para fora do card em telas estreitas. */}
                             <button
                               type="button"
                               onClick={() => setFaturaSelecionadaId(fatura.id)}
-                              className="flex flex-1 items-center justify-between text-left"
+                              className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1 text-left"
                             >
-                              <span className="flex items-center gap-2 text-sm text-text-primary">
-                                <Receipt size={14} className="text-text-tertiary" aria-hidden="true" />
-                                {nomeMes(mes)}/{ano} · vence {formatDate(fatura.data_vencimento)}
+                              <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-text-primary">
+                                <Receipt size={14} className="shrink-0 text-text-tertiary" aria-hidden="true" />
+                                <span className="truncate">
+                                  {nomeMes(mes)}/{ano} · vence {formatDate(fatura.data_vencimento)}
+                                </span>
                                 {fatura.importada && <Badge tone="neutral">Importada</Badge>}
                               </span>
-                              <span className="flex items-center gap-3">
+                              <span className="flex shrink-0 items-center gap-3">
                                 <span className="font-mono tabular text-sm text-text-primary">
                                   {formatMoney(fatura.valor_total)}
                                 </span>

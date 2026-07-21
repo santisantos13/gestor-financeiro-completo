@@ -46,7 +46,7 @@ function recorrenteParaFormulario(recorrente: ContaRecorrenteRead): RecorrenteFo
     valor: recorrente.valor,
     tipo: recorrente.tipo === "RECEITA" ? "RECEITA" : "DESPESA",
     frequencia: recorrente.frequencia,
-    dia_vencimento: recorrente.dia_vencimento != null ? String(recorrente.dia_vencimento) : "",
+    dia_vencimento: recorrente.dia_vencimento ?? undefined,
     origem: recorrente.cartao_id != null ? "CARTAO" : "CONTA",
     conta_id: recorrente.conta_id != null ? String(recorrente.conta_id) : "",
     cartao_id: recorrente.cartao_id != null ? String(recorrente.cartao_id) : "",

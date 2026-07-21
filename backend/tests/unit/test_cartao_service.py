@@ -123,6 +123,58 @@ class FakeTransacaoService:
         self._transacoes.pop(transacao_id, None)
 
 
+class FakeParcelamentoService:
+    """Fake mínimo - só os métodos que a cascata de
+    `CartaoService._apagar_faturas_e_transacoes` consome (`listar`
+    filtrado em Python por `cartao_id` no próprio Service, `excluir`).
+    Cobre a correção do bug "excluir cartão falha com Falha de conexão com
+    o servidor" (2026-07-21): cabeçalho de Parcelamento tem que ser
+    apagado junto, nunca só desvinculado (`cartao_id`/`conta_id` são XOR e
+    NOT NULL em conjunto no model real)."""
+
+    def __init__(self):
+        self._parcelamentos: dict[int, object] = {}
+        self._proximo_id = 1
+        self.ids_excluidos: list[int] = []
+
+    def adicionar_parcelamento_falso(self, cartao_id):
+        parcelamento = SimpleNamespace(id=self._proximo_id, cartao_id=cartao_id, conta_id=None)
+        self._parcelamentos[parcelamento.id] = parcelamento
+        self._proximo_id += 1
+        return parcelamento
+
+    def listar(self, usuario_id, *, apenas_ativos=True, limit=100):
+        return list(self._parcelamentos.values())[:limit]
+
+    def excluir(self, parcelamento_id, usuario_id):
+        self.ids_excluidos.append(parcelamento_id)
+        self._parcelamentos.pop(parcelamento_id, None)
+
+
+class FakeContaRecorrenteService:
+    """Fake mínimo - mesmo papel de `FakeParcelamentoService`, para a
+    correção do mesmo bug aplicada a `ContaRecorrente`
+    (`ck_conta_recorrente_cartao_xor_conta`)."""
+
+    def __init__(self):
+        self._recorrentes: dict[int, object] = {}
+        self._proximo_id = 1
+        self.ids_excluidos: list[int] = []
+
+    def adicionar_recorrente_falsa(self, cartao_id):
+        recorrente = SimpleNamespace(id=self._proximo_id, cartao_id=cartao_id, conta_id=None)
+        self._recorrentes[recorrente.id] = recorrente
+        self._proximo_id += 1
+        return recorrente
+
+    def listar(self, usuario_id, *, status=None, limit=100):
+        return list(self._recorrentes.values())[:limit]
+
+    def excluir(self, recorrente_id, usuario_id):
+        self.ids_excluidos.append(recorrente_id)
+        self._recorrentes.pop(recorrente_id, None)
+
+
 class _ContaFalsa:
     def __init__(self, id, usuario_id):
         self.id = id
@@ -164,8 +216,20 @@ def transacao_service():
 
 
 @pytest.fixture()
-def service(cartao_repo, conta_repo, fatura_service, transacao_service):
-    return CartaoService(cartao_repo, conta_repo, fatura_service, transacao_service)
+def parcelamento_service():
+    return FakeParcelamentoService()
+
+
+@pytest.fixture()
+def conta_recorrente_service():
+    return FakeContaRecorrenteService()
+
+
+@pytest.fixture()
+def service(cartao_repo, conta_repo, fatura_service, transacao_service, parcelamento_service, conta_recorrente_service):
+    return CartaoService(
+        cartao_repo, conta_repo, fatura_service, transacao_service, parcelamento_service, conta_recorrente_service
+    )
 
 
 def _criar(
@@ -432,3 +496,54 @@ def test_excluir_cartao_com_apagar_transacoes_true_tolera_transacao_ja_removida_
 
     assert cartao_repo.get(cartao.id) is None
     assert transacao_service.ids_excluidas == []
+
+
+def test_excluir_cartao_com_parcelamento_vinculado_sem_fatura_e_sem_apagar_transacoes_bloqueia(
+    service, cartao_repo, parcelamento_service
+):
+    """Gap corrigido em 2026-07-21 junto do bug de exclusão: antes desta
+    correção, `excluir()` só checava `existe_fatura_vinculada` - um cartão
+    com uma compra parcelada MAS SEM nenhuma Fatura ainda criada (fatura é
+    resolvida/criada à parte) passava direto para
+    `self.cartao_repo.delete(cartao)`, sem bloquear nem cascatear nada."""
+    cartao = _criar(service, usuario_id=1)
+    parcelamento_service.adicionar_parcelamento_falso(cartao.id)
+
+    with pytest.raises(BusinessRuleError):
+        service.excluir(cartao.id, usuario_id=1)
+
+    assert cartao_repo.get(cartao.id) is not None
+
+
+def test_excluir_cartao_com_apagar_transacoes_true_apaga_parcelamento_vinculado(
+    service, cartao_repo, parcelamento_service
+):
+    """Bug real corrigido em 2026-07-21 ("excluir cartão falha com Falha
+    de conexão com o servidor"): o cabeçalho de Parcelamento tem que ser
+    apagado junto com o cartão - `cartao_id`/`conta_id` são XOR e NOT NULL
+    em conjunto no model real (`ck_parcelamento_cartao_xor_conta`), então
+    não existe "desvincular" um Parcelamento do Cartão que está sendo
+    apagado. No SQLite de desenvolvimento isso nunca dava erro (sem
+    `PRAGMA foreign_keys=ON`); no Postgres de produção a FK é enforced e
+    bloqueava a exclusão do cartão."""
+    cartao = _criar(service, usuario_id=1)
+    parcelamento = parcelamento_service.adicionar_parcelamento_falso(cartao.id)
+
+    service.excluir(cartao.id, usuario_id=1, apagar_transacoes=True)
+
+    assert cartao_repo.get(cartao.id) is None
+    assert parcelamento_service.ids_excluidos == [parcelamento.id]
+
+
+def test_excluir_cartao_com_apagar_transacoes_true_apaga_recorrente_vinculada(
+    service, cartao_repo, conta_recorrente_service
+):
+    """Mesmo bug do teste acima, para `ContaRecorrente`
+    (`ck_conta_recorrente_cartao_xor_conta`)."""
+    cartao = _criar(service, usuario_id=1)
+    recorrente = conta_recorrente_service.adicionar_recorrente_falsa(cartao.id)
+
+    service.excluir(cartao.id, usuario_id=1, apagar_transacoes=True)
+
+    assert cartao_repo.get(cartao.id) is None
+    assert conta_recorrente_service.ids_excluidos == [recorrente.id]

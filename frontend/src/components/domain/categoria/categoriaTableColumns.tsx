@@ -166,7 +166,14 @@ export function buildCategoriaTableColumns(
             ) : (
               <span className="w-3.5 shrink-0" aria-hidden="true" />
             )}
-            <CategoryBadge nome={categoria.nome} cor={categoria.cor} icone={categoria.icone} size="sm" showName />
+            <CategoryBadge
+              nome={categoria.nome}
+              cor={categoria.cor}
+              icone={categoria.icone}
+              size="sm"
+              showName
+              className="min-w-0 flex-1"
+            />
             {categoria.e_do_sistema && (
               // Auditoria de Identidade Visual: tone `accent` é reservado
               // para interação (design-system.md, seção 6.3) — "Sistema" é
@@ -204,7 +211,7 @@ export function buildCategoriaTableColumns(
                 evento.stopPropagation();
                 onAlternarColapso!(categoria.id);
               }}
-              className="-my-1 flex w-full items-center gap-2 rounded py-1 text-left transition-colors hover:bg-surface-3"
+              className="-my-1 flex w-full min-w-0 items-center gap-2 rounded py-1 text-left transition-colors hover:bg-surface-3"
               style={profundidade > 0 ? { paddingLeft: `${profundidade * 20}px` } : undefined}
               aria-label={recolhido ? `Expandir ${categoria.nome}` : `Recolher ${categoria.nome}`}
               aria-expanded={!recolhido}
@@ -216,7 +223,7 @@ export function buildCategoriaTableColumns(
 
         return (
           <span
-            className="flex items-center gap-2"
+            className="flex min-w-0 items-center gap-2"
             style={profundidade > 0 ? { paddingLeft: `${profundidade * 20}px` } : undefined}
           >
             {conteudo}

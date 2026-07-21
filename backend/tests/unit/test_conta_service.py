@@ -138,6 +138,20 @@ class FakeCartaoService(_FakeServiceComLista):
         super().excluir(item_id, usuario_id)
 
 
+class FakeParcelamentoService(_FakeServiceComLista):
+    """Fake mínimo - correção do bug "excluir cartão/conta falha com Falha
+    de conexão com o servidor" (2026-07-21): cabeçalho de Parcelamento tem
+    que ser apagado junto, nunca só desvinculado (`cartao_id`/`conta_id`
+    são XOR e NOT NULL em conjunto no model real,
+    `ck_parcelamento_cartao_xor_conta`)."""
+
+    def adicionar_parcelamento_falso(self, conta_id):
+        return self._adicionar(conta_id=conta_id, cartao_id=None)
+
+    def listar(self, usuario_id, *, apenas_ativos=True, limit=100):
+        return list(self._itens.values())[:limit]
+
+
 class FakeTransferenciaService(_FakeServiceComLista):
     def adicionar_transferencia_falsa(self, conta_id):
         return self._adicionar(conta_id=conta_id)
@@ -196,6 +210,11 @@ def conta_recorrente_service():
 
 
 @pytest.fixture()
+def parcelamento_service():
+    return FakeParcelamentoService()
+
+
+@pytest.fixture()
 def service(
     repo,
     transacao_service,
@@ -204,6 +223,7 @@ def service(
     financiamento_service,
     emprestimo_service,
     conta_recorrente_service,
+    parcelamento_service,
 ):
     return ContaService(
         repo,
@@ -213,6 +233,7 @@ def service(
         financiamento_service,
         emprestimo_service,
         conta_recorrente_service,
+        parcelamento_service,
     )
 
 
@@ -354,6 +375,7 @@ def test_excluir_conta_com_apagar_vinculos_true_remove_tudo(
     financiamento_service,
     emprestimo_service,
     conta_recorrente_service,
+    parcelamento_service,
 ):
     """Pedido explícito do usuário (ver
     docs/analise-arquitetural-exclusao-conta-com-historico.md): com
@@ -372,6 +394,10 @@ def test_excluir_conta_com_apagar_vinculos_true_remove_tudo(
     transferencia = transferencia_service.adicionar_transferencia_falsa(conta.id)
     transacao_a = transacao_service.adicionar_transacao_falsa(conta.id)
     transacao_b = transacao_service.adicionar_transacao_falsa(conta.id)
+    # bug real corrigido em 2026-07-21 ("excluir cartão/conta falha com
+    # Falha de conexão com o servidor"): cabeçalho de Parcelamento também
+    # tem que ser apagado, nunca só desvinculado.
+    parcelamento = parcelamento_service.adicionar_parcelamento_falso(conta.id)
 
     service.excluir(conta.id, usuario_id=1, apagar_vinculos=True)
 
@@ -383,6 +409,7 @@ def test_excluir_conta_com_apagar_vinculos_true_remove_tudo(
     assert cartao_service.chamadas_apagar_transacoes == [True]
     assert transferencia_service.ids_excluidos == [transferencia.id]
     assert set(transacao_service.ids_excluidos) == {transacao_a.id, transacao_b.id}
+    assert parcelamento_service.ids_excluidos == [parcelamento.id]
 
 
 def test_excluir_conta_com_apagar_vinculos_true_tolera_transacao_ja_removida_em_cascata(

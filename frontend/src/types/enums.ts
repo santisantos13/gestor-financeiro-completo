@@ -98,7 +98,9 @@ export type CategoriaEventoCalendario =
   | "FATURA_FECHAMENTO"
   | "FATURA_VENCIMENTO"
   | "TRANSFERENCIA"
-  | "META";
+  | "META"
+  | "FINANCIAMENTO"
+  | "EMPRESTIMO";
 
 /** Discriminador de exibição/filtro do extrato de uma Conta (`GET
  * /contas/{id}/extrato`) — espelha `CategoriaMovimentacaoConta` (backend,

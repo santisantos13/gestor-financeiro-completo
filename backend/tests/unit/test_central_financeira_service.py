@@ -182,6 +182,15 @@ class FakeFaturaService:
     def listar(self, cartao_id, usuario_id, *, limit=100):
         return list(self._faturas_por_cartao.get(cartao_id, []))[:limit]
 
+    # Fake mínimo não precisa reordenar de verdade (os testes deste arquivo
+    # nunca colocam mais de 3 faturas falsas por cartão) - só precisa
+    # existir com a mesma assinatura, já que `calendario_financeiro`/
+    # `agenda_financeira` passaram a chamar este método em vez de
+    # `listar` (correção do bug "calendário não exibe fechamento/
+    # vencimento de fatura", 2026-07-21).
+    def listar_recentes(self, cartao_id, usuario_id, *, limit=100):
+        return list(self._faturas_por_cartao.get(cartao_id, []))[:limit]
+
 
 class FakeTransacaoService:
     def __init__(self, transacoes):
@@ -576,6 +585,29 @@ def test_calendario_financeiro_categoriza_transacao_paga_e_pendente_por_tipo():
     assert por_descricao["Salário"]["status"] == "PAGO"
     assert por_descricao["Aluguel"]["categoria"] == CategoriaEventoCalendario.DESPESA
     assert por_descricao["Aluguel"]["status"] == "PENDENTE"
+
+
+def test_calendario_financeiro_categoriza_financiamento_e_emprestimo_com_categoria_propria():
+    """Pedido do usuário (2026-07-21, "pode dar uma cor"): parcela de
+    Financiamento/Empréstimo não deve mais cair em RECEITA/DESPESA
+    genérico - ganha categoria própria (cor dedicada na legenda do
+    frontend, `calendarioCategorias.ts`)."""
+    parcela_financiamento = _Transacao(
+        id=1, valor=Decimal("800"), data=HOJE, descricao="Parcela financiamento",
+        status=StatusTransacao.PENDENTE, tipo=TipoTransacao.DESPESA, financiamento_id=10,
+    )
+    parcela_emprestimo = _Transacao(
+        id=2, valor=Decimal("300"), data=HOJE, descricao="Parcela empréstimo",
+        status=StatusTransacao.PENDENTE, tipo=TipoTransacao.DESPESA, emprestimo_id=20,
+    )
+    service = _service(transacoes=[parcela_financiamento, parcela_emprestimo])
+    eventos = service.calendario_financeiro(usuario_id=1)["eventos"]
+
+    por_descricao = {e["descricao"]: e for e in eventos}
+    assert por_descricao["Parcela financiamento"]["categoria"] == CategoriaEventoCalendario.FINANCIAMENTO
+    assert por_descricao["Parcela financiamento"]["origem_tipo"] == TipoEntidadeReferenciavel.FINANCIAMENTO
+    assert por_descricao["Parcela empréstimo"]["categoria"] == CategoriaEventoCalendario.EMPRESTIMO
+    assert por_descricao["Parcela empréstimo"]["origem_tipo"] == TipoEntidadeReferenciavel.EMPRESTIMO
 
 
 def test_calendario_financeiro_exclui_transacao_fora_do_mes_consultado():

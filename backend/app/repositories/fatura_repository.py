@@ -42,6 +42,29 @@ class FaturaRepository(SQLAlchemyRepository[Fatura]):
         )
         return self.db.execute(stmt).scalars().all()
 
+    def listar_recentes_do_cartao(self, cartao_id: int, *, limit: int = 100) -> Sequence[Fatura]:
+        """Mesmas linhas de `listar_do_cartao`, ordem OPOSTA (mais recente
+        primeiro) - usado só por `CentralFinanceiraService.
+        calendario_financeiro`/`agenda_financeira`, que buscam com
+        `limit=3` esperando "o ciclo atual + uma folga de ciclos
+        próximos". Bug real corrigido em 2026-07-21 ("calendário não
+        exibe fechamento/vencimento de fatura"): os dois chamavam
+        `listar_do_cartao` (ordem ASCENDENTE desde 2026-07-20, pedido do
+        usuário para a tela de listagem de faturas) com esse mesmo
+        `limit=3` - qualquer cartão com mais de 3 meses de uso passou a
+        nunca mais mostrar o ciclo atual, só os 3 mais antigos do
+        histórico. Método separado (em vez de um parâmetro `ordem=` em
+        `listar_do_cartao`) porque os dois usos têm requisitos opostos e
+        nenhuma relação entre si - misturar os dois num parâmetro só
+        esconderia essa diferença de propósito."""
+        stmt = (
+            select(Fatura)
+            .where(Fatura.cartao_id == cartao_id)
+            .order_by(Fatura.mes_referencia.desc())
+            .limit(limit)
+        )
+        return self.db.execute(stmt).scalars().all()
+
     def buscar_por_cartao_e_mes(self, cartao_id: int, mes_referencia: date) -> Fatura | None:
         stmt = select(Fatura).where(
             Fatura.cartao_id == cartao_id, Fatura.mes_referencia == mes_referencia

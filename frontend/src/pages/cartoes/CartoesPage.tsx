@@ -193,12 +193,12 @@ export function CartoesPage() {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <SearchBar
             value={busca}
             onChange={setBusca}
             placeholder="Buscar por nome, instituição ou últimos 4 dígitos..."
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <FilterBar
             filters={FILTROS}

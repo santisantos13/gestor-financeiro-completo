@@ -777,7 +777,16 @@ def test_excluir_cartao_permanente_com_apagar_transacoes_cancela_parcelamento_do
     (via TransacaoService.excluir -> cancelar_parcelas_do_parcelamento,
     mesmo caminho de ParcelamentoService.cancelar()) sem quebrar mesmo
     quando uma chamada de exclusão já cascateia e remove outras parcelas do
-    mesmo Parcelamento antes do loop chegar nelas."""
+    mesmo Parcelamento antes do loop chegar nelas. O CABEÇALHO do
+    Parcelamento também precisa ser apagado (não só marcado `ativo=False`,
+    como no `cancelar()` avulso) - `cartao_id`/`conta_id` são XOR e NOT
+    NULL em conjunto no model (`ck_parcelamento_cartao_xor_conta`), não
+    existe "desvincular" um Parcelamento do Cartão que está sendo apagado.
+    Bug real corrigido em 2026-07-21 ("excluir cartão falha com Falha de
+    conexão com o servidor"): esse cabeçalho ficava órfão silenciosamente
+    no SQLite de desenvolvimento (sem `PRAGMA foreign_keys=ON`), mas
+    bloqueava a exclusão do cartão com `IntegrityError` no Postgres de
+    produção, onde a FK é enforced de verdade."""
     headers = _registrar_e_logar(client)
     conta = _criar_conta(client, headers)
     cartao = _criar_cartao(client, headers, conta["id"])
@@ -814,10 +823,8 @@ def test_excluir_cartao_permanente_com_apagar_transacoes_cancela_parcelamento_do
     ).json()
     assert parcelas == []
 
-    parcelamento_atualizado = client.get(
-        f"/parcelamentos/{parcelamento['id']}", headers=headers
-    ).json()
-    assert parcelamento_atualizado["ativo"] is False
+    resposta_parcelamento = client.get(f"/parcelamentos/{parcelamento['id']}", headers=headers)
+    assert resposta_parcelamento.status_code == 404
 
 
 def test_excluir_cartao_permanente_com_apagar_transacoes_preserva_transacao_de_pagamento_da_fatura(

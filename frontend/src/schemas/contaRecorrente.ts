@@ -51,7 +51,13 @@ export const recorrenteFormSchema = z
       ["DIARIA", "SEMANAL", "QUINZENAL", "MENSAL", "BIMESTRAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL"],
       { message: "Selecione a frequência." },
     ),
-    dia_vencimento: z.string(),
+    // `NumberField` (ver components/ui/NumberField.tsx) já entrega o valor
+    // pro RHF como `number` (ou `undefined` quando vazio) - não como
+    // string. O schema aqui declarava `z.string()`, um descompasso que
+    // fazia QUALQUER valor digitado falhar a validação de tipo do Zod
+    // ("Invalid input"), bloqueando por completo a criação de
+    // recorrências baseadas em mês (bug relatado pelo usuário, 2026-07-21).
+    dia_vencimento: z.number().optional(),
     origem: z.enum(["CONTA", "CARTAO"], { message: "Selecione a origem." }),
     conta_id: z.string(),
     cartao_id: z.string(),
@@ -61,7 +67,7 @@ export const recorrenteFormSchema = z
   })
   .refine(
     (v) =>
-      FREQUENCIAS_SEM_DIA_VENCIMENTO.includes(v.frequencia) || v.dia_vencimento.trim() !== "",
+      FREQUENCIAS_SEM_DIA_VENCIMENTO.includes(v.frequencia) || v.dia_vencimento != null,
     { message: "Informe o dia do vencimento.", path: ["dia_vencimento"] },
   )
   .refine((v) => v.origem !== "CONTA" || v.conta_id !== "", {
@@ -80,7 +86,7 @@ export const RECORRENTE_VALORES_VAZIOS: RecorrenteFormValues = {
   valor: "",
   tipo: "DESPESA",
   frequencia: "MENSAL",
-  dia_vencimento: "",
+  dia_vencimento: undefined,
   origem: "CONTA",
   conta_id: "",
   cartao_id: "",
@@ -96,7 +102,7 @@ export function recorrenteFormValuesParaPayload(valores: RecorrenteFormValues): 
     valor: valores.valor,
     tipo: valores.tipo,
     frequencia: valores.frequencia,
-    dia_vencimento: semDia ? null : Number(valores.dia_vencimento),
+    dia_vencimento: semDia ? null : (valores.dia_vencimento ?? null),
     conta_id: valores.origem === "CONTA" ? Number(valores.conta_id) : null,
     cartao_id: valores.origem === "CARTAO" ? Number(valores.cartao_id) : null,
     categoria_id: valores.categoria_id ? Number(valores.categoria_id) : null,

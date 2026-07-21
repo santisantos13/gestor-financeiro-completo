@@ -398,6 +398,38 @@ def test_agenda_financeira_respeita_janela_de_dias(client):
     assert dados["eventos"] == []
 
 
+def test_agenda_financeira_inclui_fatura_mesmo_com_mais_de_tres_ciclos_de_historico(client):
+    """Mesmo bug/correção de
+    `test_calendario_financeiro_inclui_fatura_mesmo_com_mais_de_tres_ciclos_de_historico`,
+    aplicado a `agenda_financeira` - os dois usavam a mesma chamada
+    (`FaturaService.listar(..., limit=3)`, ordem ascendente) e tinham o
+    mesmo bug."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    hoje = date.today()
+
+    for n in range(4, 0, -1):
+        resposta = client.post(
+            "/faturas",
+            json={"cartao_id": cartao["id"], "mes_referencia": str(_mes_referencia_ha_n_meses(hoje, n))},
+            headers=headers,
+        )
+        assert resposta.status_code == 201, resposta.text
+
+    mes_referencia_futuro = _mes_referencia_ha_n_meses(hoje, -1)
+    fatura_futura = client.post(
+        "/faturas",
+        json={"cartao_id": cartao["id"], "mes_referencia": str(mes_referencia_futuro)},
+        headers=headers,
+    ).json()
+
+    dados = client.get("/central-financeira/agenda", params={"dias": 60}, headers=headers).json()
+
+    ids_fatura = [e["origem_id"] for e in dados["eventos"] if e["origem_tipo"] == "FATURA"]
+    assert fatura_futura["id"] in ids_fatura
+
+
 # --- calendário financeiro (Etapa de Transferências/Calendário) -----------------
 
 def test_calendario_financeiro_com_mes_fora_de_faixa_devolve_422(client):
@@ -424,6 +456,23 @@ def test_calendario_financeiro_inclui_transacao_paga_do_mes_atual(client):
     assert eventos_receita[0]["origem_tipo"] == "TRANSACAO"
 
 
+def test_calendario_financeiro_categoriza_parcela_de_financiamento_com_cor_propria(client):
+    """Pedido do usuário (2026-07-21, "pode dar uma cor"): parcela de
+    Financiamento não deve mais aparecer com a mesma categoria genérica
+    (DESPESA) de qualquer outra transação - ganha `categoria=FINANCIAMENTO`
+    própria (cor dedicada na legenda do calendário)."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    financiamento = _criar_financiamento(client, headers, conta["id"], num_parcelas=3)
+
+    dados = client.get("/central-financeira/calendario", headers=headers).json()
+
+    eventos_financiamento = [e for e in dados["eventos"] if e["origem_tipo"] == "FINANCIAMENTO"]
+    assert len(eventos_financiamento) >= 1
+    assert all(e["categoria"] == "FINANCIAMENTO" for e in eventos_financiamento)
+    assert all(e["origem_id"] == financiamento["id"] for e in eventos_financiamento)
+
+
 def test_calendario_financeiro_exclui_compra_de_cartao(client):
     """Bug real corrigido (2026-07-20, pedido explícito do usuário: "o
     ideal é que no calendário apareça apenas pagamento de faturas, faturas
@@ -447,6 +496,57 @@ def test_calendario_financeiro_exclui_compra_de_cartao(client):
     eventos_despesa = [e for e in dados["eventos"] if e["categoria"] == "DESPESA"]
     assert len(eventos_despesa) == 1
     assert eventos_despesa[0]["valor"] == "30.00"
+
+
+def _mes_referencia_ha_n_meses(hoje: date, n: int) -> date:
+    mes = hoje.month - n
+    ano = hoje.year
+    while mes <= 0:
+        mes += 12
+        ano -= 1
+    return date(ano, mes, 1)
+
+
+def test_calendario_financeiro_inclui_fatura_mesmo_com_mais_de_tres_ciclos_de_historico(client):
+    """Bug real corrigido em 2026-07-21 ("calendário não exibe fechamento/
+    vencimento de fatura"): `calendario_financeiro` busca as faturas do
+    cartão com `limit=3` esperando as 3 MAIS RECENTES (o ciclo atual +
+    folga), mas usava `FaturaService.listar` - que ordena por
+    `mes_referencia` ASCENDENTE (pedido do usuário para a tela de listagem
+    de faturas, 2026-07-20). Qualquer cartão com mais de 3 meses de fatura
+    no histórico passava a nunca mais mostrar o ciclo ATUAL no calendário,
+    só os 3 mais antigos - corrigido usando `listar_recentes` (ordem
+    DESCENDENTE), método novo e separado porque as duas telas têm ordens
+    opostas e nenhuma relação entre si."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    hoje = date.today()
+
+    # 4 ciclos antigos - mais que o `limit=3` do calendário, exatamente o
+    # cenário que expunha o bug.
+    for n in range(4, 0, -1):
+        resposta = client.post(
+            "/faturas",
+            json={"cartao_id": cartao["id"], "mes_referencia": str(_mes_referencia_ha_n_meses(hoje, n))},
+            headers=headers,
+        )
+        assert resposta.status_code == 201, resposta.text
+
+    fatura_atual = client.post(
+        "/faturas",
+        json={"cartao_id": cartao["id"], "mes_referencia": str(date(hoje.year, hoje.month, 1))},
+        headers=headers,
+    ).json()
+
+    dados = client.get(
+        "/central-financeira/calendario", params={"ano": hoje.year, "mes": hoje.month}, headers=headers
+    ).json()
+
+    categorias_da_fatura_atual = {
+        e["categoria"] for e in dados["eventos"] if e["origem_id"] == fatura_atual["id"]
+    }
+    assert categorias_da_fatura_atual & {"FATURA_FECHAMENTO", "FATURA_VENCIMENTO"}
 
 
 def test_calendario_financeiro_inclui_transferencia_ativa_do_mes(client):

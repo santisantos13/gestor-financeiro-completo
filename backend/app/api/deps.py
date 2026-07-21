@@ -181,26 +181,6 @@ def get_transacao_service(
     )
 
 
-def get_cartao_service(
-    cartao_repo: Annotated[CartaoRepository, Depends(get_cartao_repository)],
-    conta_repo: Annotated[ContaRepository, Depends(get_conta_repository)],
-    fatura_service: Annotated[FaturaService, Depends(get_fatura_service)],
-    transacao_service: Annotated[TransacaoService, Depends(get_transacao_service)],
-) -> CartaoService:
-    # CartaoService recebe ContaRepository (valida posse de
-    # conta_pagamento_id), FaturaService - correcao do bug "limite
-    # disponivel nao volta ao pagar fatura" (2026-07):
-    # FaturaService.ids_faturas_pagas() e a UNICA fonte de verdade sobre
-    # "o que conta como pago" (mesma derivacao de status_calculado usada em
-    # toda a tela de Fatura), entao CartaoService reusa esse calculo em vez
-    # de duplicar a regra comparando com a coluna Fatura.status (que nunca
-    # chega a valer PAGA de verdade - ver docstring de StatusFatura) - e
-    # agora tambem TransacaoService, usado só quando `excluir()` é chamado
-    # com `apagar_transacoes=True` (ver
-    # docs/analise-arquitetural-exclusao-cartao-com-historico.md).
-    return CartaoService(cartao_repo, conta_repo, fatura_service, transacao_service)
-
-
 def get_parcelamento_service(
     parcelamento_repo: Annotated[ParcelamentoRepository, Depends(get_parcelamento_repository)],
     transacao_repo: Annotated[TransacaoRepository, Depends(get_transacao_repository)],
@@ -233,6 +213,35 @@ def get_conta_recorrente_service(
     return ContaRecorrenteService(conta_recorrente_repo, transacao_repo, transacao_service)
 
 
+def get_cartao_service(
+    cartao_repo: Annotated[CartaoRepository, Depends(get_cartao_repository)],
+    conta_repo: Annotated[ContaRepository, Depends(get_conta_repository)],
+    fatura_service: Annotated[FaturaService, Depends(get_fatura_service)],
+    transacao_service: Annotated[TransacaoService, Depends(get_transacao_service)],
+    parcelamento_service: Annotated[ParcelamentoService, Depends(get_parcelamento_service)],
+    conta_recorrente_service: Annotated[ContaRecorrenteService, Depends(get_conta_recorrente_service)],
+) -> CartaoService:
+    # CartaoService recebe ContaRepository (valida posse de
+    # conta_pagamento_id), FaturaService - correcao do bug "limite
+    # disponivel nao volta ao pagar fatura" (2026-07):
+    # FaturaService.ids_faturas_pagas() e a UNICA fonte de verdade sobre
+    # "o que conta como pago" (mesma derivacao de status_calculado usada em
+    # toda a tela de Fatura), entao CartaoService reusa esse calculo em vez
+    # de duplicar a regra comparando com a coluna Fatura.status (que nunca
+    # chega a valer PAGA de verdade - ver docstring de StatusFatura) - e
+    # agora tambem TransacaoService, usado só quando `excluir()` é chamado
+    # com `apagar_transacoes=True` (ver
+    # docs/analise-arquitetural-exclusao-cartao-com-historico.md). Definida
+    # só depois de `get_parcelamento_service`/`get_conta_recorrente_service`
+    # (ordem importa: `Depends(...)` como valor default é avaliado de cima
+    # pra baixo) - correção do bug "excluir cartão falha com Falha de
+    # conexão com o servidor" (2026-07-21, ver
+    # `CartaoService._apagar_faturas_e_transacoes`).
+    return CartaoService(
+        cartao_repo, conta_repo, fatura_service, transacao_service, parcelamento_service, conta_recorrente_service
+    )
+
+
 def get_meta_service(
     meta_repo: Annotated[MetaRepository, Depends(get_meta_repository)],
     conta_repo: Annotated[ContaRepository, Depends(get_conta_repository)],
@@ -255,6 +264,7 @@ def get_conta_service(
     financiamento_service: Annotated[FinanciamentoService, Depends(get_financiamento_service)],
     emprestimo_service: Annotated[EmprestimoService, Depends(get_emprestimo_service)],
     conta_recorrente_service: Annotated[ContaRecorrenteService, Depends(get_conta_recorrente_service)],
+    parcelamento_service: Annotated[ParcelamentoService, Depends(get_parcelamento_service)],
 ) -> ContaService:
     # Definida só depois de todos os Services acima (ordem importa aqui:
     # `Depends(...)` como valor default é avaliado na hora que o `def`
@@ -262,7 +272,10 @@ def get_conta_service(
     # eles para a exclusão em cascata (`excluir(..., apagar_vinculos=True)`,
     # ver docs/analise-arquitetural-exclusao-conta-com-historico.md), mesmo
     # raciocínio já usado ao mover `get_cartao_service` para depois de
-    # `get_transacao_service`.
+    # `get_transacao_service`. `parcelamento_service` adicionado na correção
+    # do bug "excluir cartão falha com Falha de conexão com o servidor"
+    # (2026-07-21) - a mesma cascata de Parcelamento também se aplica a
+    # Conta (`ck_parcelamento_cartao_xor_conta`).
     return ContaService(
         conta_repo,
         transacao_service,
@@ -271,6 +284,7 @@ def get_conta_service(
         financiamento_service,
         emprestimo_service,
         conta_recorrente_service,
+        parcelamento_service,
     )
 
 

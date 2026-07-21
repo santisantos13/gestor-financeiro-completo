@@ -290,7 +290,7 @@ class CentralFinanceiraService:
 
         cartoes = self.cartao_service.listar(usuario_id, apenas_ativos=True)
         for cartao in cartoes:
-            for fatura in self.fatura_service.listar(cartao.id, usuario_id, limit=3):
+            for fatura in self.fatura_service.listar_recentes(cartao.id, usuario_id, limit=3):
                 if fatura.status_calculado == StatusFatura.PAGA:
                     continue
                 if not (hoje <= fatura.data_vencimento <= limite):
@@ -357,11 +357,26 @@ class CentralFinanceiraService:
         )
         for transacao in transacoes:
             origem_tipo, origem_id = self._origem_da_transacao(transacao)
-            categoria = (
-                CategoriaEventoCalendario.RECEITA
-                if transacao.tipo == TipoTransacao.RECEITA
-                else CategoriaEventoCalendario.DESPESA
-            )
+            # Financiamento/Empréstimo ganham categoria própria (cor
+            # dedicada na legenda) em vez de caírem em RECEITA/DESPESA
+            # genérico - pedido do usuário (2026-07-21): "o calendário
+            # precisa marcar TODOS os tipos de evento". O dado já estava
+            # correto (confirmado via reprodução direta no backend: parcela
+            # de Financiamento/Empréstimo sempre aparecia aqui), o gap real
+            # era só de exibição - as duas ficavam visualmente idênticas a
+            # qualquer outra Transacao. Parcelamento/ContaRecorrente
+            # continuam RECEITA/DESPESA (não pedido, e já distinguíveis pelo
+            # ícone no Drawer via origemNavegacao.ts).
+            if origem_tipo == TipoEntidadeReferenciavel.FINANCIAMENTO:
+                categoria = CategoriaEventoCalendario.FINANCIAMENTO
+            elif origem_tipo == TipoEntidadeReferenciavel.EMPRESTIMO:
+                categoria = CategoriaEventoCalendario.EMPRESTIMO
+            else:
+                categoria = (
+                    CategoriaEventoCalendario.RECEITA
+                    if transacao.tipo == TipoTransacao.RECEITA
+                    else CategoriaEventoCalendario.DESPESA
+                )
             eventos.append(
                 {
                     "data": transacao.data,
@@ -377,10 +392,16 @@ class CentralFinanceiraService:
         # Fatura: fechamento e vencimento são dois eventos DISTINTOS (cores
         # diferentes) quando os dois caem no mês consultado - mesmo cartão
         # pode gerar até 2 linhas. `limit=3` é o mesmo recorte já usado por
-        # `agenda_financeira` (o ciclo do mês corrente + folga de 2 ciclos).
+        # `agenda_financeira` (o ciclo do mês corrente + folga de 2 ciclos) -
+        # `listar_recentes` (mais recente primeiro), NUNCA `listar` (ordem
+        # cronológica ascendente, para a tela de listagem de faturas): bug
+        # real corrigido em 2026-07-21 ("calendário não exibe fechamento/
+        # vencimento de fatura") - com `listar` + `limit=3`, qualquer cartão
+        # com mais de 3 meses de uso só devolvia os 3 ciclos mais ANTIGOS,
+        # nunca o atual.
         cartoes = self.cartao_service.listar(usuario_id, apenas_ativos=True)
         for cartao in cartoes:
-            for fatura in self.fatura_service.listar(cartao.id, usuario_id, limit=3):
+            for fatura in self.fatura_service.listar_recentes(cartao.id, usuario_id, limit=3):
                 status_fatura = fatura.status_calculado.value
                 if data_inicio <= fatura.data_fechamento <= data_fim:
                     eventos.append(
@@ -497,13 +518,16 @@ class CentralFinanceiraService:
         """Central de Atividades (Sprint de Refinamento Premium, item 17,
         `docs/analise-arquitetural-sprint-refinamento-premium.md`, seção
         17): "o que aconteceu recentemente", combinando Transação +
-        Transferência + Meta concluída - as únicas 3 fontes que já expõem
-        um timestamp real de quando o evento aconteceu (`criado_em`, ou
-        `concluida_em` no caso de Meta). Nenhuma tabela/campo novo: cada
-        fonte já vem de um Service de domínio existente, e a combinação/
-        ordenação abaixo é só Python sobre 3 listas já pequenas e
-        limitadas (regra 3 do cabeçalho deste arquivo), nunca uma query
-        nova."""
+        Transferência + Meta concluída. `data_hora` usa sempre a data
+        REGISTRADA no lançamento (`data` de Transação/Transferência,
+        `concluida_em` de Meta) combinada com meia-noite - nunca
+        `criado_em` (timestamp de auditoria de quando a linha foi
+        inserida no banco), que fazia tudo aparecer com a data/hora de
+        HOJE independente da data real do lançamento (bug relatado pelo
+        usuário, 2026-07-21). Nenhuma tabela/campo novo: cada fonte já
+        vem de um Service de domínio existente, e a combinação/ordenação
+        abaixo é só Python sobre 3 listas já pequenas e limitadas (regra
+        3 do cabeçalho deste arquivo), nunca uma query nova."""
         atividades = []
 
         transacoes = self.transacao_service.listar(usuario_id, limit=limit)
@@ -511,7 +535,16 @@ class CentralFinanceiraService:
             origem_tipo, origem_id = self._origem_da_transacao(transacao)
             atividades.append(
                 {
-                    "data_hora": transacao.criado_em,
+                    # `criado_em` é o timestamp de AUDITORIA (quando a linha foi
+                    # inserida no banco) - usá-lo aqui fazia toda transação
+                    # aparecer com a data/hora de HOJE no feed, mesmo para
+                    # lançamentos com data passada/futura (ex: parcelas de
+                    # cartão). O campo correto é `data`, a data efetivamente
+                    # registrada no lançamento (bug relatado pelo usuário,
+                    # 2026-07-21). `data` é só Date (sem hora), então
+                    # combinamos com meia-noite, igual já era feito para Meta
+                    # logo abaixo - mesma convenção, sem inventar hora nenhuma.
+                    "data_hora": datetime.combine(transacao.data, time.min),
                     "descricao": transacao.descricao,
                     "valor": transacao.valor,
                     "origem_tipo": origem_tipo,
@@ -523,7 +556,7 @@ class CentralFinanceiraService:
         for transferencia in transferencias:
             atividades.append(
                 {
-                    "data_hora": transferencia.criado_em,
+                    "data_hora": datetime.combine(transferencia.data, time.min),
                     "descricao": transferencia.descricao or "Transferência entre contas",
                     "valor": transferencia.valor,
                     "origem_tipo": TipoEntidadeReferenciavel.TRANSFERENCIA,

@@ -54,9 +54,9 @@ export function CategoryBadge({ nome, cor, icone, size = "md", showName = false,
   if (!showName) return selo;
 
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
+    <span className={`inline-flex min-w-0 items-center gap-2 ${className}`}>
       {selo}
-      <span className="truncate text-text-primary">{nome}</span>
+      <span className="min-w-0 flex-1 truncate text-text-primary">{nome}</span>
     </span>
   );
 }

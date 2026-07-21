@@ -251,6 +251,11 @@ class CategoriaEventoCalendario(str, enum.Enum):
     FATURA_VENCIMENTO = "FATURA_VENCIMENTO"
     TRANSFERENCIA = "TRANSFERENCIA"
     META = "META"
+    # Adicionados a pedido do usuario (calendario deveria destacar
+    # financiamento/emprestimo com cor propria, nao agrupados em
+    # RECEITA/DESPESA generico) - ver calendarioCategorias.ts no frontend.
+    FINANCIAMENTO = "FINANCIAMENTO"
+    EMPRESTIMO = "EMPRESTIMO"
 
 
 class CategoriaMovimentacaoConta(str, enum.Enum):

@@ -203,7 +203,7 @@ export function ContasPage() {
       </div>
 
       {!isLoading && contas && contas.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-1.5">
             {FILTROS_TIPO.map((filtro) => (
               <button
@@ -221,19 +221,19 @@ export function ContasPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <SearchBar
               value={busca}
               onChange={setBusca}
               placeholder="Buscar por nome ou instituição..."
-              className="w-56"
+              className="w-full sm:w-56"
             />
             <Select
               options={criterioOptions}
               value={criterio}
               onChange={(valor) => setCriterio(valor as CriterioOrdenacao)}
               aria-label="Ordenar contas"
-              className="w-40"
+              className="w-full sm:w-40"
             />
           </div>
         </div>

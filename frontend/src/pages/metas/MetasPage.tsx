@@ -137,55 +137,64 @@ export function MetasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-h1 font-semibold text-text-primary">Metas</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Seus objetivos de economia — o progresso vem dos lançamentos que você marcar como aporte.
-          </p>
-        </div>
-        <Button onClick={abrirCriacao}>
-          <Plus size={16} aria-hidden="true" />
-          Nova meta
-        </Button>
-      </div>
-
-      {!isLoading && metas && metas.length > 0 && (
+      {/* Título + bloco de filtros agrupados com espaçamento mais apertado
+          (`space-y-3`, não os `space-y-6` do container da página) - pedido
+          do usuário: o bloco de filtros/busca/ordenação ocupava espaço
+          vertical desproporcional em relação aos cards de metas abaixo.
+          Botões de filtro mais compactos (`px-2.5 py-1`) e busca/ordenação
+          um pouco mais estreitas reduzem a chance de quebrar linha, que
+          era o maior contribuinte para a altura excessiva. */}
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {FILTROS_RAPIDOS.map((filtro) => (
-              <button
-                key={filtro}
-                type="button"
-                onClick={() => setFiltroRapido(filtro)}
-                className={`rounded-full px-3 py-1 text-caption font-medium transition-colors duration-fast ease-out ${
-                  filtroRapido === filtro
-                    ? "bg-accent text-text-onAccent"
-                    : "bg-surface-2 text-text-secondary hover:bg-surface-3"
-                }`}
-              >
-                {LABEL_FILTRO_RAPIDO[filtro]} ({contagemPorSituacao[filtro]})
-              </button>
-            ))}
+          <div>
+            <h1 className="text-h1 font-semibold text-text-primary">Metas</h1>
+            <p className="mt-1 text-sm text-text-secondary">
+              Seus objetivos de economia — o progresso vem dos lançamentos que você marcar como aporte.
+            </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <SearchBar
-              value={busca}
-              onChange={setBusca}
-              placeholder="Buscar meta..."
-              className="w-48"
-            />
-            <Select
-              options={criterioOptions}
-              value={criterio}
-              onChange={(valor) => setCriterio(valor as CriterioOrdenacaoMeta)}
-              aria-label="Ordenar metas"
-              className="w-56"
-            />
-          </div>
+          <Button onClick={abrirCriacao}>
+            <Plus size={16} aria-hidden="true" />
+            Nova meta
+          </Button>
         </div>
-      )}
+
+        {!isLoading && metas && metas.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1">
+              {FILTROS_RAPIDOS.map((filtro) => (
+                <button
+                  key={filtro}
+                  type="button"
+                  onClick={() => setFiltroRapido(filtro)}
+                  className={`rounded-full px-2.5 py-1 text-caption font-medium transition-colors duration-fast ease-out ${
+                    filtroRapido === filtro
+                      ? "bg-accent text-text-onAccent"
+                      : "bg-surface-2 text-text-secondary hover:bg-surface-3"
+                  }`}
+                >
+                  {LABEL_FILTRO_RAPIDO[filtro]} ({contagemPorSituacao[filtro]})
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <SearchBar
+                value={busca}
+                onChange={setBusca}
+                placeholder="Buscar meta..."
+                className="w-40"
+              />
+              <Select
+                options={criterioOptions}
+                value={criterio}
+                onChange={(valor) => setCriterio(valor as CriterioOrdenacaoMeta)}
+                aria-label="Ordenar metas"
+                className="w-48"
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       {error ? (
         <Card>
