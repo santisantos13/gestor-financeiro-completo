@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Finanças Pessoais — sistema financeiro pessoal." />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Finanças Pessoais</title>
+    <!--
+      Tema aplicado ANTES de qualquer CSS/JS de verdade carregar - evita o
+      flash de tema errado (FOUC) quando o usuário já escolheu "claro"
+      (Etapa de Refinamento Visual — tema deixou de ser dark-only fixo,
+      docs/design-system.md, seção 0). Script síncrono e pequeno de
+      propósito: só lê `localStorage` e seta o atributo `data-theme` antes
+      do primeiro paint; a lógica "de verdade" (persistência, toggle,
+      contexto React) mora em `contexts/ThemeContext.tsx`, este trecho só
+      existe para não esperar o React montar antes de aplicar o tema certo.
+    -->
+    <script>
+      (function () {
+        try {
+          var tema = localStorage.getItem("financas:tema");
+          if (tema !== "light" && tema !== "dark") tema = "dark";
+          document.documentElement.setAttribute("data-theme", tema);
+          document.documentElement.style.colorScheme = tema;
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <style>
+      html, body { margin: 0; }
+      html { background: #0b0b0d; }
+      html[data-theme="light"] { background: #f4f4f6; }
+      body { background: inherit; }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!--
+        Loading inicial estático - substituído pelo React assim que
+        `main.tsx` monta a árvore real. Sem isso, a tela fica em branco
+        (mesmo já com fundo aplicado) enquanto o bundle JS é baixado e
+        interpretado. Mesma linguagem visual do Spinner (components/ui),
+        mas sem depender de nenhum CSS/JS ainda não carregado. Cores fixas
+        por tema via seletor de atributo (o mesmo `data-theme` setado pelo
+        script acima) - não pode depender de `var(--color-*)` porque
+        `src/index.css` ainda não carregou neste ponto.
+      -->
+      <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;">
+        <div class="boot-spinner"></div>
+      </div>
+      <style>
+        .boot-spinner {
+          width: 28px; height: 28px; border-radius: 9999px;
+          border: 2px solid #27272d; border-top-color: #6d5ef5;
+          animation: boot-spin 0.7s linear infinite;
+        }
+        html[data-theme="light"] .boot-spinner {
+          border-color: #e4e4e7; border-top-color: #6d5ef5;
+        }
+        @keyframes boot-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+          .boot-spinner { animation: none; }
+        }
+      </style>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,367 @@
+/* Fontes self-hosted (sem chamada externa em runtime) — só o eixo de peso
+   (wght), sem itálico, que não é usado neste projeto.
+   design-system.md, seção 7. */
+@import "@fontsource-variable/geist/wght.css";
+@import "@fontsource-variable/geist-mono/wght.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Design tokens — fonte: docs/design-system.md (seções 6-12) e
+   docs/motion-principles.md (seção 4, canônica para motion). Nomenclatura
+   `--<categoria>-<nome>` conforme design-system.md, seção 5. Nenhum valor
+   aqui deve ser alterado sem atualizar o documento correspondente primeiro
+   — os dois documentos estão congelados (só mudam por conflito
+   arquitetural real encontrado durante a implementação).
+
+   Tema claro/escuro (Etapa de Refinamento Visual): design-system.md, seção
+   0, previu isso desde o início ("tokens estruturados como variáveis CSS
+   para não fechar a porta a um tema claro no futuro") mas deixou a
+   aplicação dark-only, sem toggle, como decisão daquela etapa. Um toggle
+   de verdade foi pedido explicitamente pelo usuário nesta etapa — ver
+   docs/revisao-tecnica-branding-e-microinteracoes.md, seção 3, para o
+   racional completo. Tokens de tipografia/espaçamento/radius/motion/blur
+   são os MESMOS nos dois temas (não dependem de cor); só os tokens de cor
+   (seções 6.1-6.6) têm um bloco por tema. `:root`/`[data-theme="dark"]`
+   mantém os valores originais como default (nenhuma regressão do que já
+   existia); `[data-theme="light"]` é inteiramente novo.
+   ========================================================================== */
+
+:root {
+  /* ---- Escala global da interface ----
+     `--ui-scale` documenta o multiplicador aplicado nesta etapa (Ajustes de
+     UX/UI + Etapa F9) sobre a escala "Padrão" original do Design System —
+     tipografia (abaixo) e radius (abaixo) já leem esse multiplicador
+     embutido nos valores em px (não via calc(), para não arriscar suporte
+     de calc() dentro de outras funções CSS sem teste em navegador real,
+     ver docs/design-system.md, seção 0). O espaçamento (padding/gap/altura/
+     largura) segue o MESMO multiplicador, mas aplicado em
+     `tailwind.config.js` (constante `UI_SCALE`, mesmo valor numérico) —
+     Tailwind não lê custom properties dentro de `theme.spacing` de forma
+     confiável em todas as utilities (ex. utilities negativas, `-mt-1`),
+     então o multiplicador ali é resolvido em build-time, não em runtime.
+     Um único número (1.2) documentado nos dois lugares - nunca um valor
+     "mágico" solto em componente algum. Quando uma preferência real de
+     densidade (Compacto/Padrão/Confortável) for implementada, a evolução
+     natural é trocar este bloco por `[data-density]` (mesmo mecanismo já
+     usado por `[data-theme]`) e o `UI_SCALE` do Tailwind por
+     `calc(valor * var(--ui-scale))` — testado a fundo em navegador real
+     antes de ativado (ver docs/design-system.md, seção sobre escala). */
+  --ui-scale: 1.2;
+
+  /* ---- 7. Tipografia ---- (valores já multiplicados por --ui-scale,
+     arredondados para px inteiros; escala "Padrão" original entre
+     parênteses em cada linha, preservada só como referência histórica) */
+  --font-sans:
+    "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "SF Mono", "Cascadia Code", monospace;
+
+  --text-display-size: 44px; /* 36px */
+  --text-display-leading: 1.1;
+  --text-display-tracking: -0.01em;
+  --text-h1-size: 29px; /* 24px */
+  --text-h1-leading: 1.2;
+  --text-h1-tracking: -0.01em;
+  --text-h2-size: 22px; /* 18px */
+  --text-h2-leading: 1.3;
+  --text-h3-size: 18px; /* 15px */
+  --text-h3-leading: 1.4;
+  --text-body-size: 17px; /* 14px */
+  --text-body-leading: 1.5;
+  --text-sm-size: 16px; /* 13px */
+  --text-sm-leading: 1.4;
+  --text-caption-size: 15px; /* 12px */
+  --text-caption-leading: 1.3;
+  --text-micro-size: 13px; /* 11px */
+  --text-micro-leading: 1.2;
+
+  /* ---- 9. Radius ---- (mesma escala de --ui-scale) */
+  --radius-xs: 5px; /* 4px */
+  --radius-sm: 7px; /* 6px */
+  --radius-md: 10px; /* 8px */
+  --radius-lg: 14px; /* 12px */
+  --radius-xl: 20px; /* 16px */
+  --radius-full: 9999px;
+
+  /* ---- 10 / motion-principles.md seção 4 — canônico ---- */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-moderate: 300ms;
+  --duration-slow: 450ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ---- 11. Elevação e sombra ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  /* ---- Glow discreto de acento (Etapa de Refinamento Visual) — hover de
+     alto destaque (botão primário, item de navegação ativo). Nunca em
+     superfície que compete com leitura de número (design-system.md, seção
+     1) — só em controles de interação pura. Mesmo valor nos dois temas: é
+     um anel de cor de acento em baixa opacidade, funciona sobre claro e
+     escuro sem ajuste. Atualizado para acompanhar a nova cor de acento
+     (#b0c4de). */
+  --shadow-glow-accent: 0 0 0 1px rgba(176, 196, 222, 0.25), 0 4px 20px rgba(176, 196, 222, 0.28);
+
+  /* ---- 12. Blur ---- */
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+
+  /* ---- Escala de z-index dos overlays (Estabilização de Overlays) ----
+     docs/analise-arquitetural-overlays.md, seção 6: duas camadas, uma
+     escala única (nenhum valor mágico solto em componente). Tier 2
+     (Dialog/Drawer/ConfirmAction/Command Palette — backdrop + painel)
+     sempre abaixo de Tier 1 (Tooltip/Popover/RichPicker/SearchSelect/
+     Select/MultiSelectField/ColumnVisibility/DateInput/Context Menu), que
+     precisa aparecer por cima mesmo quando aberto de dentro de um Tier 2
+     (ex. o ColorPicker de um campo dentro do FormDialog de Categoria).
+     Antes desta correção, todo overlay usava a mesma classe `z-50`
+     Tailwind solta — funcionava por coincidência de ordem de montagem no
+     DOM, não por garantia estrutural. */
+  --z-tier2: 50;
+  --z-tier1: 60;
+  /* Toasts ficam sempre acima de qualquer overlay — uma confirmação
+     ("Pagamento registrado") ou erro precisa ser visível mesmo que o
+     usuário ainda esteja dentro de um Dialog/Drawer/Picker aberto. */
+  --z-toast: 70;
+}
+
+/* ---- 6. Cores — tema escuro (default, mesmos valores desde a Etapa F2) ---- */
+:root,
+[data-theme="dark"] {
+  /* 6.1 Superfícies (dark, base grafite) */
+  --color-bg: #0b0b0d;
+  --color-surface-1: #131316;
+  --color-surface-2: #18181c;
+  --color-surface-3: #212126;
+  --color-surface-4: #27272d;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* 6.2 Texto */
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #6e6e76;
+  --color-text-disabled: #45454b;
+  --color-text-on-accent: #14141a;
+
+  /* 6.3 Acento — atualizado de índigo-violeta (#6d5ef5) para azul
+     acinzentado (#b0c4de) a pedido do usuário; hover/active são o mesmo
+     tom escurecido em 10%/20% (mesma lógica proporcional do valor
+     anterior) para preservar o feedback visual de interação.
+     `--color-text-on-accent` mudou de branco para escuro porque branco
+     sobre #b0c4de fica ~1.8:1 de contraste (reprova AA); texto escuro
+     dá ~10:1. */
+  --color-accent: #b0c4de;
+  --color-accent-hover: #9eb0c8;
+  --color-accent-active: #8d9db2;
+  --color-accent-subtle: rgba(176, 196, 222, 0.12);
+  --color-accent-ring: rgba(176, 196, 222, 0.45);
+
+  /* 6.4 Semânticas financeiras (significado fixo, nunca decorativo) —
+     tons "400" da escala, calibrados para contraste sobre fundo escuro. */
+  --color-positive: #34d399;
+  --color-positive-subtle: rgba(52, 211, 153, 0.12);
+  --color-negative: #fb7185;
+  --color-negative-subtle: rgba(251, 113, 133, 0.12);
+  --color-warning: #fbbf24;
+  --color-warning-subtle: rgba(251, 191, 36, 0.12);
+  /* `info` — adicionado na revisão de UX de Cartões (sistema semântico de
+     status): estado informativo/em-andamento que não é nem sucesso nem
+     alerta (ex. fatura ABERTA, contrato ATIVO) — antes caía em `neutral`
+     por falta de opção, perdendo expressividade. Mesmo azul-céu já usado
+     como `--color-chart-2` (já testado/em uso), promovido a semântico —
+     nenhuma cor nova sem precedente no Design System. Contraste sobre
+     `--color-bg`: 9.18:1. */
+  --color-info: #38bdf8;
+  --color-info-subtle: rgba(56, 189, 248, 0.12);
+
+  /* Texto sobre fundo SÓLIDO de cada semântica (`StatusChip`, revisão de
+     UX de Cartões — "cores adaptativas": informação desenhada sobre um
+     fundo imprevisível, como o gradiente de marca de um cartão, precisa
+     de contraste garantido, não herdado do fundo em cima do qual está).
+     Mesmo princípio de `--color-text-on-accent`, um token por semântica —
+     calculado via razão de contraste WCAG real (preto ganha nas 4 cores
+     do tema escuro; o tema claro é MISTO, ver bloco `[data-theme="light"]`
+     abaixo — por isso não dá para assumir "sempre preto" ou "sempre
+     branco" num único valor fixo). */
+  --color-text-on-positive: #0b0b0d;
+  --color-text-on-negative: #0b0b0d;
+  --color-text-on-warning: #0b0b0d;
+  --color-text-on-info: #0b0b0d;
+
+  /* 6.6 Cores de dado (gráficos), fora das semânticas financeiras.
+     chart-1 e chart-3 eram dois tons de roxo diferentes (#6d5ef5 e
+     #c084fc) e ambos viraram #b0c4de — ficam idênticos entre si agora
+     (ver nota na revisão técnica). */
+  --color-chart-1: #b0c4de;
+  --color-chart-2: #38bdf8;
+  --color-chart-3: #b0c4de;
+  --color-chart-4: #f472b6;
+  --color-chart-5: #fb923c;
+  --color-chart-6: #94a3b8;
+}
+
+/* ---- 6. Cores — tema claro (novo nesta etapa) ----
+   Mesma filosofia "nunca extremo puro" do tema escuro (lá: nunca preto
+   puro; aqui: nunca branco puro no fundo base, nunca preto puro no
+   texto) — design-system.md, seção 2. Elevação por borda+sombra
+   (--shadow-* já funciona bem em claro, sem alteração) mais do que por
+   variação de tom (a maioria das superfícies aqui já é branco, o teto da
+   escala). Semânticas financeiras e cores de gráfico usam tons "600" em
+   vez de "400" — os tons claros calibrados para fundo escuro (seção
+   6.4/6.6 do tema escuro) não têm contraste suficiente sobre fundo
+   branco; acento e texto seguem a MESMA cor de marca dos dois temas
+   (índigo-violeta funciona em ambos sem ajuste). */
+[data-theme="light"] {
+  /* 6.1 Superfícies */
+  --color-bg: #f4f4f6;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #ffffff;
+  --color-surface-3: #f0f0f3;
+  --color-surface-4: #ffffff;
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-border-default: rgba(0, 0, 0, 0.1);
+  --color-border-strong: rgba(0, 0, 0, 0.18);
+
+  /* 6.2 Texto */
+  --color-text-primary: #18181b;
+  --color-text-secondary: #52525b;
+  --color-text-tertiary: #71717a;
+  --color-text-disabled: #a1a1aa;
+  --color-text-on-accent: #14141a;
+
+  /* 6.3 Acento — inalterado entre temas de propósito (identidade de
+     marca única, funciona sobre claro e escuro). Atualizado de
+     índigo-violeta para azul acinzentado (#b0c4de), ver nota no bloco
+     dark acima. */
+  --color-accent: #b0c4de;
+  --color-accent-hover: #9eb0c8;
+  --color-accent-active: #8d9db2;
+  --color-accent-subtle: rgba(176, 196, 222, 0.1);
+  --color-accent-ring: rgba(176, 196, 222, 0.45);
+
+  /* 6.4 Semânticas financeiras — tons "600", mais escuros/saturados que o
+     tema dark, para manter contraste AA sobre fundo claro. */
+  --color-positive: #059669;
+  --color-positive-subtle: rgba(5, 150, 105, 0.1);
+  --color-negative: #e11d48;
+  --color-negative-subtle: rgba(225, 29, 72, 0.1);
+  --color-warning: #b45309;
+  --color-warning-subtle: rgba(180, 83, 9, 0.12);
+  /* `info` — mesmo azul já usado como `--color-chart-2` do tema claro,
+     promovido a semântico (ver nota no bloco dark acima). */
+  --color-info: #0284c7;
+  --color-info-subtle: rgba(2, 132, 199, 0.1);
+
+  /* Texto sobre fundo sólido de cada semântica (ver nota no bloco dark) —
+     razão de contraste WCAG real calculada por cor: `positive`/`info`
+     (tons mais claros mesmo no tier "600") ganham com preto; `negative`/
+     `warning` (tons mais escuros/saturados) ganham com branco. */
+  --color-text-on-positive: #0b0b0d;
+  --color-text-on-negative: #ffffff;
+  --color-text-on-warning: #ffffff;
+  --color-text-on-info: #0b0b0d;
+
+  /* 6.6 Cores de dado (gráficos) */
+  --color-chart-1: #b0c4de;
+  --color-chart-2: #0284c7;
+  --color-chart-3: #b0c4de;
+  --color-chart-4: #db2777;
+  --color-chart-5: #c2410c;
+  --color-chart-6: #64748b;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-bg text-text-primary;
+    font-family: var(--font-sans);
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-leading);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color var(--duration-moderate) var(--ease-in-out);
+  }
+
+  /* Toda cifra monetária, número de tabela, data e Kbd usa a fonte mono
+     tabular — design-system.md, seção 7. Aplicado via classe utilitária
+     (.font-mono já existe no Tailwind, tabular-nums também), esta regra só
+     garante que qualquer <table> numérica herde tabular-nums por padrão
+     quando marcada com a classe abaixo. */
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* focus-visible, nunca :focus (design-system.md, seção 13) */
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+}
+
+/* ==========================================================================
+   Skeleton shimmer — design-system.md, seção 20.2. Base --color-surface-2
+   com um gradiente animado deslizando (--duration-slow em loop), desligado
+   sob prefers-reduced-motion (só a cor estática permanece). Etapa F3
+   (Dashboard) — docs/analise-arquitetural-dashboard.md, seção 9.1.
+   ========================================================================== */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@layer utilities {
+  .skeleton-shimmer {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-surface-2) 40%,
+      var(--color-surface-3) 50%,
+      var(--color-surface-2) 60%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer var(--duration-slow) linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer {
+      animation: none;
+      background-image: none;
+      background-color: var(--color-surface-2);
+    }
+  }
+}

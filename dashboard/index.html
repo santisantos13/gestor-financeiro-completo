@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finanças Pessoais — Painel do Projeto</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__mark">FP</span>
+        <div class="brand__text">
+          <span class="brand__name" id="project-name">Finanças Pessoais</span>
+          <span class="brand__tagline" id="project-tagline">Painel de acompanhamento</span>
+        </div>
+      </div>
+      <div class="topbar__meta">
+        <span class="status-pill" id="project-status">
+          <span class="status-pill__dot"></span>
+          <span id="project-status-label">—</span>
+        </span>
+        <span class="updated-at" id="updated-at" title="">—</span>
+      </div>
+    </div>
+    <nav class="quicknav" id="quicknav">
+      <a href="#overview" class="quicknav__link">Visão geral</a>
+      <a href="#section-areas" class="quicknav__link">Áreas</a>
+      <a href="#section-roadmap" class="quicknav__link">Roadmap</a>
+      <a href="#section-features" class="quicknav__link">Funcionalidades</a>
+      <a href="#section-kanban" class="quicknav__link">Tarefas</a>
+      <a href="#section-changelog" class="quicknav__link">Histórico</a>
+      <a href="#section-architecture" class="quicknav__link">Arquitetura</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+
+    <!-- Overview -->
+    <section class="panel overview" id="overview">
+      <div class="overview__ring">
+        <svg viewBox="0 0 140 140" class="ring">
+          <circle cx="70" cy="70" r="60" class="ring__track" />
+          <circle cx="70" cy="70" r="60" class="ring__fill" id="overview-ring-fill" />
+        </svg>
+        <div class="overview__ring-label">
+          <span class="overview__ring-value" id="overview-percent">0%</span>
+          <span class="overview__ring-caption">concluído</span>
+        </div>
+      </div>
+      <div class="overview__body">
+        <h1>Progresso geral do projeto</h1>
+        <p>Visão consolidada de todas as áreas — atualizado a partir de <code>project-status.json</code>.</p>
+        <div class="overview__stats" id="overview-stats"></div>
+        <div class="overview__quality" id="quality-strip"></div>
+      </div>
+    </section>
+
+    <!-- Area cards -->
+    <section class="section" id="section-areas">
+      <h2 class="section__title">Áreas do projeto</h2>
+      <div class="grid grid--areas" id="areas-grid"></div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="section" id="section-roadmap">
+      <div class="section__header">
+        <h2 class="section__title">Roadmap</h2>
+        <div class="filters">
+          <button class="filter-btn" id="roadmap-expand-all" type="button">Expandir tudo</button>
+          <button class="filter-btn" id="roadmap-collapse-all" type="button">Recolher tudo</button>
+        </div>
+      </div>
+      <div class="roadmap" id="roadmap"></div>
+    </section>
+
+    <!-- Features table -->
+    <section class="section" id="section-features">
+      <div class="section__header">
+        <h2 class="section__title">Funcionalidades</h2>
+        <div class="filters" id="feature-filters">
+          <button class="filter-btn is-active" data-filter="all">Todas</button>
+          <button class="filter-btn" data-filter="done">Concluídas</button>
+          <button class="filter-btn" data-filter="in-progress">Em andamento</button>
+          <button class="filter-btn" data-filter="pending">Pendentes</button>
+          <button class="filter-btn" data-filter="blocked">Bloqueadas</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="features-table">
+          <thead>
+            <tr>
+              <th>Funcionalidade</th>
+              <th>Categoria</th>
+              <th>Status</th>
+              <th>Progresso</th>
+              <th>Prioridade</th>
+            </tr>
+          </thead>
+          <tbody id="features-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Kanban -->
+    <section class="section" id="section-kanban">
+      <h2 class="section__title">Quadro de tarefas</h2>
+      <div class="kanban" id="kanban"></div>
+
+      <div class="done-log">
+        <div class="done-log__header">
+          <h3 class="done-log__title">
+            Entregas concluídas <span class="done-log__count" id="done-count">0</span>
+          </h3>
+          <div class="done-log__controls">
+            <input type="search" id="done-search" class="search-input" placeholder="Buscar por título ou descrição…" />
+            <button class="filter-btn" id="done-expand-all" type="button">Expandir tudo</button>
+            <button class="filter-btn" id="done-collapse-all" type="button">Recolher tudo</button>
+          </div>
+        </div>
+        <div class="done-log__list" id="done-list"></div>
+        <p class="done-log__empty" id="done-empty" hidden>Nenhuma entrega encontrada para essa busca.</p>
+      </div>
+    </section>
+
+    <!-- Changelog -->
+    <section class="section" id="section-changelog">
+      <div class="section__header">
+        <h2 class="section__title">Histórico de alterações</h2>
+        <input type="search" id="changelog-search" class="search-input" placeholder="Buscar no histórico…" />
+      </div>
+      <div class="changelog" id="changelog"></div>
+      <p class="done-log__empty" id="changelog-empty" hidden>Nenhum item encontrado para essa busca.</p>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="section-architecture">
+      <h2 class="section__title">Arquitetura do sistema</h2>
+      <div class="panel architecture" id="architecture"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>Gerado a partir de <code>dashboard/project-status.json</code> — edite esse arquivo para atualizar o painel.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.51
+pydantic-settings==2.5.2
+alembic==1.13.2
+bcrypt==4.3.0
+pyjwt==2.10.1
+email-validator==2.2.0
+# Driver Postgres (deploy pre-alfa, docs/analise-arquitetural-deploy-prealfa.md).
+# SQLAlchemy usa psycopg2 automaticamente para qualquer DATABASE_URL
+# "postgresql://..." - nao precisa declarar "+psycopg2" na URL. Em
+# desenvolvimento local (SQLite, driver embutido no Python) esta lib fica
+# instalada mas simplesmente nao e usada.
+psycopg2-binary==2.9.9

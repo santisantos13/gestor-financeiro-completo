@@ -1,0 +1,25 @@
+backend/__pycache__/
+backend/*.pyc
+backend/.venv/
+backend/venv/
+backend/*.db
+# backups/snapshots do banco local (contêm dados financeiros reais de
+# desenvolvimento) - "*.db" sozinho não cobre "financas.db.backup-*"
+# nem "financas.db.bak-*" porque o nome não termina exatamente em ".db"
+# (achado ao preparar o repositório Git para o deploy pré-alfa).
+backend/*.db.backup-*
+backend/*.db.bak-*
+backend/.env
+frontend/node_modules/
+frontend/dist/
+frontend/dist_check/
+frontend/.env
+# arquivos temporários que o próprio Vite gera/apaga sozinho ao carregar
+# vite.config.ts (achado ao preparar o repositório Git para o deploy)
+frontend/vite.config.*.timestamp-*.mjs
+node_modules/
+.DS_Store
+# PIDs dos scripts iniciar/parar - estado de máquina local, não pertence
+# ao repositório.
+.backend.pid
+.frontend.pid

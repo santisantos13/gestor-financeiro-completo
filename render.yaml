@@ -1,0 +1,69 @@
+# Blueprint de deploy no Render (https://render.com) - pré-alfa para
+# usuários selecionados (docs/analise-arquitetural-deploy-prealfa.md).
+#
+# Dois serviços, cada um apontando para seu subdiretório do monorepo
+# (rootDir), sem Docker - runtime nativo do Render para Python e para
+# site estático.
+#
+# Banco de dados: propositalmente NENHUM banco é declarado aqui. A decisão
+# desta etapa foi usar Postgres gerenciado GRATUITO externo (Neon ou
+# Supabase), não o Postgres pago do Render - ver docs/analise-arquitetural-deploy-prealfa.md,
+# seção "Banco de dados". `DATABASE_URL` é configurada manualmente no
+# dashboard do Render (sync: false = nunca fica commitada neste arquivo).
+#
+# Como usar: no dashboard do Render, "New +" -> "Blueprint" -> aponte para
+# este repositório. O Render lê este arquivo e cria os dois serviços
+# automaticamente. Depois só falta preencher as variáveis marcadas
+# "sync: false" (Render pede isso na hora de criar o Blueprint).
+services:
+  # --- Backend (FastAPI) ---------------------------------------------------
+  - type: web
+    name: financas-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    # `alembic upgrade head` roda a cada deploy, antes do servidor subir -
+    # mesmo efeito de rodar a migration manualmente após cada `git push`,
+    # só que automático. Idempotente (alembic só aplica o que falta).
+    startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Gerada manualmente (nunca reaproveitar a do .env local) - ver
+      # docs/analise-arquitetural-deploy-prealfa.md para o comando exato.
+      - key: SECRET_KEY
+        sync: false
+      # String de conexão do Postgres externo (Neon/Supabase) - formato
+      # postgresql://usuario:senha@host/banco?sslmode=require
+      - key: DATABASE_URL
+        sync: false
+      # URL do frontend publicado (preenchida depois que o serviço de
+      # static site abaixo tiver sua URL definitiva) - formato JSON:
+      # ["https://financas-frontend-xxxx.onrender.com"]
+      - key: CORS_ORIGINS
+        sync: false
+
+  # --- Frontend (build estático servido pelo Render) -----------------------
+  - type: web
+    name: financas-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: dist
+    envVars:
+      # URL pública do serviço de backend acima - preenchida depois que
+      # ele tiver sua URL definitiva (formato: https://financas-backend-xxxx.onrender.com,
+      # SEM barra no final). Vite grava isso DENTRO do build - mudar esta
+      # variável exige um novo deploy do frontend para ter efeito.
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      # SPA com React Router (BrowserRouter): sem isso, atualizar a página
+      # em qualquer rota que não seja "/" (ex: /contas) retorna 404 do
+      # Render em vez de deixar o React Router assumir no navegador.
+      - type: rewrite
+        source: /*
+        destination: /index.html

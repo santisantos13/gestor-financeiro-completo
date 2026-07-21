@@ -1,0 +1,1254 @@
+{
+  "project": {
+    "name": "Finanças Pessoais",
+    "tagline": "Finance App — Project Progress Dashboard",
+    "status": {
+      "emoji": "🟢",
+      "label": "Desenvolvimento ativo"
+    },
+    "overallPercent": 83,
+    "updatedAt": "2026-07-20T14:57:00-03:00"
+  },
+  "areas": [
+    {
+      "key": "backend",
+      "label": "Backend",
+      "percent": 88,
+      "done": 17,
+      "inProgress": 0,
+      "pending": 1
+    },
+    {
+      "key": "frontend",
+      "label": "Frontend",
+      "percent": 83,
+      "done": 20,
+      "inProgress": 0,
+      "pending": 4
+    },
+    {
+      "key": "database",
+      "label": "Banco de dados",
+      "percent": 88,
+      "done": 1,
+      "inProgress": 0,
+      "pending": 1
+    },
+    {
+      "key": "ux",
+      "label": "UX/UI",
+      "percent": 92,
+      "done": 8,
+      "inProgress": 0,
+      "pending": 1
+    },
+    {
+      "key": "tests",
+      "label": "Testes",
+      "percent": 55,
+      "done": 1,
+      "inProgress": 0,
+      "pending": 1
+    },
+    {
+      "key": "security",
+      "label": "Segurança",
+      "percent": 60,
+      "done": 3,
+      "inProgress": 0,
+      "pending": 2
+    },
+    {
+      "key": "deploy",
+      "label": "Deploy",
+      "percent": 0,
+      "done": 0,
+      "inProgress": 0,
+      "pending": 3
+    }
+  ],
+  "roadmap": [
+    {
+      "phase": "Fase 1",
+      "title": "Fundação",
+      "status": "done",
+      "items": [
+        "Backend completo: 14 entidades de domínio, autenticação JWT, Central Financeira",
+        "788 testes automatizados no backend",
+        "Etapa F1 do frontend: autenticação, roteamento, guarda de rota"
+      ]
+    },
+    {
+      "phase": "Fase 2",
+      "title": "Core financeiro (telas)",
+      "status": "in-progress",
+      "items": [
+        "Design System documentado e implementado em código — tokens, motion, componentes base, Sidebar/Header",
+        "Sistema de formulários reutilizável (React Hook Form + Zod, FormDialog) — concluído",
+        "Sistema de tabelas reutilizável (DataTable) — concluído",
+        "Dashboard financeiro real (Central Financeira, Bento Grid) — concluído",
+        "CRUD de entidade no frontend: 10 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta) - 4 restantes (Parcelamento dedicado, Conta Recorrente, Anexo, Alerta). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Toggle a vista ou parcelado em X vezes ja embutido no formulario de Transacao (nao substitui uma tela propria de Parcelamento). Proxima: a definir",
+        "Revisão de UX/UI de toda a aplicação (Dashboard + Cartões) antes de seguir para Fatura/Transação — concluída",
+        "Etapa F10 — CRUD de Fatura + página de detalhes do Cartão (/cartoes/:id) + padrão único de overlays (Drawer/RichPicker) + exclusão definitiva (hard delete) em 4 entidades — concluída",
+        "Revisão de UX final do módulo de Cartões (grid de mini dashboards clicáveis, Action Bar, correção de cor semântica, correção de performance) — concluída",
+        "Sistema semântico de status formalizado para o projeto inteiro (tone info, StatusChip/StatusDot/AtivoBadge, utils/status.ts, correção de corDeContraste) — concluído",
+        "Etapa F11 — CRUD de Transação (a tela mais usada do app: filtragem híbrida servidor+cliente, origem Conta×Cartão, CardSelect/TagMultiSelect novos) — concluída",
+        "Refinamento de Pickers/Performance (useFloatingPanel, grade maior, destaque de busca, code-splitting por rota) — concluído",
+        "Refinamento de Pagamento de Fatura (atalhos, preview de status, integração com Transação, correção de invalidação de cache) — concluído",
+        "Estabilização e Polimento de Overlays (bug crítico de backdrop duplicado corrigido, escala de z-index formal, DateInput migrado) — concluída",
+        "Refinamento de Metas (planejamento de contribuição por frequência, planejado x realizado, previsão de conclusão, celebração única na conclusão, histórico expandido, integração sem duplicação de lógica com o Dashboard) — concluído"
+      ]
+    },
+    {
+      "phase": "Fase 3",
+      "title": "Experiência do usuário",
+      "status": "in-progress",
+      "items": [
+        "Responsividade completa (Sidebar/Header/Dashboard/tabelas/formulários/modais) — concluída na etapa de Refinamento de UI",
+        "Animações e microinterações (Framer Motion, docs/motion-principles.md) — concluídas",
+        "Organização personalizada da navegação (drag-and-drop + localStorage, Dashboard fixo) — concluída",
+        "Relatórios exportáveis — pendente",
+        "Gráficos avançados no dashboard — pendente"
+      ]
+    },
+    {
+      "phase": "Fase 4",
+      "title": "Produção",
+      "status": "pending",
+      "items": [
+        "Rate limiting em /auth/login e /auth/refresh",
+        "Testes automatizados de frontend",
+        "CI/CD",
+        "Ambiente de deploy, HTTPS, backup do banco"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Cadastro / Login",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Alta"
+    },
+    {
+      "name": "Dashboard financeiro (leitura)",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Alta"
+    },
+    {
+      "name": "Contas bancárias",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Alta"
+    },
+    {
+      "name": "Categorias",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Tags",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Organização da navegação",
+      "category": "Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Cartões",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Alta"
+    },
+    {
+      "name": "Faturas",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Transações",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Alta"
+    },
+    {
+      "name": "Parcelamentos",
+      "category": "Backend + Frontend",
+      "status": "in-progress",
+      "progress": 80,
+      "priority": "Média"
+    },
+    {
+      "name": "Transferências",
+      "category": "Full-stack",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Contas recorrentes",
+      "category": "Backend",
+      "status": "in-progress",
+      "progress": 50,
+      "priority": "Média"
+    },
+    {
+      "name": "Financiamentos",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Empréstimos",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Metas",
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
+      "priority": "Média"
+    },
+    {
+      "name": "Anexos",
+      "category": "Backend",
+      "status": "in-progress",
+      "progress": 50,
+      "priority": "Baixa"
+    },
+    {
+      "name": "Alertas",
+      "category": "Backend",
+      "status": "pending",
+      "progress": 5,
+      "priority": "Baixa"
+    },
+    {
+      "name": "Relatórios",
+      "category": "Frontend",
+      "status": "pending",
+      "progress": 10,
+      "priority": "Média"
+    },
+    {
+      "name": "Gráficos",
+      "category": "Frontend",
+      "status": "pending",
+      "progress": 5,
+      "priority": "Média"
+    },
+    {
+      "name": "Configurações",
+      "category": "Frontend",
+      "status": "pending",
+      "progress": 10,
+      "priority": "Baixa"
+    },
+    {
+      "name": "Segurança",
+      "category": "Backend",
+      "status": "in-progress",
+      "progress": 60,
+      "priority": "Alta"
+    },
+    {
+      "name": "Deploy",
+      "category": "DevOps",
+      "status": "pending",
+      "progress": 0,
+      "priority": "Alta"
+    }
+  ],
+  "kanban": {
+    "backlog": [
+      {
+        "id": "t1",
+        "title": "CRUD de Alerta",
+        "description": "Decidir implementar (análise arquitetural + backend + frontend) ou remover formalmente do escopo.",
+        "category": "Backend",
+        "priority": "Baixa",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "t2",
+        "title": "Rate limiting em /auth/login e /auth/refresh",
+        "description": "TODO já identificado no código. Necessário antes de expor o app fora de localhost.",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "t3",
+        "title": "CRUD frontend das entidades restantes",
+        "description": "Conta Recorrente, Meta, Anexo, Alerta — mesmo padrão de Conta/Categoria/Tag/Cartão/Fatura/Transação/Transferência/Financiamento/Empréstimo, toda a infraestrutura já reutilizável (incl. CardSelect/TagMultiSelect da F11). Parcelamento já tem seu ponto de entrada principal (toggle 'à vista ou parcelado' no formulário de Transação); uma tela dedicada de gestão/cancelamento de parcelamentos fica como melhoria futura, não bloqueante.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "t7",
+        "title": "Testes automatizados de frontend",
+        "description": "Ao menos o fluxo crítico: autenticação, submissão de formulário, tabela.",
+        "category": "Testes",
+        "priority": "Média",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "t8",
+        "title": "Pipeline de CI",
+        "description": "Rodar a suíte de 788 testes automaticamente a cada mudança, em vez de manual.",
+        "category": "DevOps",
+        "priority": "Média",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "t9",
+        "title": "Estratégia de deploy",
+        "description": "Escolher ambiente (Docker/VPS/PaaS), HTTPS, variáveis de produção, backup do SQLite.",
+        "category": "DevOps",
+        "priority": "Média",
+        "date": "2026-07-15"
+      }
+    ],
+    "in-development": [],
+    "review": [],
+    "done": [
+      {
+        "id": "d59",
+        "title": "Correção sistêmica: campos de seleção exigiam clicar duas vezes",
+        "description": "Usuário reportou com print de tela: o campo Data pedia para selecionar duas vezes (erro 'Informe a data' ficava preso após a primeira escolha). Corrigido primeiro em DateInput.tsx (onMouseDown={e => e.preventDefault()} no painel do calendário, impedindo o blur nativo prematuro que corria contra a validação assíncrona do zodResolver). Usuário então relatou que o MESMO bug afetava o campo Conta e todos os campos de seleção do site - escopo expandido para correção sistêmica em vez de outro patch pontual. Auditoria de todo consumidor de useFloatingPanel encontrou RichPicker.tsx já com a arquitetura correta (onBlur chamado programaticamente por um close(), nunca ligado ao blur nativo do botão-gatilho) - esse virou o padrão replicado em Select.tsx/SelectField.tsx (onBlur novo, roteado por close()), SearchSelect.tsx (Controller trocado por useController para dar acesso a field dentro de close(), corrigindo a corrida de foco automático no campo de busca ao abrir) e MultiSelectField.tsx (mesma troca para useController, corrigindo a corrida de clique em Checkbox focável). tsc -b e vite build validados, sistema reiniciado.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d60",
+        "title": "Cartões: pagar faturas selecionadas em lote",
+        "description": "Usuário elogiou a seleção múltipla de faturas já existente (usada hoje só para excluir em lote) e pediu o mesmo para pagamento. Novo FaturaService.pagar_em_lote + rota POST /faturas/pagar-em-lote: cada fatura selecionada é paga pelo seu próprio valor restante (nunca um valor único digitado para todas, já que faturas diferentes quase sempre têm saldos diferentes), reaproveitando registrar_pagamento existente. Diferente de excluir_em_lote (tudo ou nada), este é tolerante: faturas ainda ABERTAS ou já quitadas dentro da seleção são puladas silenciosamente em vez de derrubar o lote inteiro - decisão deliberada porque 'Selecionar todas' já existe na mesma tela e naturalmente inclui o ciclo aberto atual. Levanta erro só se NENHUMA fatura for elegível. Frontend: novo PagamentoEmLoteDialog (só pede a data do pagamento) + botão 'Pagar selecionadas' ao lado de 'Excluir selecionadas' em CartaoDetalhePage; toast final informa quando nem toda a seleção foi processada. Testes unitários e de integração cobrindo pagamento completo/parcial da seleção, fatura aberta pulada, fatura já quitada pulada e erro quando nenhuma é elegível; suíte completa do backend (1030 testes) e tsc -b/vite build validados sem regressão.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d54",
+        "title": "Meta: exclusao definitiva (hard delete)",
+        "description": "DELETE /metas/{id}/permanente, nunca bloqueado por aportes vinculados (desvincula meta_id, nunca apaga a transacao) - pedido explicito do usuario.",
+        "category": "Backend + Frontend",
+        "priority": "Media",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d55",
+        "title": "Cartao: saldo ja utilizado sem transacao",
+        "description": "Fatura.ajuste_manual (novo campo) + PATCH /faturas/{id}/ajuste-manual + AjusteSaldoInicialDialog - declara o saldo ja usado do ciclo aberto direto, sem criar Transacao, refletindo em limite_disponivel.",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d56",
+        "title": "Centralização do escopo de exclusão de parcela + gaps adicionais de invalidação de cache (Cartão/Conta/Fatura)",
+        "description": "Segundo relato do usuário sobre o mesmo bug de limite de cartão, agora com pedido explícito de não fazer correção pontual e preparar a arquitetura para operações futuras (editar/excluir só esta parcela vs. todo o parcelamento) sem exigir refatoração. Novo EscopoOperacaoParcela (str, enum interno de TransacaoService, propositalmente fora de app/models/enums.py por ainda não ser vocabulário aceito de nenhum client) com dois valores: TODO_PARCELAMENTO (único implementado agora, delega para cancelar_parcelas_do_parcelamento já existente) e ESTA_PARCELA (reservado, levanta NotImplementedError se chamado — ponto de extensão futuro explícito, sem código morto especulativo). Auditoria completa de invalidação de cache encontrou mais dois gaps da mesma classe do bug anterior (chaves list/detail são irmãs, não pai/filho): invalidarTransacoes (useTransacaoQueries.ts) ainda usava contas.detail(contaId) em vez de contas.all, e nunca invalidava o prefixo ['faturas'] mesmo quando a transação pertencia a uma fatura de cartão. Frontend: TransacoesPage.tsx passou a buscar o parcelamento da compra clicada (useParcelamento, novo hook) para mostrar quantas parcelas serão removidas na confirmação de exclusão. Doc: docs/analise-arquitetural-escopo-parcelamento.md. Suíte completa (backend + tsc -b + vite build) validada sem regressão.",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d57",
+        "title": "Fatura importada não paga passa a descontar limite do cartão + bloqueio de importação de ciclo ainda não fechado",
+        "description": "Usuário reportou com print da tela real que o limite do cartão Inter continuava inconsistente mesmo após as duas rodadas anteriores de correção. Inspeção direta (somente leitura) do banco de produção do usuário revelou a causa real: uma fatura importada (Fatura.importada=True, criada por POST /faturas/importar para representar um ciclo histórico anterior ao uso do app), fechada, com valor_total declarado diretamente e zero Transacao/ajuste_manual por trás — por desenho, nenhuma dessas duas fontes é preenchida numa fatura importada. CartaoRepository.somar_gastos_nao_pagos somava só essas duas fontes (Transacao e ajuste_manual), então essa dívida real nunca entrava no cálculo de limite_disponivel, mesmo aparecendo corretamente em FaturaRead.valor_total. Corrigido com um terceiro termo na soma: SUM(Fatura.valor_total) de toda fatura importada ainda não paga, filtrado para nunca duplicar a dívida de uma fatura fechada normalmente. Pedido relacionado do usuário no mesmo turno: importar uma fatura de ciclo ainda não fechado (mes_referencia futuro) a fazia nascer FECHADA sem sentido — FaturaService.importar() agora rejeita (422) esse caso, apontando para o caminho já existente (fatura normal + ajuste manual) para ciclos correntes/futuros. Dois testes de integração novos, suíte completa (backend + tsc -b + vite build) validada, doc atualizada (docs/analise-arquitetural-limite-cartao-invalidacao.md, seção 5).",
+        "category": "Backend",
+        "priority": "Crítica",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d58",
+        "title": "Dashboard do app: hero row de 3 cards + fusão Contas/Cartões numa linha fixa",
+        "description": "Etapa final do redesign do Dashboard iniciado com docs/analise-arquitetural-redesign-dashboard.md. Novos componentes ui/Gauge.tsx (anel de progresso circular reutilizável) e ui/Tabs.tsx (segmented control reutilizável). ResumoFinanceiroSection reescrita como hero row de 3 StatCards. Novo ContasCartoesCard.tsx funde os resumos de Contas e Cartões numa única linha fixa entre HojeCard e o Bento Grid customizável; novo TransacoesRecentesCard.tsx com abas Transações/Agenda. FinanciamentosCard passou a destacar o Financiamento Principal. ContasCard.tsx/CartoesCard.tsx/AgendaFinanceiraCard.tsx (versões antigas, agora redundantes) removidos; COMPONENTE_POR_CARD e dashboardLayout.ts atualizados. tsc -b e vite build validados.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d1",
+        "title": "Central Financeira (11 endpoints)",
+        "description": "Camada de orquestração/agregação somente-leitura sobre os Services de domínio existentes.",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d2",
+        "title": "Etapa F1 do frontend — autenticação",
+        "description": "Login, registro, refresh silencioso com rotation, logout, guarda de rota. Validado contra o backend real.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d3",
+        "title": "Design System documentado",
+        "description": "Identidade visual, tokens, motion, componentes, padrões de dashboard/formulário/tabela — docs/design-system.md.",
+        "category": "Design",
+        "priority": "Alta",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d4",
+        "title": "Auditoria técnica do projeto",
+        "description": "Relatório completo de estado, decisões arquiteturais e percentual de conclusão — docs/auditoria-tecnica-projeto.md.",
+        "category": "Docs",
+        "priority": "Média",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d5",
+        "title": "CRUD de Anexo",
+        "description": "Redesenhado de polimórfico especulativo para posse transitiva via Transação.",
+        "category": "Backend",
+        "priority": "Média",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d6",
+        "title": "Separação Financiamento / Empréstimo / Parcelamento",
+        "description": "Três entidades distintas em vez de um campo `tipo`, com ContratoCreditoMixin compartilhado.",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-15"
+      },
+      {
+        "id": "d7",
+        "title": "docs/motion-principles.md criado",
+        "description": "Fonte canônica de duração/curva/spring/estado/acessibilidade de motion, antes da implementação da Etapa F2.",
+        "category": "Design",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d8",
+        "title": "Etapa F2 (Design System) implementada em código",
+        "description": "Tokens CSS/Tailwind, motion + lucide-react + fonte Geist instalados, MotionConfig, componentes base (Button, Input, Badge, Checkbox, Switch, Select, Textarea, Tooltip, Kbd, Divider, Avatar, ProgressBar), Sidebar/Header. tsc -b e vite build validados.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d9",
+        "title": "Etapa F3 — Dashboard financeiro real",
+        "description": "Consumo dos 11 endpoints de /central-financeira/* via Bento Grid (StatCards, gráfico de fluxo de caixa, agenda). Rota /dev como laboratório visual.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d10",
+        "title": "Etapa F4 — Sistema de tabelas reutilizável",
+        "description": "DataTable genérico: filtro/ordenação/paginação client-side, Skeleton, EmptyState, RowActions, BulkActions. Rota /dev/tables.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d11",
+        "title": "Etapa F5 — Sistema de formulários reutilizável",
+        "description": "React Hook Form + Zod, FormDialog, campos de máscara (moeda/percentual/data), motion de validação/loading/sucesso. Rota /dev/forms.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d12",
+        "title": "Etapa F6 — CRUD de Conta completo",
+        "description": "Primeira entidade real do frontend: camada de dados, formulário, tabela, smoke test contra backend real.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d13",
+        "title": "Refinamento Visual",
+        "description": "Branding de instituições financeiras, tema claro/escuro (UserMenu), microinterações em Button/Card/Table/Sidebar/StatCard.",
+        "category": "Design",
+        "priority": "Média",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d14",
+        "title": "Etapa F7 — CRUD de Categoria completo",
+        "description": "Hierarquia pai/filho, categorias de sistema somente leitura, IconField/ColorField (novos campos do Form System).",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d15",
+        "title": "Refinamento de UI",
+        "description": "Revisão crítica de UX/UI/Performance/Responsividade: MobileNav criado (Sidebar não tinha substituto abaixo de md), hideOnMobile corrigido no DataTable, hierarquia visual de Categoria, placeholderData em queries.",
+        "category": "UX",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d16",
+        "title": "Etapa F8 — CRUD de Tag completo",
+        "description": "Terceira entidade real, 100% composição de infraestrutura já existente (TagBadge é o único componente novo).",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d17",
+        "title": "Organização personalizada da Sidebar",
+        "description": "Reordenação por drag-and-drop (Framer Motion Reorder) dos itens de navegação, Dashboard sempre fixo, persistência em localStorage, alternativa completa por teclado.",
+        "category": "UX",
+        "priority": "Média",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d18",
+        "title": "Ajustes de UX/UI + Etapa F9 — CRUD de Cartão",
+        "description": "CartaoVisual (cartão físico premium com tilt 3D e glow), branding por instituição com múltiplas variantes, BandeiraBadge, ProgressBar.tone, escala global de UI (tokens). Quarta entidade real do frontend.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d19",
+        "title": "Revisão de UX/UI de toda a aplicação (pós-F9)",
+        "description": "Overflow de valores no StatCard corrigido com tipografia adaptativa (sem reduzir fonte uniformemente) + grid ponderado no Resumo Financeiro. Cartões evoluído de apenas cadastro para tela com barra de utilização, próxima fatura e histórico. Dashboard de cartões/faturas identifica o cartão de cada fatura. Bug real encontrado e corrigido: CTA de onboarding Criar conta estava desabilitado (em breve) desde antes da F6, mesmo com /contas já existindo.",
+        "category": "UX",
+        "priority": "Alta",
+        "date": "2026-07-16"
+      },
+      {
+        "id": "d20",
+        "title": "docs/analise-arquitetural-overlays.md criado",
+        "description": "Padrão único de overlays do projeto (Tier 1 leve/não-bloqueante vs Tier 2 bloqueante/exclusivo), heurística de 2 cliques promovida a regra canônica. Ajuste pedido pelo usuário ao aprovar os documentos de Fatura/Rich Pickers.",
+        "category": "Design",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d21",
+        "title": "Overlays base implementados — Drawer, RichPicker, IconPicker, ColorPicker",
+        "description": "Drawer (Tier 2, ancorado à direita) e RichPicker genérico (Tier 1, grid/lista) novos; IconField/ColorField (F7) substituídos por IconPicker/ColorPicker compostos sobre RichPicker. useDismissableOverlay/useIsMobileViewport extraídos como hooks compartilhados.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d22",
+        "title": "BankPicker + CardBrandPicker + slot visual em Select/SearchSelect",
+        "description": "Novos pickers de domínio para instituição (preserva texto livre via 'Outra instituição') e bandeira (enum fechado). CategorySelect passou a mostrar ícone+cor via o novo slot render de Select/SearchSelect.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d23",
+        "title": "Exclusão definitiva (hard delete) — Conta, Categoria, Tag, Cartão",
+        "description": "Nova rota DELETE /{entidade}/{id}/permanente em cada uma das 4 entidades, distinta da desativação já existente. Regras de bloqueio específicas por entidade (docs/analise-arquitetural-exclusao.md). 13 testes novos, 85 testes de integração passando ao todo entre as 4 entidades. Frontend: ação 'Excluir' em cada listagem com ConfirmAction reforçado.",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d24",
+        "title": "Etapa F10 — Página de detalhes do Cartão (/cartoes/:id) + CRUD de Fatura",
+        "description": "Primeira página de DETALHES do projeto (todas as entidades anteriores usam só FormDialog). Faturas exibidas inline na página, FaturaDrawer para ações/detalhe de uma fatura por vez (fechar ciclo, registrar pagamento, excluir). Quinta entidade real do frontend.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d25",
+        "title": "Revisão de UX final — módulo de Cartões",
+        "description": "/cartoes migrou de DataTable para grid de CartaoResumoCard (mini dashboard clicável, navega para a página de detalhes ao clicar em qualquer área livre). Nova CartaoActionBar (Editar/Faturas/Desativar/Excluir, sempre ícone+texto). Página de detalhes reorganizada em ordem de storytelling (qual cartão → disponível → utilização → próxima fatura → ações → faturas → informações do cartão → histórico, este último documentado como placeholder para quando Transação existir). Correção de auditoria: ProgressBar usava a cor de acento (reservada para interação) no estado saudável de utilização — corrigido para positive (verde) em CartaoVisual e no CartoesCard do Dashboard. Correção de performance real: tilt 3D recalculava getBoundingClientRect() a cada mousemove (reflow forçado) — motivo da lentidão reportada; agora lido uma vez por hover.",
+        "category": "UX",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d26",
+        "title": "Sistema semântico de status formalizado (reutilizável no projeto inteiro)",
+        "description": "Novo tone 'info' (azul, --color-info) para estados em-andamento/sem-alerta (ABERTA/ATIVO em FinancialBadge). utils/status.ts: tonePorUtilizacao/tonePorPrazo, funções puras reutilizáveis por qualquer entidade futura. Novos componentes StatusChip (fundo sólido com contraste garantido, resolve 'Vence em X dias' sumindo em cartões coloridos), StatusDot (microindicador) e AtivoBadge (unifica o badge ativo/inativo duplicado em Conta/Categoria/Tag/Cartão). Achado de auditoria real: corDeContraste (lib/color.ts) tinha fórmula de contraste sem correção de gama — 11 das 43 cores de PALETA_SUGESTAO recebiam texto de pior contraste; corrigido para calcular a razão de contraste WCAG real.",
+        "category": "UX",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d27",
+        "title": "Etapa F11 — CRUD de Transação completo",
+        "description": "Sexta entidade real do frontend e a primeira com volume real de dados — tela mais usada do app. Filtragem híbrida: PeriodoSeletor + tipo/status/categoria viram parâmetros reais de GET /transacoes (backend filtra de verdade), DataTable só cuida de busca/ordenação/paginação de exibição sobre o resultado já filtrado. Origem Conta×Cartão como seletor segmentado, imutável na edição (regra do backend). Dois componentes de domínio novos e reutilizáveis por qualquer entidade futura: CardSelect (cartao_id) e TagMultiSelect (tag_ids, cada chip com a cor real da tag). CategorySelect ganhou filtro por tipo (RECEITA/DESPESA/AMBOS). TransacaoResumoPeriodo reaproveita a Central Financeira existente (visao-mensal) em vez de somar transações no cliente. Campos de vínculo futuro (Parcelamento/Financiamento/Empréstimo/ContaRecorrente/Meta) documentados e propositalmente não implementados — nenhuma dessas entidades tem CRUD ainda.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d28",
+        "title": "Refinamento de Pickers e Performance (pós-F11)",
+        "description": "Causa raiz do 'scroll dentro de scroll' identificada (position:absolute cortado pelo overflow-y-auto do FormDialog) e corrigida com hook novo useFloatingPanel — posiciona via getBoundingClientRect e portala para document.body (necessário por causa do scale animado do FormDialog, que criaria um containing block inválido para position:fixed). Reaproveitado por RichPicker/SearchSelect/MultiSelectField/Select/ColumnVisibility. RichPicker: grade 6→10 colunas, células maiores, painel com largura fixa e altura maior, dimensionado pela contagem real de registros (77 ícones, 44 cores, ~20 instituições, 7 bandeiras). Destaque de busca (<mark>) em RichPicker/SearchSelect. Auditoria de performance real (não especulativa): zero code-splitting existia no projeto — corrigido com React.lazy() por rota + import dinâmico do ReactQueryDevtools, chunk único de 741KB antes vira chunks de 5-23KB por página + um chunk principal compartilhado de ~509KB.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d29",
+        "title": "Refinamento de Pagamento de Fatura (pós-F11)",
+        "description": "Bug real de invalidação de cache corrigido: FaturaService.registrar_pagamento sempre criou uma Transacao de despesa real (via fatura_paga_id), mas nada invalidava transacoes.*/contas.detail/Dashboard após um pagamento — exigia F5 manual. invalidarTransacoes exportada e reaproveitada entre useTransacaoQueries/useFaturaQueries. Atalhos 'Pagar total'/'Pagar restante' no FaturaDrawer (mesmo payload de qualquer valor digitado — a API já aceita qualquer valor > 0 na mesma rota). Preview client-side não-autoritativo do status pós-pagamento (preverStatusPosPagamento, espelha _derivar_status do backend, nunca persistido). Valor pago/restante e ProgressBar de quitação agora sempre visíveis no ProximaFaturaCard e no FaturaDrawer. Nenhuma regra de negócio ou API alterada.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-17"
+      },
+      {
+        "id": "d30",
+        "title": "Estabilização e Polimento de Overlays (pós-F11)",
+        "description": "Bug crítico corrigido: RichPicker em viewport móvel renderizava seu próprio backdrop (bg-bg/60 + blur) empilhado sobre o do FormDialog já aberto — dois véus de 60% opacidade compõem para ~84%, cobrindo até o conteúdo do FormDialog, lido pelo usuário como 'tela toda preta e travada'. Corrigido removendo o backdrop do wrapper mobile (RichPicker é Tier 1, sempre usado dentro de um FormDialog já escurecido). Segunda instância do MESMO bug encontrada em qualquer viewport: FaturaDrawer abria um ConfirmAction (backdrop próprio) para Fechar ciclo/Excluir fatura com o Drawer já aberto — corrigido substituindo o conteúdo do Drawer inline (mesma técnica que FormDialog já usa para 'Descartar alterações?'), provável causa real da percepção de 'não consigo registrar movimentações pela Fatura'. DateInput (campo Data de Transação/Fatura) era o único popover ainda com position:absolute e useEffect próprio de clique-fora — migrado para useFloatingPanel. Escala de z-index formal criada (--z-tier2/--z-tier1/--z-toast em index.css), antes todo overlay usava a mesma z-50 solta por coincidência de ordem de montagem no DOM. Nenhuma funcionalidade nova, nenhuma regra de negócio/API alterada, nenhuma limitação real de backend encontrada.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d31",
+        "title": "Estabilização de Overlays — 2ª rodada: causa raiz real do bug crítico",
+        "description": "Vídeo do usuário reproduziu o mesmo travamento em viewport DESKTOP, provando que o bug de backdrop duplicado (d30) não era a causa raiz principal. Causa real: loop infinito de render em useFloatingPanel — RichPicker/ColumnVisibility/DateInput passam panelWidth como função inline (nova referência a cada render), que estava nas deps do useCallback interno do hook (recompute); isso recriava recompute a cada render, disparando o useLayoutEffect de novo, chamando setRect com objeto novo, gerando outro render — loop infinito que trava o React ('Maximum update depth exceeded'). Sem nenhum ErrorBoundary no projeto, esse erro derrubava a aplicação inteira (tela em branco/preta). Corrigido guardando as opções numa ref e tornando recompute estável para sempre (useCallback com deps vazias). Esse bug afetava TODO uso de ColorPicker/IconPicker/BankPicker/CardBrandPicker/ColumnVisibility, em qualquer viewport, desde a criação do hook. Adicionado também um ErrorBoundary de topo (components/layout/ErrorBoundary.tsx) — não previne bugs futuros, mas garante que uma exceção de render não tratada nunca mais derrube a aplicação inteira em silêncio.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d32",
+        "title": "Execução em segundo plano (uso local, sem terminal aberto)",
+        "description": "Scripts iniciar.ps1/parar.ps1/iniciar-silencioso.vbs na raiz do projeto: sobem backend (uvicorn sem --reload) e frontend (build de produção via vite preview) em segundo plano, sem janela visível, com atalho opcional na pasta de Inicialização do Windows. Investigado e descartado servir os dois do mesmo processo/origem: as rotas do frontend (/cartoes, /contas, /transacoes) têm o mesmo nome dos prefixos da API, então a API sempre venceria o roteamento e quebraria o carregamento direto de qualquer página — confirmado com smoke test real antes de descartar a abordagem. Nenhum código de negócio/API alterado. Recomendado só para uso local — rate limiting de auth e backup do SQLite ainda pendentes (Fase 4).",
+        "category": "DevOps",
+        "priority": "Média",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d33",
+        "title": "Refinamento de UX, Onboarding, Dashboard e Cartões",
+        "description": "Documento de arquitetura prévio (docs/analise-arquitetural-refinamento-ux-dashboard-cartoes.md) cobrindo 13 frentes, aprovado antes de qualquer código. Dashboard como hub de navegação: StatCards/cards de domínio/eventos da Agenda agora navegam para a tela correspondente (mapeamento completo por card); Metas/Financiamentos/Empréstimos permanecem sem link — não têm rota própria ainda, documentado como deferido. Fusão Entradas x Saídas: VisaoMensalCard (seção própria de 8 colunas) removido — a comparação virou uma mini-barra compacta embutida no StatCard 'Fluxo de caixa', reduzindo uma seção duplicada do grid sem perder informação. Cards mais inteligentes: MetasCard ganhou cor por urgência de prazo (tonePorPrazo, mesma régua de Cartões). Categorias padrão do sistema: seed de dados (migração Alembic idempotente, 13 categorias-pai + subcategorias, usuario_id NULL) — a arquitetura de 'categoria de sistema' já existia no model desde o início, nunca tinha sido populada; zero mudança de schema. Bug/inconsistência corrigido: TODO obsoleto em CategoriaService.desativar() removido — revisitado e concluído que NÃO deveria bloquear por transação vinculada (mesmo padrão de ContaService.desativar(), soft delete preserva o rótulo histórico por design). Onboarding: sugestão leve de próximo passo (criar o primeiro cartão) quando o usuário já tem conta mas nenhum cartão ainda. Ajuste de saldo inicial de fatura: novo fluxo em /cartoes/:id que abre o TransacaoFormDialog já pré-preenchido (cartão, tipo despesa, descrição sugerida) para registrar, num único lançamento, o quanto já está gasto no ciclo aberto — sem precisar recriar compra por compra; reaproveita 100% da Transação/fatura aberta já existentes, nenhum endpoint novo. Duas limitações de Fatura ('não dá para lançar em ciclo fechado', 'não dá para excluir certas faturas') investigadas e confirmadas como regras de negócio deliberadas (não bugs) — mantidas sem alteração. Importar uma fatura já FECHADA de antes do onboarding identificado como exigindo mudança de regra de negócio — documentado e explicitamente NÃO implementado nesta etapa, aguardando decisão futura. Placeholder de 'histórico de compras' em CartaoDetalhePage identificado como stale (a condição que ele esperava — CRUD de Transação — já existe) — sinalizado para uma etapa futura dedicada, não implementado agora. tsc -b, vite build e testes de backend relevantes (Categoria/Conta/Cartão/Fatura/Transação/Central Financeira) validados.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d34",
+        "title": "Auditoria de Identidade Visual — harmonização de paleta",
+        "description": "Auditoria completa do código por cor fora do sistema de tokens — zero ocorrências (disciplina de tokens já era 100% seguida). Causa raiz real da 'paleta bagunçada': CartaoVisual renderizava o gradiente de marca da instituição como o fundo INTEIRO do cartão em saturação total, competindo com badges/chips/progress bar e entre si (vários cartões de instituições diferentes lado a lado). Corrigido sem alterar nenhuma cor de marca real: base do cartão agora sempre escura (mesmo par de superfície do resto do app), gradiente de marca aplicado por cima como tinta translúcida (opacity 0.55, blend soft-light). Efeito colateral corrigido: cor de texto por instituição (calibrada para o fundo antigo) parou de ser usada — 2 variantes ficariam ilegíveis sobre a nova base escura. Segundo achado: badge 'Sistema' de Categoria usava tone accent (reservado para interação) — corrigido para neutral, mais evidente após o seed de categorias padrão. Decisão explícita de NÃO alterar os valores centrais dos tokens de cor — problema era pontual, não estrutural. tsc -b e vite build validados.",
+        "category": "Design",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d35",
+        "title": "CRUD de Transferências (Frontend) + Calendário Financeiro",
+        "description": "Análise arquitetural prévia (docs/analise-arquitetural-transferencias-frontend.md) aprovada antes de código. CRUD de Transferências: backend já existia completo (criar/listar/obter/cancelar, sem PATCH/DELETE); camada de dados nova no frontend segue o molde de Transação. Experiência desenhada para comunicar movimento de dinheiro: dois AccountSelect lado a lado com seta entre eles (anima só em entrada/hover/durante salvamento/confirmação, nunca em loop infinito), botão de trocar origem/destino, preview textual antes de confirmar. Cancelamento usa linguagem 'Cancelar transferência' (nunca 'Excluir'), com toggle 'Mostrar canceladas' desabilitado por padrão. Gap real investigado e corrigido: TipoEntidadeReferenciavel não tinha TRANSFERENCIA (mudança aditiva de enum Python, sem migration — só vira coluna real em Alerta, feature ainda não implementada) e /central-financeira/agenda nunca cobria mês inteiro, todo status, fechamento de fatura ou Meta. Resolvido com endpoint NOVO e irmão (/central-financeira/calendario, CentralFinanceiraService.calendario_financeiro) reaproveitando os Services já existentes — /agenda permanece intacto. Novo discriminador CategoriaEventoCalendario (schema-only) decide a cor do indicador, separado de TipoEntidadeReferenciavel (que decide a navegação). Calendário Financeiro (/calendario): grade mensal navegável com dots por dia (nunca o dia inteiro pintado), Drawer de eventos do dia com navegação direta para a entidade, painel de resumo do mês (receitas/despesas previstas, fluxo do mês, dia mais movimentado, próximo vencimento/entrada) derivado 100% client-side dos eventos já carregados. origemNavegacao.ts extraído para ser compartilhado entre o Drawer e o widget de Agenda do Dashboard (sem lógica duplicada). Simplificação deliberada: Financiamento/Empréstimo não ganharam cor própria (já são Transacao RECEITA/DESPESA no modelo real) — evita inventar tokens de cor novos. Validado com tsc -b, vite build e suíte de testes de backend completa (unit + todos os arquivos de integração), nenhuma regressão.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-19"
+      },
+      {
+        "id": "d36",
+        "title": "Onboarding para vida financeira pré-existente + Compra parcelada no cartão",
+        "description": "Quatro pedidos adicionais atacados do mais para o menos demorado. (1) Compra parcelada no cartão: toggle 'à vista ou parcelado em X vezes' no TransacaoFormDialog quando a origem é Cartão — reaproveita 100% do ParcelamentoService já existente, nenhuma lógica duplicada. (2) Exclusão de Fatura fechada: regra relaxada de 'só ABERTA e sem transação' para 'qualquer status, desde que sem nenhuma transação vinculada (compra ou pagamento)' — fatura fechada por engano agora pode ser removida; faturas com movimentação real seguem protegidas para sempre. (3) Import de Fatura histórica: novo endpoint POST /faturas/importar (schema FaturaImportarCreate, exceção explícita e isolada à regra 'valor_total nunca vem do cliente') cria uma fatura já FECHADA/PAGA com valor manual, sem recriar compra por compra; campo Fatura.importada (migração b3a7f0c1d9e2) marca a origem com badge 'Importada'. (4) Onboarding de Financiamento/Empréstimo: campo parcelas_ja_pagas na criação (reaproveita pagar_parcela() em loop, sem duplicar a lógica de saldo_devedor/QUITADO) — e, ao descobrir que as duas entidades nunca tiveram NENHUMA tela de criação no frontend (só cards somente-leitura no Dashboard), o escopo foi expandido para um CRUD completo: FinanciamentoFormDialog/EmprestimoFormDialog, FinanciamentoDrawer/EmprestimoDrawer (cronograma completo + pagar parcela em qualquer ordem), páginas /financiamentos e /emprestimos com toggle 'Mostrar quitados' (as agregações da Central Financeira escondem contratos QUITADO por design — hooks novos contra os endpoints brutos evitam esse problema). Toda decisão de escopo maior (import de Fatura, parcelas_ja_pagas, CRUD completo) foi confirmada com o usuário via pergunta antes de implementar. tsc -b, vite build e suíte completa de testes de backend validados, nenhuma regressão.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d37",
+        "title": "Edição livre de categorias do sistema",
+        "description": "Quinto e último item da fila de pedidos adicionais. Achado real: categoria de sistema (usuario_id NULL) é uma única linha compartilhada por TODOS os usuários, não uma cópia por usuário — por isso CategoriaService._buscar_editavel recusava qualquer escrita com 403. Apresentado ao usuário antes de implementar (edição direta da linha compartilhada vs. copiar-ao-editar/fork) — escolhida a edição direta. CategoriaService.atualizar passou a usar _buscar_visivel em vez de _buscar_editavel: nome/tipo/cor/icone/categoria_pai_id de categoria de sistema agora editáveis por qualquer usuário. Exceção mantida dentro do próprio atualizar(): ativo:false em categoria de sistema continua 403 (desativar tiraria a categoria de todo mundo); desativar()/excluir() (hard delete) continuam bloqueadas por inteiro para categoria de sistema, sem alteração. Frontend: ação Editar deixou de ficar escondida para categorias de sistema, CategoriaFormDialog não força mais somente-leitura. Testes de Categoria (unit+integração) atualizados e validados.",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d38",
+        "title": "Excluir Financiamento/Empréstimo + formulário simplificado + parcela com juros",
+        "description": "Três pedidos rápidos em sequência. (1) DELETE /financiamentos/{id} e /emprestimos/{id} novos - nenhuma das duas entidades tinha exclusão. Achado real: geram TODAS as N parcelas já na criação, então a regra de Fatura ('sem transação vinculada') nunca se aplicaria; usuário escolheu exclusão sempre permitida. Achado técnico ao implementar: ondelete=SET NULL do banco sozinho violava ck_transacao_numero_parcela_condiz_com_contrato (zerava só o id do contrato, deixando numero_parcela órfão) - corrigido desvinculando os dois campos explicitamente no Service antes de excluir. Ação 'Excluir' nos Drawers com confirmação inline (mesmo padrão de FaturaDrawer). (2) FinanciamentoFormDialog simplificado: removidos valor financiado/entrada/taxa de juros/CET/sistema de amortização/número de contrato/categoria - só 'valor da parcela'. Payload completo reconstruído (valor_financiado = valor_parcela x num_parcelas, taxa_juros = 0, PRICE degenera em parcelas fixas) sem nenhuma mudança de backend. (3) Parcelamento.valor_parcela opcional (Pydantic-only, sem coluna nova): quando informado, todas as N parcelas nascem com esse valor exato em vez da divisão automática de valor_total - cobre compras parceladas com juros embutidos pela loja. Testes unitários e de integração das três entidades, suíte completa sem regressão, tsc -b/vite build limpos.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d39",
+        "title": "Varredura crítica: banco real desatualizado + CORS mascarando erros como falha de conexão",
+        "description": "Usuário reportou Calendário com 'Falha de conexão com o servidor' e Dashboard fora do ar, pedindo varredura completa por bugs de desempenho/compatibilidade. Causa raiz nº 1: a migration que criou Fatura.importada (etapa anterior desta sessão) só tinha sido testada contra bancos SQLite descartáveis, nunca aplicada no backend/financas.db real - projeto não tem auto-migração no startup. Toda consulta tocando Fatura (exatamente o que Dashboard/Calendário fazem) levantava OperationalError: no such column: faturas.importada. Corrigido com backup do banco real e alembic upgrade head aplicado diretamente nele; verificado com alembic check (zero divergência) e consultas diretas (as 12 faturas existentes já tinham importada preenchido corretamente pelo server_default). Causa raiz nº 2 (por que virou 'falha de conexão' em vez de erro normal): nenhum handler para exceção genérica existia - qualquer exceção não mapeada subia crua até o ServerErrorMiddleware do Starlette, que fica por FORA do CORSMiddleware, saindo sem headers de CORS; o navegador bloqueia a resposta, fetch() cai no catch genérico e mostra a mensagem enganosa mesmo com o backend saudável. Corrigido com @app.exception_handler(Exception) em main.py - loga a exceção real e devolve 500 comum, garantindo que o CORSMiddleware sempre vê uma resposta normal. Rede de segurança definitiva contra qualquer bug futuro não previsto, sem alterar nenhuma regra de negócio. Achado adicional: 4 testes (2 unit + 2 integração) eram bombas-relógio com mes_referencia fixo em julho/2026, quebrando sozinhos assim que o relógio real passou da data de vencimento hardcoded - corrigidos com um helper que usa sempre o mês seguinte ao atual. Restante da varredura sem achados: cadeia de migrations íntegra, rotas sem conflito, CORS/vite.config.ts/build do frontend ok, CentralFinanceiraService já estruturalmente cuidadoso com performance. Suíte completa validada: 867 testes (510 unit + 357 integração), 100% passando; tsc -b limpo.",
+        "category": "Backend",
+        "priority": "Crítica",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d40",
+        "title": "Excluir parcela cancela a compra parcelada inteira",
+        "description": "Usuário reportou: ao excluir uma transação parcelada no cartão, a fatura atual muda mas as próximas e o saldo não resetam. Causa raiz: uma parcela de Parcelamento não é uma transação isolada - é uma de N linhas geradas atomicamente por ParcelamentoService._gerar_parcelas no momento da compra, cada uma já com fatura_id resolvido (inclusive as futuras). TransacaoService.excluir() apagava só a linha clicada (único ponto de entrada que a UI oferece - não existe tela dedicada de cancelar parcelamento), deixando as outras N-1 completamente intocadas: faturas futuras continuavam cobrando o valor cheio de uma compra já removida, e Parcelamento.ativo continuava True. Corrigido criando TransacaoService.cancelar_parcelas_do_parcelamento() - ponto único que cancela o parcelamento inteiro (remove parcelas destravadas, preserva as já em fatura fechada, marca ativo=False) - chamado tanto por excluir() quanto por ParcelamentoService.cancelar(), que agora delega em vez de duplicar o loop. Trava de fatura fechada continua valendo para a transação clicada diretamente. Frontend: diálogo de confirmação em /transacoes avisa quando a transação faz parte de uma compra parcelada. Testes unitários e de integração novos (cascata completa, preservação de parcela travada, erro na parcela clicada travada), suíte completa sem regressão.",
+        "category": "Backend + Frontend",
+        "priority": "Crítica",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d41",
+        "title": "Cartões: gradiente de marca em saturação total (reversão da harmonização de paleta)",
+        "description": "Usuário achou o gradiente atual dos cartões (base escura + tinta translúcida soft-light, decisão da Auditoria de Identidade Visual) ruim visualmente, e confirmou não haver preocupação de direito autoral (uso pessoal, nunca vai ao ar). Revertido: CartaoVisual volta a usar tema.gradiente diretamente como fundo (não mais uma base escura fixa) e tema.corTexto como cor do texto (calibrada por instituição em lib/cardThemes.ts). StatusChip (fundo sólido) continua garantindo contraste do texto de prazo independente da cor de fundo. tsc -b limpo.",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d42",
+        "title": "Repaginação do painel de acompanhamento (dashboard/)",
+        "description": "Usuário achou o painel ruim de visualizar. Causa raiz: 39 entregas concluídas no Kanban + histórico crescente, cada uma com descrição de parágrafo inteiro, renderizadas como cards tradicionais - virou parede de texto. Corrigido sem tocar em nenhum dado do JSON: coluna Concluído do Kanban virou seção própria searchável/colapsável (só título+categoria+data até clicar), mesmo tratamento no Changelog (clamp de 3 linhas + Ver mais + busca), fases de Roadmap já concluídas nascem recolhidas, chips de qualidade truncam com tooltip no hover, nova barra de navegação por âncoras com scroll suave, faixa de estatísticas rápidas na Visão Geral.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-20"
+      },
+      {
+        "id": "d43",
+        "title": "Financiamento/Empréstimo: corrigir parcela (valor/data) + total já pago",
+        "description": "Usuário pediu para poder corrigir valor/data de uma parcela já lançada (caso tenha digitado errado) e ver quanto já foi pago no total. Achado ao investigar: o backend já permitia editar valor/data de parcela de contrato via PATCH /transacoes/{id} (só status é bloqueado, para proteger saldo_devedor) - faltava só a UI. Criado ParcelaContratoEditForm (compartilhado entre FinanciamentoDrawer/EmprestimoDrawer, substitui o conteúdo do Drawer como a confirmação de exclusão já fazia). \"Total já pago\" passou a aparecer ao lado do contador de parcelas pagas. tsc -b limpo.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d44",
+        "title": "Saldo da conta não é mais afetado por parcelas de contrato anteriores ao uso do app",
+        "description": "Bug relatado: Dashboard mostrava saldo negativo numa conta vinculada a um Financiamento pré-existente ao uso do app - dado \"fake\" na visão do usuário. Instrução explícita: deixar por conta do usuário decidir se está com saldo negativo, sem deduções automáticas de histórico pré-app. Causa raiz: ContaRepository.somar_transacoes_pagas somava toda transação PAGO da conta sem distinguir uma parcela paga organicamente de uma importada pelo onboarding \"parcelas_ja_pagas\". Corrigido com nova coluna Transacao.importada (migration c4d8e1a2f6b7, mesmo padrão de Fatura.importada), marcada True só no loop de onboarding de FinanciamentoService/EmprestimoService, excluída da soma de saldo. Migração aplicada na base real com backfill das 13 parcelas já existentes - saldo da conta afetada voltou de -R$ 11.937,38 para R$ 0,00. Suíte completa (876 testes) sem regressão.",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d45",
+        "title": "Refinamento UX/UI: Dashboard (overflow de valores + bento grid), Categorias recolhíveis, Calendário (navegação + visual), auditoria de Pickers",
+        "description": "Bugs corrigidos: (1) valores estourando cards do Dashboard - tamanhoValorHero recalibrado pelo pior caso real (card mais estreito) + nova formatMoneyInteligente/formatMoneyCompacto (compactação 'R$ 1,2 mi' a partir de R$ 100 mil, valor cheio no title/hover); (2) bento grid esticando cards vazios - items-start nas grades do Dashboard. Melhorias de UX: Categorias como grupos recolhíveis (chevron + sessionStorage + Expandir/Recolher tudo, sem tocar no DataTable genérico), MesAnoSeletor novo no Calendário (navegação direta de mês/ano, popover Tier 1, 1 clique), CalendarioMensal com células aspect-square. Pickers (Data/Cor/Ícone/Instituição/Bandeira) auditados - já fecham em 1 clique desde etapa anterior, nenhuma mudança necessária. tsc -b limpo; vite build pendente (rodar na máquina do usuário).",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d46",
+        "title": "Ajustes pós-feedback: remover Patrimônio líquido, Categorias recolhem pelo nome inteiro (sem coluna 'Categoria pai'), Fatura esconde Excluir quando já tem transação vinculada",
+        "description": "Patrimônio líquido removido do Dashboard (StatCard) a pedido do usuário - grade de ResumoFinanceiroSection simplificada para 4 cards iguais. Categorias: recolher agora é pelo nome inteiro (chevron+selo+texto), não só um ícone pequeno; coluna 'Categoria pai' removida (indentação já comunica hierarquia). Fatura: novo campo FaturaRead.pode_excluir (mesmo padrão de valor_total/status calculados) - FaturaDrawer esconde 'Excluir fatura' de antemão em vez de deixar confirmar uma exclusão que sempre falharia quando há transação vinculada. 2 testes de integração novos.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d47",
+        "title": "Excluir fatura mesmo com transação vinculada (compra ou pagamento) - transação é desvinculada, nunca apagada",
+        "description": "Pedido explícito do usuário: fatura já paga (parcial ou total) não podia ser excluída de jeito nenhum, sem forma de corrigir um valor cadastrado errado. Nova regra: FaturaService.excluir() não bloqueia mais por existe_transacao_vinculada - hard delete sempre permitido. Novo FaturaRepository.desvincular_transacoes() zera fatura_id/fatura_paga_id de toda transação vinculada antes de apagar a fatura (a transação em si nunca é apagada) - versão manual do que a FK ondelete=SET NULL já declara mas que o SQLite deste projeto não executa sozinho (sem PRAGMA foreign_keys=ON). Campo FaturaRead.pode_excluir e FaturaRepository.existe_transacao_vinculada removidos (viraram desnecessários). Botão 'Excluir fatura' volta a aparecer sempre, com texto de confirmação atualizado. Testes: 3 testes de integração reescritos (aberta/fechada com compra + um cobrindo especificamente pagamento vinculado), suíte completa sem regressão.",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-24"
+      },
+      {
+        "id": "d48",
+        "title": "Logos reais de bandeira (Visa/Mastercard) e de instituição financeira (bancos)",
+        "description": "Bandeiras: Visa/Mastercard ganharam recriações em SVG fiéis às cores oficiais (components/ui/brandLogos.tsx), sobre um selo branco em BandeiraBadge/CardBrandPicker - as outras 5 bandeiras continuam com monograma. Instituições: 15 das 17 do registry (lib/institutions.ts) ganharam logoUrl real, copiado do repositório rzmt/logos-bancos-br (avaliado contra Tgentil/Bancos-em-SVG e escolhido por ter proveniência rastreável - URI/SHA-256/data por logo, aviso de marca registrada e processo de takedown; o outro repositório não tinha licença/proveniência documentada). Aplicado em InstitutionBadge, BankPicker e CartaoVisual. Proveniência completa em frontend/src/assets/institutions/NOTICE.md. Wise/PayPal continuam com monograma (fora do escopo do dataset, que é só Brasil).",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-24"
+      },
+      {
+        "id": "d49",
+        "title": "Calendário: revertido para o formato original (retangular, largura cheia, com linhas de grade e card de fundo)",
+        "description": "Depois de três iterações de 'células quadradas' (esticado, centralizado sem linhas, centralizado com linhas), o usuário concluiu que a primeira versão de todas - min-h-[4.5rem]/sm:min-h-[5.5rem], grade cheia largura com gap-px+bg-border-subtle, e o card bg-surface-2 envolvendo legenda+grade em CalendarioPage - já era a melhor solução. CalendarioMensal.tsx/CalendarioPage.tsx revertidos exatamente a esse estado.",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-24"
+      },
+      {
+        "id": "d50",
+        "title": "CRUD de Meta (Frontend, Etapa F12) - grid de cards premium com progresso/prazo/situacao/velocidade",
+        "description": "Backend ja existia completo e fechado (docs/analise-arquitetural-meta.md, 709 testes). Etapa constroi so a experiencia: types/schemas/service/hooks de Meta, MetaFormDialog (descricao/valor_alvo/data_alvo/conta_id organizacional), MetaResumoCard (grid clicavel que expande inline para mostrar historico de aportes, em vez de navegar - percentual/valor acumulado/valor restante/prazo/situacao sempre visiveis sem abrir nada), MetaActionBar (so soft delete, sem exclusao definitiva - respeita exatamente a regra de negocio existente), pagina /metas com filtros rapidos (Em andamento/Concluidas/Atrasadas/Desativadas, com contagem) e ordenacao (proxima da conclusao/mais distante/vencimento/maior-menor valor) 100% client-side. 'Velocidade para atingir' e uma projecao client-side pura sobre valor_acumulado/criado_em - nunca reproduz o calculo de progresso do backend. MetaRead ganhou o campo aditivo criado_em (coluna que ja existia via TimestampMixin, nunca exposta) - unica mudanca de backend desta etapa, sem alterar nenhum Service/Router.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d51",
+        "title": "MetaSelect em TransacaoFormDialog - peca obrigatoria que fecha a ultima lacuna do dominio de Meta",
+        "description": "Sem um jeito de marcar uma Transacao com meta_id, nenhuma Meta jamais acumularia progresso de verdade (o backend ja validava/filtrava por meta_id desde a etapa de Meta, mas nenhum formulario expunha o campo). Novo MetaSelect (espelha CardSelect) adicionado como campo opcional em TransacaoFormDialog, visivel em qualquer combinacao de tipo/origem, oculto no modo Parcelado (ParcelamentoCreate nao aceita meta_id). invalidarTransacoes passou a invalidar tambem dashboard.metas e dashboard.calendario por prefixo.",
+        "category": "Frontend",
+        "priority": "Alta",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d52",
+        "title": "Popup de mes/ano (MesAnoSeletor) aplicado a toda navegacao por periodo",
+        "description": "Pedido do usuario: o seletor de mes/ano com popup (stepper de ano + grid de 12 meses) criado para o Calendario Financeiro ficou bom o bastante para virar padrao em qualquer navegacao por data. PeriodoSeletor (compartilhado por DashboardPage e TransacoesPage) trocou o rotulo estatico pelo mesmo MesAnoSeletor ja usado em CalendarioPage - as duas telas ganham o popup automaticamente, sem componente novo.",
+        "category": "Frontend",
+        "priority": "Media",
+        "date": "2026-07-18"
+      },
+      {
+        "id": "d53",
+        "title": "Cartao: descoberta do ajuste de 'limite ja utilizado' (sem vincular a uma compra)",
+        "description": "Pedido do usuario: registrar quanto do limite de um cartao ja esta comprometido sem relacionar a uma compra nem filtrar fatura por fatura. Investigacao confirmou que a capacidade ja existia (botao 'Registrar saldo ja gasto neste cartao' em CartaoDetalhePage, cria um unico lancamento DESPESA no ciclo aberto) - o gap real era de descoberta: so aparecia depois de ja estar no detalhe do cartao. CartaoFormDialog ganhou onCriado (so em modo criacao); CartoesPage agora navega direto para /cartoes/:id do cartao recem-criado, colocando o usuario ao lado do botao. Nenhuma regra de negocio nova.",
+        "category": "Frontend",
+        "priority": "Media",
+        "date": "2026-07-18"
+      }
+    ]
+  },
+  "changelog": [
+    {
+      "date": "2026-07-20",
+      "type": "full-stack",
+      "title": "Cartões: pagar faturas selecionadas em lote (POST /faturas/pagar-em-lote) - cada fatura paga pelo próprio restante, faturas abertas/já quitadas puladas em vez de bloquear o lote inteiro; PagamentoEmLoteDialog + botão na página de detalhe do cartão"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "frontend",
+      "title": "Correção sistêmica do bug 'selecionar duas vezes' em campos de seleção (Select/SearchSelect/MultiSelectField) - onBlur do RHF passou a disparar só no fechamento do popover (padrão já usado por RichPicker), nunca ligado ao blur nativo do botão-gatilho"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "backend",
+      "title": "Fatura importada não paga passa a descontar limite do cartão (3ª causa raiz do bug, encontrada por inspeção direta do banco real após print do usuário) + bloqueio de importação de ciclo ainda não fechado (422)"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "backend",
+      "title": "Centralização do escopo de exclusão de parcela (EscopoOperacaoParcela, ponto de extensão para editar/excluir só uma parcela no futuro) + dois gaps adicionais de invalidação de cache encontrados em auditoria (contas.detail→contas.all, prefixo faturas ausente)"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "frontend",
+      "title": "Dashboard do app: hero row de 3 StatCards, ContasCartoesCard (funde Contas+Cartões numa linha fixa) e TransacoesRecentesCard (abas Transações/Agenda) substituem os cards antigos"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Auditoria final de experiencia premium: subtitulo do Dashboard padronizado, botao de acao no estado vazio de Contas/Categorias/Tags/Transferencias/Transacoes/Financiamentos/Emprestimos, busca de MetasPage trocada pelo SearchBar compartilhado - lacunas conhecidas (onboarding do Calendario, historico no CartaoDetalhePage) documentadas para etapa futura"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "fullstack",
+      "title": "Central de Atividades: feed cronologico combinando Transacao/Transferencia/Meta concluida (CentralFinanceiraService.atividades_recentes, GET /central-financeira/atividades), sem tabela de auditoria nova - AtividadesRecentesDrawer aberto por botao no Header, reaproveitando ICONE_POR_ORIGEM/ROTA_POR_ORIGEM"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Command Palette (Ctrl/Cmd+K): modal de busca+navegacao disponivel em qualquer rota, reaproveitando NAV_ITEMS existente (nenhuma lista de rotas duplicada), navegacao por teclado, arquitetura extensivel para tipos de resultado futuros"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Dashboard personalizavel: reordenar (drag-and-drop nativo, sem lib nova) e mostrar/ocultar os 6 cards do Bento Grid, persistido em localStorage (lib/dashboardLayout.ts) - botao Personalizar no cabecalho"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Calendario: EventoDiaDrawer agrupa 2+ parcelas de Parcelamentos diferentes no mesmo dia num cartao consolidado recolhivel (evita poluicao visual), sem mudanca de backend"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "backend",
+      "title": "Categoria de sistema ganha ocultacao por usuario: nova tabela categorias_ocultas_usuario + CategoriaService.ocultar_para_usuario/reexibir_para_usuario - nunca toca a linha compartilhada, so registra por-usuario quem parou de ver"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "CategoriasPage: acoes 'Ocultar para mim'/'Reexibir' (so em categoria de sistema) + toggle 'Mostrar categorias ocultas por voce'"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Dashboard: ContasCard/CartoesCard/MetasCard/FaturasCard reescritos como resumos executivos (sem listas item-a-item); SaldoPorContaCard removido (fundido em ContasCard); FinanciamentosCard/EmprestimosCard ganham navegacao"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "Dashboard: novo card 'Hoje' (HojeCard) reaproveitando calendario_financeiro existente, filtrado client-side para eventos do dia - zero endpoint/logica nova"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "backend",
+      "title": "CentralFinanceiraService.resumo_cartoes_agregado + rota GET /central-financeira/cartoes/agregado (limite total/disponivel/usado, % geral, faturas em aberto, proximos vencimentos) - agregacao pura sobre CartaoService, sem formula nova"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "backend",
+      "title": "Corrigido bug: limite disponivel do Cartao nao voltava apos pagar Fatura (comparacao com Fatura.status, que nunca grava PAGA de verdade) - FaturaService.ids_faturas_pagas() vira fonte unica de verdade, CartaoService passa a depender de FaturaService"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "backend",
+      "title": "Cartao ganha Estado Inicial (saldo_inicial_utilizado) - declarar saldo ja utilizado nao cria mais uma Fatura automatica nos bastidores"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "CartaoFormDialog: campo Saldo ja utilizado (so na criacao) + AjusteSaldoInicialDialog com dois modos (Cartao.saldo_inicial_utilizado sem fatura aberta, Fatura.ajuste_manual com fatura aberta)"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "backend",
+      "title": "Meta: aportes/resgates viram Transferencia real para um cofrinho automatico (Conta oculta) - Meta.conta_id passa a ser obrigatorio, historico legado (Transacao.meta_id) congelado mas preservado"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "MetaAporteDialog (Aportar/Resgatar reaproveitando Transferencia) + MetaResumoCard com historico combinado (legado + cofrinho) + MetaSelect removido de TransacaoFormDialog"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "backend",
+      "title": "Cartao: Fatura.ajuste_manual + PATCH /faturas/{id}/ajuste-manual - saldo ja usado declarado sem Transacao, refletido em limite_disponivel"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Cartao: AjusteSaldoInicialDialog substitui o antigo botao baseado em Transacao - pedido do usuario ainda nao estava resolvido de fato"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "backend",
+      "title": "Meta: exclusao definitiva (hard delete) - DELETE /metas/{id}/permanente, nunca bloqueado por aportes vinculados"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Meta: botao Excluir na MetaActionBar, alem de Desativar/Reativar"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "CRUD de Meta (Frontend F12): grid de cards com progresso/prazo/situacao/velocidade, filtros rapidos e ordenacao client-side, so soft delete"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "MetaSelect em TransacaoFormDialog - fecha a ultima lacuna do dominio de Meta (sem ele nenhuma meta acumulava progresso)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Popup de mes/ano (MesAnoSeletor) aplicado ao PeriodoSeletor (Dashboard + Transacoes)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Cartao: navegar direto para o detalhe apos criar, expondo o ajuste de limite ja utilizado"
+    },
+    {
+      "date": "2026-07-24",
+      "type": "backend",
+      "title": "Fatura: exclusão liberada mesmo com transação vinculada - transação é desvinculada (fatura_id/fatura_paga_id -> null), nunca apagada"
+    },
+    {
+      "date": "2026-07-24",
+      "type": "frontend",
+      "title": "Logos reais de bandeira (Visa/Mastercard) e de instituição financeira (15 bancos) em BandeiraBadge/CardBrandPicker/InstitutionBadge/BankPicker/CartaoVisual"
+    },
+    {
+      "date": "2026-07-24",
+      "type": "frontend",
+      "title": "Calendário: revertido para o formato original (retangular, largura cheia, linhas de grade, card de fundo)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Remove Patrimônio líquido do Dashboard, Categorias recolhem pelo nome inteiro (sem coluna Categoria pai), Fatura esconde Excluir quando já tem transação vinculada (novo campo pode_excluir)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Refinamento UX/UI: correção de overflow de valores + bento grid do Dashboard, Categorias como grupos recolhíveis, novo seletor de mês/ano no Calendário, células quadradas, auditoria de Pickers (já 1 clique)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Financiamento/Empréstimo: novo botão de corrigir parcela (valor/data) e exibição do total já pago em ambos os Drawers"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "backend",
+      "title": "Nova coluna Transacao.importada exclui parcelas de Financiamento/Empréstimo importadas no onboarding do cálculo de saldo_atual da conta (evita dedução automática de histórico pré-app) — migração aplicada + backfill na base real"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "frontend",
+      "title": "Repaginação do painel de acompanhamento: Kanban Concluído virou lista searchável/colapsável, Changelog com truncamento+busca, Roadmap com fases concluídas recolhidas, chips de qualidade com tooltip, nova navegação por âncoras"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "frontend",
+      "title": "Cartões: gradiente de marca em saturação total novamente (CartaoVisual) — reversão pedida pelo usuário da harmonização de paleta (base escura + tinta translúcida)"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "backend",
+      "title": "Excluir uma parcela de compra parcelada no cartão agora cancela a compra inteira (todas as parcelas restantes), em vez de deixar faturas futuras e Parcelamento.ativo dessincronizados — TransacaoService.cancelar_parcelas_do_parcelamento() como ponto único, reaproveitado por ParcelamentoService.cancelar()"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "backend",
+      "title": "Varredura crítica: banco real desatualizado (Fatura.importada nunca migrada) causando OperationalError no Dashboard/Calendário, mascarado como 'Falha de conexão' por falta de handler de exceção genérica (CORS perdia os headers no 500 cru) — corrigido banco + adicionado @app.exception_handler(Exception) como rede de segurança definitiva; 4 testes-bomba-relógio de data também corrigidos"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "full-stack",
+      "title": "Excluir Financiamento/Empréstimo (DELETE novo, com correção de CHECK constraint ao desvincular parcelas), FinanciamentoFormDialog simplificado (só 'valor da parcela', sem campos burocráticos) e Parcelamento.valor_parcela customizado (compra parcelada com juros embutidos pela loja)"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "backend",
+      "title": "Edição livre de categorias do sistema — CategoriaService.atualizar não bloqueia mais escrita de conteúdo (nome/tipo/cor/icone/pai) em categoria de sistema; ativo:false (desativar) e hard delete continuam bloqueados por serem uma linha compartilhada por todos os usuários"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "full-stack",
+      "title": "Onboarding para vida financeira pré-existente + compra parcelada no cartão — Financiamento/Empréstimo ganharam CRUD completo no frontend (nunca tinham tela de criação), campo parcelas_ja_pagas na criação, import de Fatura histórica já FECHADA/PAGA (Fatura.importada + badge), exclusão de Fatura fechada relaxada (basta não ter transação vinculada), toggle 'à vista ou parcelado' no formulário de Transação"
+    },
+    {
+      "date": "2026-07-19",
+      "type": "frontend",
+      "title": "CRUD de Transferências (frontend completo, dois AccountSelect + preview + confirmação elegante) e novo módulo Calendário Financeiro (/calendario) — grade mensal com dots, Drawer de eventos do dia, resumo do mês; novo endpoint GET /central-financeira/calendario (irmão de /agenda, sem quebrar o widget do Dashboard)"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "design",
+      "title": "Auditoria de Identidade Visual — CartaoVisual: gradiente de marca virou tinta translúcida sobre base escura (era o fundo inteiro em saturação total, causa raiz da 'competição de cores' entre cartões de instituições diferentes); badge 'Sistema' de Categoria corrigido de accent para neutral"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Refinamento de UX/Onboarding/Dashboard/Cartões — Dashboard como hub de navegação, fusão Entradas x Saídas no StatCard de Fluxo de Caixa, categorias padrão do sistema (seed), ajuste de saldo inicial de fatura, sugestão de onboarding pós-primeira-conta, TODO obsoleto de Categoria removido"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "tooling",
+      "title": "Scripts de execução em segundo plano (iniciar.ps1/parar.ps1/iniciar-silencioso.vbs) — build de produção do frontend + backend sem --reload, sem terminal aberto, uso local"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Estabilização de Overlays (2ª rodada) — causa raiz real do bug crítico corrigida: loop infinito de render em useFloatingPanel (afetava todo uso de RichPicker/ColumnVisibility em qualquer viewport), ErrorBoundary de topo adicionado"
+    },
+    {
+      "date": "2026-07-18",
+      "type": "frontend",
+      "title": "Estabilização e Polimento de Overlays — bug crítico de backdrop duplicado corrigido (RichPicker mobile + FaturaDrawer/ConfirmAction), DateInput migrado para useFloatingPanel, escala de z-index formal (Tier1/Tier2/toast)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "frontend",
+      "title": "Refinamento de Pagamento de Fatura — atalhos de valor, preview de status não-autoritativo, correção de invalidação de cache (Transação↔Fatura), densidade de informação (pago/restante/ProgressBar sempre visíveis)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "frontend",
+      "title": "Refinamento de Pickers e Performance — useFloatingPanel (portal + position:fixed, resolve scroll-dentro-de-scroll), grade do RichPicker 6→10 colunas, destaque de busca, code-splitting por rota (chunk único de 741KB → chunks de 5-23KB por página)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "frontend",
+      "title": "Etapa F11 concluída — CRUD de Transação (filtragem híbrida servidor+cliente, origem Conta×Cartão, CardSelect/TagMultiSelect novos, CategorySelect com filtro por tipo)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "ux",
+      "title": "Sistema semântico de status formalizado — tone info, StatusChip/StatusDot/AtivoBadge, utils/status.ts, correção de bug de contraste em corDeContraste (11/43 cores afetadas)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "ux",
+      "title": "Revisão de UX final do módulo de Cartões — grid de mini dashboards clicáveis, nova Action Bar, correção de cor semântica (accent→positive), correção de performance do tilt 3D"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "frontend",
+      "title": "Etapa F10 concluída — CRUD de Fatura + página de detalhes do Cartão (/cartoes/:id, primeira página de detalhes do projeto)"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "backend",
+      "title": "Exclusão definitiva (hard delete) implementada em Conta/Categoria/Tag/Cartão — DELETE /{entidade}/{id}/permanente, distinta da desativação já existente"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "frontend",
+      "title": "Novos overlays/pickers: Drawer, RichPicker genérico, IconPicker/ColorPicker (substituem IconField/ColorField), BankPicker, CardBrandPicker"
+    },
+    {
+      "date": "2026-07-17",
+      "type": "design",
+      "title": "docs/analise-arquitetural-overlays.md criado — padrão único de Dialogs/Drawers/Popovers/RichPickers/Tooltips do projeto"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "ux",
+      "title": "Revisão de UX/UI pós-F9 concluída — overflow de StatCard corrigido, Cartões evoluído (utilização + faturas recentes), Dashboard de cartões/faturas melhorado, CTA de onboarding obsoleto corrigido"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F9 concluída — CRUD de Cartão completo (CartaoVisual com tilt 3D, branding por instituição, BandeiraBadge)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "ux",
+      "title": "Organização personalizada da Sidebar concluída — drag-and-drop (Framer Motion Reorder), Dashboard fixo, persistência via localStorage, alternativa por teclado"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F8 concluída — CRUD de Tag completo (TagBadge, tagTableColumns, TagFormDialog)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "ux",
+      "title": "Refinamento de UI concluído — MobileNav criado, hideOnMobile corrigido, hierarquia visual de Categoria, performance percebida"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F7 concluída — CRUD de Categoria completo (hierarquia pai/filho, IconField/ColorField)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "design",
+      "title": "Refinamento Visual concluído — branding de instituições financeiras, tema claro/escuro, microinterações"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F6 concluída — CRUD de Conta completo (primeira entidade real do frontend)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F5 concluída — sistema de formulários reutilizável (React Hook Form + Zod, FormDialog)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F4 concluída — sistema de tabelas reutilizável (DataTable)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F3 concluída — Dashboard financeiro real (Central Financeira, Bento Grid)"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "frontend",
+      "title": "Etapa F2 (Design System) implementada em código — tokens, motion, lucide-react, fonte Geist, componentes base, Sidebar/Header"
+    },
+    {
+      "date": "2026-07-16",
+      "type": "design",
+      "title": "docs/motion-principles.md criado e docs/design-system.md ajustado (identidade própria, inspiração além de Linear/Vercel) — documentos congelados"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "tooling",
+      "title": "Dashboard de acompanhamento do projeto criado"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "docs",
+      "title": "Auditoria técnica completa do projeto realizada"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "design",
+      "title": "Design System completo documentado — motion (Framer Motion) e lucide-react aprovados"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "frontend",
+      "title": "Etapa F1 do frontend concluída — autenticação, React Query, roteamento e guarda de rota"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "frontend",
+      "title": "Arquitetura do frontend definida e aprovada (React Query, React Hook Form + Zod)"
+    },
+    {
+      "date": "2026-07-15",
+      "type": "backend",
+      "title": "Central Financeira implementada — 11 endpoints de agregação somente-leitura"
+    },
+    {
+      "date": null,
+      "dateLabel": "Etapas anteriores",
+      "type": "backend",
+      "title": "Backend core consolidado — 14 entidades de domínio, autenticação JWT com refresh rotation, 788 testes automatizados"
+    }
+  ],
+  "architecture": {
+    "layers": [
+      "Frontend",
+      "API (HTTP / JSON)",
+      "Backend",
+      "Banco de dados"
+    ],
+    "technologies": {
+      "frontend": [
+        "React 18",
+        "TypeScript",
+        "Vite",
+        "Tailwind CSS",
+        "React Router",
+        "TanStack Query",
+        "React Hook Form",
+        "Zod",
+        "Framer Motion",
+        "lucide-react",
+        "Geist (self-hosted)"
+      ],
+      "backend": [
+        "Python",
+        "FastAPI",
+        "SQLAlchemy 2.0",
+        "Alembic",
+        "Pydantic v2",
+        "JWT"
+      ],
+      "database": [
+        "SQLite"
+      ]
+    }
+  },
+  "quality": {
+    "testCoverage": {
+      "backend": "1030 testes (592 unit + 438 integração), 100% passando — incl. pagamento de faturas em lote, terceira causa raiz do bug de limite (fatura importada), Estado Inicial do Cartao, categorias ocultaveis por usuario e Central de Atividades",
+      "frontend": "0 testes (fora de escopo por ora)"
+    },
+    "technicalDebt": 5,
+    "featuresRatio": {
+      "done": 14,
+      "total": 15,
+      "label": "entidades de domínio no backend"
+    },
+    "documentation": 93,
+    "security": 60
+  }
+}

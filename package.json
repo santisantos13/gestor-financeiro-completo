@@ -1,0 +1,14 @@
+{
+  "name": "financas-pessoais",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Orquestração de desenvolvimento local (backend + frontend). Ver README > Ambiente de Desenvolvimento.",
+  "scripts": {
+    "dev:backend": "node scripts/dev-backend.cjs",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:full": "concurrently -k -n BACKEND,FRONTEND -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
