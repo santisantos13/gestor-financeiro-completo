@@ -19,7 +19,17 @@ config = context.config
 
 # URL do banco vem de uma unica fonte de verdade (app.core.config),
 # evitando duplicar a string de conexao no alembic.ini.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+#
+# Deploy pre-alfa (2026-07-21, docs/analise-arquitetural-deploy-prealfa.md):
+# `config.set_main_option` grava o valor num `configparser` por baixo dos
+# panos, que trata "%" como inicio de uma interpolacao (`%(nome)s`) mesmo
+# so ARMAZENANDO o valor (nao so ao ler) - qualquer DATABASE_URL com senha
+# percent-encoded (ex.: "%3F" para "?") quebra com
+# `ValueError: invalid interpolation syntax`. Escapar "%" como "%%" resolve:
+# o configparser decodifica "%%" de volta para um "%" literal ao ler o
+# valor (`get_main_option`/`get_section`, usados abaixo), entao a URL chega
+# intacta na engine do SQLAlchemy.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
