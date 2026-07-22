@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Menu, ListTree } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
@@ -18,6 +19,7 @@ import { AtividadesRecentesDrawer } from "../domain/dashboard/AtividadesRecentes
  * docs/revisao-tecnica-refinamento-ui.md.
  */
 export function Header() {
+  const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
   const [atividadesAberto, setAtividadesAberto] = useState(false);
 
@@ -36,7 +38,26 @@ export function Header() {
         </button>
         <span className="text-h3 font-semibold text-text-primary">Financas Pessoais</span>
       </div>
-      <span className="hidden md:block" />
+      {/* Selo de versão + link de changelog (docs/versionamento.md) —
+          "Alpha X.Y.Z" a partir de `package.json`, nunca hardcoded aqui.
+          Convenção de bump: Z (patch) a cada ajuste/correção pequena, Y
+          (minor, reseta Z para 0) a cada CRUD novo ou funcionalidade
+          grande. Prefixo "Alpha" enquanto o projeto não tiver um primeiro
+          release estável. "Últimas atualizações" leva a `/novidades`
+          (`lib/changelog.ts`), pedido explícito do usuário para ver um
+          resumo do que mudou sem precisar perguntar. */}
+      <div className="hidden flex-col items-center gap-0.5 md:flex">
+        <span className="select-none rounded-full border border-border-subtle px-2 py-0.5 text-caption text-text-tertiary">
+          Alpha {__APP_VERSION__}
+        </span>
+        <button
+          type="button"
+          onClick={() => navigate("/novidades")}
+          className="text-micro font-medium text-text-tertiary underline-offset-2 transition-colors duration-fast ease-out hover:text-accent hover:underline"
+        >
+          Últimas atualizações
+        </button>
+      </div>
 
       <div className="flex items-center gap-1">
         {/* Central de Atividades (Sprint de Refinamento Premium, item 17) */}
