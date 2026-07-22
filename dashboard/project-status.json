@@ -321,6 +321,14 @@
     "review": [],
     "done": [
       {
+        "id": "d69",
+        "title": "URGENTE: site em produção travando com tela branca (__APP_VERSION__ is not defined)",
+        "description": "Usuário reportou app quebrado em produção logo após o deploy do CRUD de Anexo. Investigação com Chrome DevTools contra o site real (não reproduzia no sandbox) revelou a causa: o selo de versão do Header lia `version` de `package.json` via import direto em `vite.config.ts` (`import { version } from './package.json'`) - funcionava no ambiente de build deste sandbox, mas o Vite/esbuild não substituía `__APP_VERSION__` no build real do Render, deixando o identificador cru no bundle e derrubando toda a aplicação (ReferenceError capturado pelo ErrorBoundary em toda carga de página). Causa exata da divergência entre ambientes não confirmada (sem acesso a logs do Render), mas import de JSON num vite.config.ts ESM é sensível a como cada ambiente resolve module loading. Corrigido trocando para `process.env.npm_package_version` (preenchido pelo próprio npm ao rodar 'npm run build', mecanismo que não depende de nenhum loader/bundler específico - mais simples e portável). Validado rodando `npm run build` (mesmo comando do render.yaml) e conferindo o bundle final: zero `__APP_VERSION__` cru, versão corretamente embutida. tsc -b limpo. Versão 0.3.0 → 0.3.1 (patch, correção).",
+        "category": "Frontend",
+        "priority": "Crítica",
+        "date": "2026-07-22"
+      },
+      {
         "id": "d68",
         "title": "CRUD frontend de Anexo",
         "description": "Última entidade do domínio a ganhar tela própria (13 de 14 - resta só Alerta). Backend já existia completo e sem alterações (Router/Service/Repository/testes já cobriam create/list-por-transação/get/soft-delete). Restrição estrutural: Anexo não tem listagem global (posse é sempre transitiva via Transação, AnexoRepository só expõe listar_por_transacao) - por isso a tela é um Drawer escopado a UMA transação por vez (novo AnexosDrawer.tsx), acionado por uma nova RowAction 'Anexos' (ícone Paperclip) em cada linha de TransacoesPage, e não uma seção dentro do TransacaoFormDialog (que também serve para criar - uma transação sem id ainda não pode ter anexo). Sem upload real de arquivo: o backend é metadados apenas (caminho_arquivo é referência textual, nunca o binário), então o formulário reflete isso - 'Selecionar arquivo' só lê File.name/type/size do navegador para pré-preencher, o campo 'Caminho ou link' continua editável manualmente com texto de apoio explicando a limitação. Sem edição (sem PATCH, decisão já confirmada no backend). Exclusão (soft delete) com confirmação inline por linha, mesma técnica anti-backdrop-duplicado de FinanciamentoDrawer. Nova doc docs/analise-arquitetural-anexo-frontend.md. Versão bumped 0.2.2 → 0.3.0 (minor: CRUD novo). tsc -b, vite build e suíte de testes do backend de Anexo (33 testes) validados; nenhuma mudança de backend.",
@@ -867,6 +875,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-22",
+      "type": "frontend",
+      "title": "URGENTE: corrigido site em produção travando com tela branca (__APP_VERSION__ is not defined no build do Render). Selo de versão trocado de import de package.json para process.env.npm_package_version. Versão 0.3.0 → 0.3.1"
+    },
     {
       "date": "2026-07-22",
       "type": "frontend",
