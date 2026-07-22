@@ -6,46 +6,46 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 83,
-    "updatedAt": "2026-07-20T14:57:00-03:00"
+    "overallPercent": 86,
+    "updatedAt": "2026-07-21T19:15:00-03:00"
   },
   "areas": [
     {
       "key": "backend",
       "label": "Backend",
-      "percent": 88,
-      "done": 17,
+      "percent": 92,
+      "done": 21,
       "inProgress": 0,
       "pending": 1
     },
     {
       "key": "frontend",
       "label": "Frontend",
-      "percent": 83,
-      "done": 20,
+      "percent": 87,
+      "done": 23,
       "inProgress": 0,
-      "pending": 4
+      "pending": 3
     },
     {
       "key": "database",
       "label": "Banco de dados",
-      "percent": 88,
-      "done": 1,
+      "percent": 90,
+      "done": 2,
       "inProgress": 0,
       "pending": 1
     },
     {
       "key": "ux",
       "label": "UX/UI",
-      "percent": 92,
-      "done": 8,
+      "percent": 94,
+      "done": 10,
       "inProgress": 0,
       "pending": 1
     },
     {
       "key": "tests",
       "label": "Testes",
-      "percent": 55,
+      "percent": 58,
       "done": 1,
       "inProgress": 0,
       "pending": 1
@@ -61,10 +61,10 @@
     {
       "key": "deploy",
       "label": "Deploy",
-      "percent": 0,
-      "done": 0,
+      "percent": 55,
+      "done": 2,
       "inProgress": 0,
-      "pending": 3
+      "pending": 2
     }
   ],
   "roadmap": [
@@ -87,7 +87,7 @@
         "Sistema de formulários reutilizável (React Hook Form + Zod, FormDialog) — concluído",
         "Sistema de tabelas reutilizável (DataTable) — concluído",
         "Dashboard financeiro real (Central Financeira, Bento Grid) — concluído",
-        "CRUD de entidade no frontend: 10 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta) - 4 restantes (Parcelamento dedicado, Conta Recorrente, Anexo, Alerta). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Toggle a vista ou parcelado em X vezes ja embutido no formulario de Transacao (nao substitui uma tela propria de Parcelamento). Proxima: a definir",
+        "CRUD de entidade no frontend: 12 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta, Conta Recorrente, Parcelamento via toggle) - restam Anexo (backend em andamento, sem tela) e Alerta (nao iniciado). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Conta Recorrente ganhou modulo completo: cursor+status, pausar/reativar/encerrar/sincronizar, projecao no Calendario Financeiro (90 dias).",
         "Revisão de UX/UI de toda a aplicação (Dashboard + Cartões) antes de seguir para Fatura/Transação — concluída",
         "Etapa F10 — CRUD de Fatura + página de detalhes do Cartão (/cartoes/:id) + padrão único de overlays (Drawer/RichPicker) + exclusão definitiva (hard delete) em 4 entidades — concluída",
         "Revisão de UX final do módulo de Cartões (grid de mini dashboards clicáveis, Action Bar, correção de cor semântica, correção de performance) — concluída",
@@ -114,12 +114,13 @@
     {
       "phase": "Fase 4",
       "title": "Produção",
-      "status": "pending",
+      "status": "in-progress",
       "items": [
-        "Rate limiting em /auth/login e /auth/refresh",
-        "Testes automatizados de frontend",
-        "CI/CD",
-        "Ambiente de deploy, HTTPS, backup do banco"
+        "Migração para PostgreSQL (produção) + adaptação de backend/frontend para URL de API configurável — concluída",
+        "Deploy real em produção no Render (HTTPS por padrão) — concluído, com correções pós-deploy reais (pooler IPv6, escape de % na DATABASE_URL do Alembic, CORS exato)",
+        "Rate limiting em /auth/login e /auth/refresh — pendente",
+        "Testes automatizados de frontend — pendente",
+        "CI/CD — pendente"
       ]
     }
   ],
@@ -203,9 +204,9 @@
     },
     {
       "name": "Contas recorrentes",
-      "category": "Backend",
-      "status": "in-progress",
-      "progress": 50,
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
       "priority": "Média"
     },
     {
@@ -274,8 +275,8 @@
     {
       "name": "Deploy",
       "category": "DevOps",
-      "status": "pending",
-      "progress": 0,
+      "status": "in-progress",
+      "progress": 65,
       "priority": "Alta"
     }
   ],
@@ -299,10 +300,10 @@
       },
       {
         "id": "t3",
-        "title": "CRUD frontend das entidades restantes",
-        "description": "Conta Recorrente, Meta, Anexo, Alerta — mesmo padrão de Conta/Categoria/Tag/Cartão/Fatura/Transação/Transferência/Financiamento/Empréstimo, toda a infraestrutura já reutilizável (incl. CardSelect/TagMultiSelect da F11). Parcelamento já tem seu ponto de entrada principal (toggle 'à vista ou parcelado' no formulário de Transação); uma tela dedicada de gestão/cancelamento de parcelamentos fica como melhoria futura, não bloqueante.",
+        "title": "CRUD frontend de Anexo + decisão sobre Alerta",
+        "description": "Conta Recorrente e Meta já concluídos (ambos com CRUD completo). Restam Anexo (backend em andamento, sem tela própria — hoje só acessível via Transação) e Alerta (não iniciado, aguardando decisão de escopo — ver t1). Toda a infraestrutura já reutilizável (CardSelect/TagMultiSelect/RichPicker/DataTable/FormDialog).",
         "category": "Frontend",
-        "priority": "Alta",
+        "priority": "Média",
         "date": "2026-07-17"
       },
       {
@@ -316,15 +317,7 @@
       {
         "id": "t8",
         "title": "Pipeline de CI",
-        "description": "Rodar a suíte de 788 testes automaticamente a cada mudança, em vez de manual.",
-        "category": "DevOps",
-        "priority": "Média",
-        "date": "2026-07-15"
-      },
-      {
-        "id": "t9",
-        "title": "Estratégia de deploy",
-        "description": "Escolher ambiente (Docker/VPS/PaaS), HTTPS, variáveis de produção, backup do SQLite.",
+        "description": "Rodar a suíte de 1072 testes (615 unit + 457 integração) automaticamente a cada mudança, em vez de manual.",
         "category": "DevOps",
         "priority": "Média",
         "date": "2026-07-15"
@@ -333,6 +326,46 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d65",
+        "title": "Pós-deploy: Transações recentes trazia parcelas futuras de contrato + hero cards do Dashboard desalinhados",
+        "description": "Usuário reportou (com print) que 'Transações recentes' continuava mostrando datas erradas mesmo após a correção de criado_em→data (d64/#95): apareciam as parcelas 55-60/60 de um Financiamento, datadas em 2030. Causa raiz real: Financiamento/Empréstimo/ContaRecorrente pré-geram TODAS as parcelas na criação do contrato (até décadas à frente); atividades_recentes ordenava por data DESC sem nenhum corte, então as parcelas MAIS distantes no futuro (maior valor de data de toda a tabela) sempre venciam a ordenação, mascarando o que de fato já aconteceu - a correção anterior só trocou o CAMPO usado (criado_em→data), sem tratar esse gap pré-existente que ficou visível só depois. Corrigido com data_fim=hoje em Transacao e Transferencia dentro de atividades_recentes ('recente' é sempre passado). Usuário reportou no mesmo turno que a hero row do topo (Saldo total/Visão mensal/Metas ativas) estava com bordas inferiores em degrau - causa: items-start fazia cada StatCard ficar só do tamanho do próprio conteúdo (os dois primeiros têm bloco 'extra' com gráfico/barra, o terceiro não); trocado para items-stretch. Novo teste de integração de regressão (financiamento com parcelas 100% futuras não aparece em /atividades). Suíte completa (77 testes de Central Financeira) e tsc -b/vite build validados.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-21"
+      },
+      {
+        "id": "d64",
+        "title": "Lote de correções pós-deploy: Dashboard, exclusão de cartão, calendário e responsividade mobile",
+        "description": "Primeira rodada de bugs reais relatados pelo usuário após o deploy em produção. (1) Dashboard mostrava toda transação recente com a data/hora de HOJE - atividades_recentes usava Transacao.criado_em (timestamp de auditoria da inserção no banco) em vez de Transacao.data (data efetivamente registrada); corrigido combinando data com meia-noite. (2) Excluir cartão falhava com 'Falha de conexão com o servidor' sempre que havia Parcelamento/ContaRecorrente vinculado - gap de cascata nunca exercitado no SQLite (que nunca aplica PRAGMA foreign_keys=ON, então FKs e CHECK constraints nunca eram testados de verdade), mas real e bloqueante no Postgres de produção; corrigido com hard delete explícito de Parcelamento/ContaRecorrente antes de excluir o Cartão, e o mesmo gap encontrado proativamente e corrigido em ContaService. (3) Calendário não exibia fechamento/vencimento de fatura de cartões com mais de 3 ciclos de histórico - FaturaRepository.listar_do_cartao mudou para ordem ascendente numa etapa anterior (legibilidade da página de faturas), mas dois call sites do Calendário assumiam ordem descendente com limit=3; corrigido com um método irmão dedicado (listar_recentes_do_cartao). (4) Responsividade mobile corrigida em Contas/Categorias/Tags/Transferências/Transações/Cartão-Fatura - causa raiz comum: min-width:auto (default do flexbox/grid) impedindo truncate de funcionar sem min-w-0 explícito em cada ancestral flex/grid não limitado. (5) Filtros da página de Metas reduzidos (menos espaçamento/gap). Testes: 615 unit + 457 integração passando, tsc -b e vite build limpos.",
+        "category": "Full-stack",
+        "priority": "Crítica",
+        "date": "2026-07-21"
+      },
+      {
+        "id": "d63",
+        "title": "Dashboard: espaçamento desalinhado entre colunas + Calendário: financiamento/empréstimo ganham cor própria",
+        "description": "Usuário reportou vão vazio grande entre 'Contas e cartões' e 'Metas' na coluna esquerda do Dashboard, enquanto a coluna direita ('Transações recentes') tinha altura diferente - causa: duas grades CSS empilhadas (space-y-6), onde a segunda grade só começa depois da altura TOTAL da primeira (definida pelo card mais alto), impedindo um card curto de 'subir' para preencher o vão. Corrigido unificando as duas seções numa única grade (Metas passa a ocupar o espaço ao lado de Contas e Cartões); efeito colateral aceito e confirmado com o usuário: cards personalizáveis vão de até 3 para 2 colunas em telas grandes. Segundo pedido do usuário: calendário não marcava financiamentos/empréstimos com destaque - investigação com reprodução direta contra o backend provou que os dados já apareciam corretamente (nenhum bug de dados); o gap real era só visual, os dois compartilhavam a cor genérica de RECEITA/DESPESA. Corrigido com dois novos valores no enum CategoriaEventoCalendario (schema-only, sem migration) reaproveitando os tokens já existentes chart-4/chart-5 (mesmo precedente já usado para promover 'info' a partir de chart-2), sem inventar cor nova.",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-21"
+      },
+      {
+        "id": "d62",
+        "title": "Migração para PostgreSQL + deploy real em produção (Render)",
+        "description": "Validação da migração Alembic contra um Postgres real (ambiente efêmero) antes de qualquer mudança de código; backend ajustado para suportar os dois bancos (driver psycopg, DATABASE_URL configurável, CORS de produção por variável de ambiente); render.yaml + comandos de build/start criados; frontend ajustado para URL de API configurável em produção (antes fixa em localhost); plano de deploy documentado (docs/analise-arquitetural-deploy-prealfa.md) e checklist final entregue ao usuário. No deploy real, três problemas específicos do ambiente de produção foram encontrados e corrigidos: connection pooler do Render exigindo IPv6, % literal na senha da DATABASE_URL quebrando o configparser do Alembic (escapado para %%), e CORS precisando da origem exata do frontend em produção (não apenas localhost).",
+        "category": "DevOps",
+        "priority": "Alta",
+        "date": "2026-07-21"
+      },
+      {
+        "id": "d61",
+        "title": "Contas Recorrentes: módulo completo (backend + frontend) + correção do campo 'Dia do vencimento'",
+        "description": "Expansão do módulo de Contas Recorrentes (análise arquitetural prévia): backend ganhou enums de frequência/status, avancar_data (cálculo de próxima ocorrência), migração com cursor (proxima_ocorrencia) + status (ativo/pausado/encerrado), Service/rotas completas (pausar/reativar/encerrar/sincronizar) e projeção no Calendário Financeiro (eventos previstos, 90 dias). Frontend: camada de dados completa, sincronização automática no AppLayout, página /recorrentes com dialog de criação/edição, item de sidebar e integração com o Calendário (eventos previstos). Bug relatado pelo usuário corrigido no mesmo lote: campo 'Dia do vencimento' em Nova Recorrência rejeitava qualquer valor digitado (validação Zod incompatível com o formato do campo).",
+        "category": "Full-stack",
+        "priority": "Alta",
+        "date": "2026-07-20"
+      },
       {
         "id": "d59",
         "title": "Correção sistêmica: campos de seleção exigiam clicar duas vezes",
@@ -817,6 +850,31 @@
   },
   "changelog": [
     {
+      "date": "2026-07-21",
+      "type": "full-stack",
+      "title": "Pós-deploy: 'Transações recentes' trazia parcelas futuras de Financiamento/Empréstimo (faltava corte data_fim=hoje em atividades_recentes) + hero cards do Dashboard desalinhados (items-start → items-stretch)"
+    },
+    {
+      "date": "2026-07-21",
+      "type": "full-stack",
+      "title": "Lote de correções pós-deploy relatadas pelo usuário: Dashboard com data/hora errada em Transações recentes (criado_em→data), exclusão de cartão falhando (cascata de Parcelamento/ContaRecorrente ausente, real em Postgres), calendário sem fechamento/vencimento de fatura com 3+ ciclos de histórico, responsividade mobile (Contas/Categorias/Tags/Transferências/Transações/Cartão-Fatura), filtros de Metas reduzidos"
+    },
+    {
+      "date": "2026-07-21",
+      "type": "frontend",
+      "title": "Dashboard: unifica as duas grades do corpo numa só (corrige vão vazio entre Contas e Cartões/Metas) + Calendário: Financiamento/Empréstimo ganham categoria e cor própria na legenda (chart-4/chart-5, sem token novo)"
+    },
+    {
+      "date": "2026-07-21",
+      "type": "devops",
+      "title": "Migração para PostgreSQL + deploy real em produção no Render — correções específicas de ambiente (pooler IPv6, escape de % na DATABASE_URL do Alembic, CORS com origem exata)"
+    },
+    {
+      "date": "2026-07-20",
+      "type": "full-stack",
+      "title": "Contas Recorrentes: módulo completo (backend + frontend) — cursor+status, pausar/reativar/encerrar/sincronizar, projeção no Calendário Financeiro; correção do campo 'Dia do vencimento' em Nova Recorrência"
+    },
+    {
       "date": "2026-07-20",
       "type": "full-stack",
       "title": "Cartões: pagar faturas selecionadas em lote (POST /faturas/pagar-em-lote) - cada fatura paga pelo próprio restante, faturas abertas/já quitadas puladas em vez de bloquear o lote inteiro; PagamentoEmLoteDialog + botão na página de detalhe do cartão"
@@ -1233,13 +1291,14 @@
         "JWT"
       ],
       "database": [
-        "SQLite"
+        "SQLite (desenvolvimento)",
+        "PostgreSQL (produção, Render)"
       ]
     }
   },
   "quality": {
     "testCoverage": {
-      "backend": "1030 testes (592 unit + 438 integração), 100% passando — incl. pagamento de faturas em lote, terceira causa raiz do bug de limite (fatura importada), Estado Inicial do Cartao, categorias ocultaveis por usuario e Central de Atividades",
+      "backend": "1072 testes (615 unit + 457 integração), 100% passando — incl. Contas Recorrentes (cursor+status+projeção), migração para Postgres validada, cascata de exclusão de Cartão/Conta (Parcelamento/ContaRecorrente), corte data_fim em Transações recentes e categoria própria de Financiamento/Empréstimo no Calendário",
       "frontend": "0 testes (fora de escopo por ora)"
     },
     "technicalDebt": 5,
