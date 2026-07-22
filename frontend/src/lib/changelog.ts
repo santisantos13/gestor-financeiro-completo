@@ -14,6 +14,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.4.0",
+    data: "2026-07-22",
+    titulo: "Primeira suíte de testes automatizados do frontend",
+    itens: [
+      "Nenhuma mudança visível para quem usa o app - trabalho interno de qualidade.",
+      "Testes cobrindo os 3 fluxos críticos: login, envio de formulário (Tag) e a tabela (busca, ordenação, paginação).",
+      "Vitest + Testing Library configurados sem risco para o build de produção (isolados de vite.config.ts/tsconfig.json de produção).",
+    ],
+  },
+  {
     versao: "0.3.2",
     data: "2026-07-22",
     titulo: "Correção definitiva: site em produção travava com tela branca",

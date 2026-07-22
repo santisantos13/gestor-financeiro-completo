@@ -13,5 +13,13 @@
     "strict": true
   },
   "include": ["src"],
+  // Arquivos de teste NUNCA passam por `tsc -b` (o type-check usado por
+  // `npm run build`) - mesmo raciocínio de isolamento já usado para
+  // `vite.config.ts`/`tsconfig.node.json` (docs/analise-arquitetural-testes-frontend.md):
+  // um erro de tipo num teste nunca pode quebrar o build de produção.
+  // Type-check/autocomplete de teste no editor usa `tsconfig.vitest.json`
+  // (não referenciado aqui de propósito - só o `tsc -b` deste arquivo
+  // participa do `build`).
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,0 +1,13 @@
+{
+  // Só para type-check/autocomplete de teste no editor - NÃO referenciado
+  // por `tsconfig.json` (o que `tsc -b`/`npm run build` usa), de propósito
+  // (docs/analise-arquitetural-testes-frontend.md). O Vitest em si roda
+  // via esbuild (não `tsc`), então este arquivo nunca bloqueia a suíte.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**"],
+  "exclude": []
+}

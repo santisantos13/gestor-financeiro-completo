@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 90,
-    "updatedAt": "2026-07-22T02:15:00-03:00"
+    "overallPercent": 91,
+    "updatedAt": "2026-07-22T18:00:00-03:00"
   },
   "areas": [
     {
@@ -22,7 +22,7 @@
       "key": "frontend",
       "label": "Frontend",
       "percent": 93,
-      "done": 27,
+      "done": 28,
       "inProgress": 0,
       "pending": 1
     },
@@ -45,10 +45,10 @@
     {
       "key": "tests",
       "label": "Testes",
-      "percent": 58,
-      "done": 1,
+      "percent": 100,
+      "done": 2,
       "inProgress": 0,
-      "pending": 1
+      "pending": 0
     },
     {
       "key": "security",
@@ -301,14 +301,6 @@
         "date": "2026-07-15"
       },
       {
-        "id": "t7",
-        "title": "Testes automatizados de frontend",
-        "description": "Ao menos o fluxo crítico: autenticação, submissão de formulário, tabela.",
-        "category": "Testes",
-        "priority": "Média",
-        "date": "2026-07-15"
-      },
-      {
         "id": "t8",
         "title": "Pipeline de CI",
         "description": "Rodar a suíte de 1087 testes (622 unit + 465 integração) automaticamente a cada mudança, em vez de manual.",
@@ -320,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d71",
+        "title": "Primeira suíte de testes automatizados do frontend (Vitest + Testing Library)",
+        "description": "Pedido do backlog (t7, Média), escolhido pelo usuário entre 4 opções após a conclusão do CRUD de Anexo. Stack: Vitest (reaproveita a config do Vite, sem segundo bundler) + Testing Library (evento real via user-event, matchers jest-dom). Configuração isolada dos incidentes de produção da sessão anterior: campo test em vite.config.ts é inerte para vite build/dev (só lido por vitest run); tsconfig.json raiz (usado por tsc -b do build) ganhou exclude para nunca ver arquivos de teste; tsconfig.vitest.json separado só para o editor, nunca referenciado pelo tsconfig raiz. Sem globals do Vitest (import explícito em cada arquivo) para não precisar tocar no tsconfig de produção. 3 áreas cobertas (mínimo pedido): autenticação (LoginPage.test.tsx, mocka authService), formulário (TagFormDialog.test.tsx, mocka tagService, valida erro 422 mapeado por campo), tabela (DataTable.test.tsx, sem nenhum mock - 100% em memória, busca/ordenação/paginação). Dois gaps de jsdom descobertos e corrigidos com polyfills em src/test/setup.ts (window.matchMedia, Element.scrollIntoView). Nova doc docs/analise-arquitetural-testes-frontend.md. 9 testes, 100% passando. tsc -b e vite build revalidados. Versão 0.3.2 → 0.4.0 (minor: gerou doc arquitetural própria).",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-22"
+      },
       {
         "id": "d70",
         "title": "URGENTE (continuação): correção do __APP_VERSION__ não sobreviveu ao deploy - trocado por constante fixa",
@@ -886,6 +886,11 @@
     {
       "date": "2026-07-22",
       "type": "frontend",
+      "title": "Primeira suíte de testes automatizados do frontend: Vitest + Testing Library cobrindo autenticação, formulário (Tag) e tabela (DataTable). 9 testes, 100% passando. Versão 0.3.2 → 0.4.0"
+    },
+    {
+      "date": "2026-07-22",
+      "type": "frontend",
       "title": "URGENTE: corrigido site em produção travando com tela branca (__APP_VERSION__ is not defined no build do Render). Selo de versão trocado de import de package.json para process.env.npm_package_version. Versão 0.3.0 → 0.3.1"
     },
     {
@@ -1353,7 +1358,7 @@
   "quality": {
     "testCoverage": {
       "backend": "1087 testes (622 unit + 465 integração), 100% passando — incl. Contas Recorrentes (cursor+status+projeção), migração para Postgres validada, cascata de exclusão de Cartão/Conta (Parcelamento/ContaRecorrente), corte data_fim em Transações recentes, categoria própria de Financiamento/Empréstimo no Calendário e os 2 endpoints agregadores de Gráficos (tendências/período)",
-      "frontend": "0 testes (fora de escopo por ora)"
+      "frontend": "9 testes (Vitest + Testing Library) cobrindo os 3 fluxos críticos: autenticação (LoginPage), formulário (TagFormDialog) e tabela (DataTable) - busca, ordenação, paginação"
     },
     "technicalDebt": 5,
     "featuresRatio": {
