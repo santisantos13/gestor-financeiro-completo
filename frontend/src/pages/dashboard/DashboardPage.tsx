@@ -23,8 +23,14 @@ import { carregarLayoutDashboard, salvarLayoutDashboard, type DashboardCardId, t
 
 /** Mapa id → componente dos cards personalizáveis (Sprint de Refinamento
  * Premium, item 15) - único lugar que precisa mudar ao adicionar um card
- * novo à personalização (junto de `lib/dashboardLayout.ts`). */
+ * novo à personalização (junto de `lib/dashboardLayout.ts`). "Contas e
+ * Cartões"/"Transações Recentes"/"Evolução do saldo" voltaram para cá
+ * (correção de 2026-07-22: o usuário reportou que a lista de
+ * personalização estava incompleta, sem esses 3 cards). */
 const COMPONENTE_POR_CARD: Record<DashboardCardId, ComponentType> = {
+  "contas-cartoes": ContasCartoesCard,
+  "transacoes-recentes": TransacoesRecentesCard,
+  "evolucao-saldo": EvolucaoSaldoCard,
   faturas: FaturasCard,
   financiamentos: FinanciamentosCard,
   emprestimos: EmprestimosCard,
@@ -94,7 +100,7 @@ export function DashboardPage() {
             mes={periodo.mes}
             onChange={(ano, mes) => setPeriodo({ ano, mes })}
           />
-          <Button variant="ghost" size="sm" onClick={() => setPersonalizando(true)} aria-label="Personalizar Dashboard">
+          <Button variant="ghost" size="sm" onClick={() => setPersonalizando(true)} aria-label="Personalizar Home">
             <Settings2 size={16} aria-hidden="true" />
             Personalizar
           </Button>
@@ -120,32 +126,17 @@ export function DashboardPage() {
           sozinho quando não há eventos (ver `HojeCard.tsx`). */}
       <HojeCard />
 
-      {/* Linha fixa ("Contas e Cartões" + "Transações Recentes", Refinamento
-          Visual decisão 7-8) e o Bento Grid personalizável agora dividem
-          UMA ÚNICA grade de 2 colunas (não mais duas grades empilhadas) —
-          correção de bug relatado pelo usuário (2026-07-21): com duas
-          grades separadas, a segunda só começava depois da altura TOTAL da
-          primeira (definida pelo card mais alto, Transações Recentes), o
-          que deixava um vão vazio enorme sob "Contas e Cartões" sempre que
-          ela fosse mais curta - o card seguinte (ex.: Metas) nunca conseguia
-          "subir" para preencher aquele espaço porque estava numa grade
-          diferente. Numa grade só, cada linha nova (Metas, Faturas...) só
-          depende da altura da linha ANTERIOR dela mesma, não da grade
-          anterior inteira. `items-start`: sem isso, o CSS Grid padrão
-          estica cada card para a altura da linha inteira (a do vizinho
-          mais alto) - com conteúdo de densidade tão variável entre estes
-          cards, o resultado era cards curtos "esticados" com um vazio
-          embaixo. Efeito colateral aceito: os cards personalizáveis (antes
-          em até 3 colunas em telas grandes) agora ficam em 2, para se
-          alinhar com "Contas e Cartões"/"Transações Recentes" - a
-          personalização em si (ordem/ocultar) continua idêntica. */}
+      {/* Grade única de 2 colunas — item-start evita que o CSS Grid estique
+          cada card para a altura da linha inteira (a do vizinho mais alto),
+          o que "esticaria" cards curtos com um vazio embaixo, dado quão
+          variável é a densidade de conteúdo entre eles. Todos os cards
+          abaixo (inclusive "Contas e Cartões"/"Transações Recentes"/
+          "Evolução do saldo", que antes eram fixos) agora vêm de UMA
+          ÚNICA fonte — `layout.ordem`/`layout.ocultos` — e são 100%
+          reordenáveis/ocultáveis via "Personalizar" (correção de
+          2026-07-22: o usuário reportou a lista de personalização
+          incompleta). */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-        <ContasCartoesCard />
-        <TransacoesRecentesCard />
-        {/* Etapa de Gráficos: mini-card fixo (não entra na personalização
-            do Bento Grid abaixo — mesmo tratamento de `ContasCartoesCard`/
-            `TransacoesRecentesCard`, sempre visível). */}
-        <EvolucaoSaldoCard />
         {layout.ordem
           .filter((id) => !layout.ocultos.includes(id))
           .map((id) => {

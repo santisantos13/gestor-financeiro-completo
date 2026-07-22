@@ -13,7 +13,7 @@ import { ICONE_POR_ORIGEM, ROTA_POR_ORIGEM } from "../../../lib/origemNavegacao"
 
 type AbaTransacoesRecentes = "TRANSACOES" | "AGENDA";
 
-const QUANTIDADE_LINHAS = 6;
+const QUANTIDADE_LINHAS = 3;
 
 const ABAS = [
   { id: "TRANSACOES", label: "Transações" },

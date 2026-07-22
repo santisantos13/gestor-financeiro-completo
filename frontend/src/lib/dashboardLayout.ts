@@ -8,17 +8,24 @@
  * estável por card, não um índice posicional), mas essa migração NÃO é
  * implementada agora.
  */
-/** Refinamento Visual (docs/analise-arquitetural-dashboard-hero-redesign.md,
- * decisão 7): "contas" e "cartoes" saíram da personalização — o antigo
- * `ContasCard`/`CartoesCard` viraram `ContasCartoesCard`, uma linha FIXA de
- * destaque logo abaixo do hero (junto de `TransacoesRecentesCard`), no
- * mesmo nível de destaque que o print de referência do usuário mostrava -
- * deixou de fazer sentido escondê-la/reordená-la junto dos cards
- * secundários do Bento Grid. `carregarLayoutDashboard` abaixo já tolera
- * ids desconhecidos/ausentes por construção — um layout salvo antigo com
- * "contas"/"cartoes" simplesmente os ignora, sem precisar de migração
- * manual nem quebrar nada. */
-export type DashboardCardId = "faturas" | "financiamentos" | "emprestimos" | "metas";
+/** Correção pedida pelo usuário (2026-07-22): "Contas e Cartões"/
+ * "Transações Recentes" (fixados desde o Refinamento Visual, decisão 7) e
+ * "Evolução do saldo" (Etapa de Gráficos) voltam a fazer parte da
+ * personalização — o usuário reportou que a lista estava incompleta (só
+ * mostrava Faturas/Financiamentos/Empréstimos/Metas). Ficam PRIMEIRO na
+ * ordem padrão para preservar o arranjo visual atual de quem ainda não
+ * personalizou nada. `carregarLayoutDashboard` abaixo já tolera ids
+ * desconhecidos/ausentes por construção — um layout salvo ANTES desta
+ * mudança (só com os 4 ids antigos) trata os 3 novos como "faltantes" e os
+ * acrescenta ao final automaticamente, sem precisar de migração manual. */
+export type DashboardCardId =
+  | "contas-cartoes"
+  | "transacoes-recentes"
+  | "evolucao-saldo"
+  | "faturas"
+  | "financiamentos"
+  | "emprestimos"
+  | "metas";
 
 export interface DashboardCardMeta {
   id: DashboardCardId;
@@ -29,6 +36,9 @@ export interface DashboardCardMeta {
  * card novo no futuro é só adicionar uma entrada aqui + no mapa de
  * componentes em `DashboardPage.tsx`. */
 export const CARDS_PERSONALIZAVEIS: DashboardCardMeta[] = [
+  { id: "contas-cartoes", label: "Contas e Cartões" },
+  { id: "transacoes-recentes", label: "Transações Recentes" },
+  { id: "evolucao-saldo", label: "Evolução do saldo" },
   { id: "faturas", label: "Faturas" },
   { id: "financiamentos", label: "Financiamentos" },
   { id: "emprestimos", label: "Empréstimos" },

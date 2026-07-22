@@ -33,7 +33,7 @@ export interface NavItem {
  * criaria confusao visual sem necessidade.
  */
 export const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Home", icon: LayoutDashboard },
   { to: "/transacoes", label: "Transações", icon: Receipt },
   { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight },
   { to: "/recorrentes", label: "Recorrentes", icon: Repeat },
