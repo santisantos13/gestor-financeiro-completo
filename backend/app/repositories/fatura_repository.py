@@ -65,6 +65,30 @@ class FaturaRepository(SQLAlchemyRepository[Fatura]):
         )
         return self.db.execute(stmt).scalars().all()
 
+    def listar_no_periodo(self, cartao_id: int, data_inicio: date, data_fim: date) -> Sequence[Fatura]:
+        """Toda fatura deste cartão cujo `data_fechamento` OU `data_vencimento`
+        caia dentro de `[data_inicio, data_fim]` - usada só por
+        `CentralFinanceiraService.calendario_financeiro`, que precisa saber
+        exatamente quais eventos de Fatura pertencem ao MÊS consultado.
+
+        Substitui a antiga abordagem de `listar_recentes_do_cartao(limit=3)`
+        (bug real relatado pelo usuário em 2026-07-22: "vencimento de
+        fatura não aparece" - reproduzido em
+        `test_calendario_financeiro_fatura_vencimento_aparece_mesmo_com_3_faturas_mais_recentes`).
+        `limit=3` era um palpite de "ciclo atual + folga de ciclos
+        próximos" que quebrava sempre que o cartão já tinha 3+ faturas mais
+        recentes que a do mês consultado (comum ao navegar para um mês
+        passado, ou com múltiplos cartões cada um gerando fatura todo mês) -
+        qualquer número fixo teria o mesmo problema. Filtrar direto pela
+        janela de data que o chamador já conhece elimina a classe inteira
+        do bug, sem precisar adivinhar quantos ciclos "bastam"."""
+        stmt = select(Fatura).where(
+            Fatura.cartao_id == cartao_id,
+            (Fatura.data_fechamento.between(data_inicio, data_fim))
+            | (Fatura.data_vencimento.between(data_inicio, data_fim)),
+        )
+        return self.db.execute(stmt).scalars().all()
+
     def buscar_por_cartao_e_mes(self, cartao_id: int, mes_referencia: date) -> Fatura | None:
         stmt = select(Fatura).where(
             Fatura.cartao_id == cartao_id, Fatura.mes_referencia == mes_referencia

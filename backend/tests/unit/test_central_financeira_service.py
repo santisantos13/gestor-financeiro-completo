@@ -213,6 +213,18 @@ class FakeFaturaService:
     def listar_recentes(self, cartao_id, usuario_id, *, limit=100):
         return list(self._faturas_por_cartao.get(cartao_id, []))[:limit]
 
+    # `calendario_financeiro` passou a chamar isto em vez de
+    # `listar_recentes(..., limit=3)` (correção do bug "vencimento de
+    # fatura não aparece", 2026-07-22) - o fake filtra exatamente como o
+    # Repository real (`FaturaRepository.listar_no_periodo`), sem nenhum
+    # corte por quantidade.
+    def listar_no_periodo(self, cartao_id, usuario_id, data_inicio, data_fim):
+        return [
+            f
+            for f in self._faturas_por_cartao.get(cartao_id, [])
+            if data_inicio <= f.data_fechamento <= data_fim or data_inicio <= f.data_vencimento <= data_fim
+        ]
+
 
 class FakeTransacaoService:
     def __init__(self, transacoes):
@@ -709,6 +721,73 @@ def test_calendario_financeiro_fatura_gera_evento_de_fechamento_e_vencimento_qua
     categorias = {e["categoria"] for e in eventos}
     assert categorias == {CategoriaEventoCalendario.FATURA_FECHAMENTO, CategoriaEventoCalendario.FATURA_VENCIMENTO}
     assert all(e["origem_tipo"] == TipoEntidadeReferenciavel.FATURA and e["origem_id"] == 1 for e in eventos)
+
+
+def test_calendario_financeiro_fatura_com_fechamento_e_vencimento_em_meses_diferentes():
+    """Caso realista mais comum (fechamento dia 25, vencimento dia 5 do mês
+    seguinte) - nenhum teste pré-existente cobria fechamento/vencimento em
+    MESES DIFERENTES, só o caso (mais raro) de ambos caindo no mesmo mês
+    (`test_calendario_financeiro_fatura_gera_evento_de_fechamento_e_vencimento_quando_ambos_no_mes`).
+    Bug relatado pelo usuário (2026-07-22): "vencimento de fatura não
+    aparece" - este teste confirma que a condição `data_inicio <=
+    fatura.data_vencimento <= data_fim` já trata os dois eventos de forma
+    independente (não exige que ambos caiam no mesmo mês consultado)."""
+    cartao = _Cartao(id=1, nome="Nubank")
+    fatura = _Fatura(
+        id=1, cartao_id=1, status_calculado=StatusFatura.FECHADA, valor_total_calculado=Decimal("400"),
+        data_fechamento=date(2026, 1, 25), data_vencimento=date(2026, 2, 5),
+    )
+    service = _service(cartoes=[cartao], faturas_por_cartao={1: [fatura]})
+
+    eventos_janeiro = service.calendario_financeiro(usuario_id=1, ano=2026, mes=1)["eventos"]
+    assert len(eventos_janeiro) == 1
+    assert eventos_janeiro[0]["categoria"] == CategoriaEventoCalendario.FATURA_FECHAMENTO
+    assert eventos_janeiro[0]["data"] == date(2026, 1, 25)
+
+    eventos_fevereiro = service.calendario_financeiro(usuario_id=1, ano=2026, mes=2)["eventos"]
+    assert len(eventos_fevereiro) == 1
+    assert eventos_fevereiro[0]["categoria"] == CategoriaEventoCalendario.FATURA_VENCIMENTO
+    assert eventos_fevereiro[0]["data"] == date(2026, 2, 5)
+
+
+def test_calendario_financeiro_fatura_vencimento_aparece_mesmo_com_3_faturas_mais_recentes():
+    """Antes da correção de 2026-07-22, `calendario_financeiro` buscava com
+    `listar_recentes(..., limit=3)` (as 3 faturas mais RECENTES por
+    `mes_referencia`) - um cartão com 3+ faturas mais novas que a do mês
+    consultado fazia o vencimento dela sumir do calendário (bug real
+    relatado pelo usuário: "vencimento de fatura não aparece", reproduzível
+    ao navegar para um mês passado, ou com faturas futuras já criadas).
+    Trocado por `listar_no_periodo` (filtra direto pela janela de data, sem
+    nenhum corte por quantidade) - este teste prova que o vencimento
+    aparece mesmo havendo 3 faturas mais recentes que ela."""
+    cartao = _Cartao(id=1, nome="Nubank")
+    fatura_mais_recente_1 = _Fatura(
+        id=2, cartao_id=1, status_calculado=StatusFatura.ABERTA, valor_total_calculado=Decimal("100"),
+        mes_referencia=date(2026, 4, 1), data_fechamento=date(2026, 4, 25), data_vencimento=date(2026, 5, 5),
+    )
+    fatura_mais_recente_2 = _Fatura(
+        id=3, cartao_id=1, status_calculado=StatusFatura.ABERTA, valor_total_calculado=Decimal("100"),
+        mes_referencia=date(2026, 3, 1), data_fechamento=date(2026, 3, 25), data_vencimento=date(2026, 4, 5),
+    )
+    fatura_mais_recente_3 = _Fatura(
+        id=4, cartao_id=1, status_calculado=StatusFatura.ABERTA, valor_total_calculado=Decimal("100"),
+        mes_referencia=date(2026, 2, 1), data_fechamento=date(2026, 2, 25), data_vencimento=date(2026, 3, 5),
+    )
+    fatura_alvo = _Fatura(
+        id=1, cartao_id=1, status_calculado=StatusFatura.FECHADA, valor_total_calculado=Decimal("400"),
+        mes_referencia=date(2026, 1, 1), data_fechamento=date(2026, 1, 25), data_vencimento=date(2026, 2, 5),
+    )
+    service = _service(
+        cartoes=[cartao],
+        faturas_por_cartao={
+            1: [fatura_mais_recente_1, fatura_mais_recente_2, fatura_mais_recente_3, fatura_alvo],
+        },
+    )
+
+    eventos_fevereiro = service.calendario_financeiro(usuario_id=1, ano=2026, mes=2)["eventos"]
+    categorias = {e["categoria"] for e in eventos_fevereiro}
+    assert CategoriaEventoCalendario.FATURA_VENCIMENTO in categorias
+    assert CategoriaEventoCalendario.FATURA_FECHAMENTO in categorias
 
 
 def test_calendario_financeiro_inclui_transferencia_ativa_do_mes_com_nomes_de_conta():

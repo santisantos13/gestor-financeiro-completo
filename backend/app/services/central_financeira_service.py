@@ -400,17 +400,25 @@ class CentralFinanceiraService:
 
         # Fatura: fechamento e vencimento são dois eventos DISTINTOS (cores
         # diferentes) quando os dois caem no mês consultado - mesmo cartão
-        # pode gerar até 2 linhas. `limit=3` é o mesmo recorte já usado por
-        # `agenda_financeira` (o ciclo do mês corrente + folga de 2 ciclos) -
-        # `listar_recentes` (mais recente primeiro), NUNCA `listar` (ordem
-        # cronológica ascendente, para a tela de listagem de faturas): bug
-        # real corrigido em 2026-07-21 ("calendário não exibe fechamento/
-        # vencimento de fatura") - com `listar` + `limit=3`, qualquer cartão
-        # com mais de 3 meses de uso só devolvia os 3 ciclos mais ANTIGOS,
-        # nunca o atual.
+        # pode gerar até 2 linhas.
+        #
+        # Bug real relatado pelo usuário (2026-07-22): "vencimento de fatura
+        # não aparece". Causa: até aqui este método usava
+        # `listar_recentes(cartao.id, ..., limit=3)` (os 3 ciclos mais
+        # RECENTES por `mes_referencia`) como um palpite de "ciclo atual +
+        # folga de 2 ciclos" - funcionava para o mês corrente, mas sumia
+        # com o vencimento de qualquer fatura que não estivesse entre as 3
+        # mais recentes do cartão (ex.: navegar para um mês passado, ou um
+        # cartão que já tem faturas futuras criadas). Trocado por
+        # `FaturaRepository.listar_no_periodo` - busca direto pela janela de
+        # data que este método já tem em mãos (`data_inicio`/`data_fim`), sem
+        # depender de nenhum "número de ciclos" adivinhado. Ver
+        # `test_calendario_financeiro_fatura_vencimento_aparece_mesmo_com_3_faturas_mais_recentes`
+        # (prova a correção) e
+        # `test_calendario_financeiro_fatura_com_fechamento_e_vencimento_em_meses_diferentes`.
         cartoes = self.cartao_service.listar(usuario_id, apenas_ativos=True)
         for cartao in cartoes:
-            for fatura in self.fatura_service.listar_recentes(cartao.id, usuario_id, limit=3):
+            for fatura in self.fatura_service.listar_no_periodo(cartao.id, usuario_id, data_inicio, data_fim):
                 status_fatura = fatura.status_calculado.value
                 if data_inicio <= fatura.data_fechamento <= data_fim:
                     eventos.append(

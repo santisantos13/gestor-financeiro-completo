@@ -3,7 +3,28 @@ import { ArrowDownCircle, ArrowUpCircle, CalendarClock, Flame, Scale } from "luc
 import { Card } from "../../ui/Card";
 import { formatDate } from "../../../utils/date";
 import { formatMoney } from "../../../utils/format";
+import type { CategoriaEventoCalendario } from "../../../types/enums";
 import type { EventoCalendario } from "../../../types/centralFinanceira";
+
+/** Categorias que representam dinheiro efetivamente SAINDO da conta (ou já
+ * comprometido a sair) num dado mês — usadas por "Despesas previstas"
+ * abaixo. Bug real corrigido em 2026-07-22: o cálculo original só olhava
+ * `categoria === "DESPESA"`, deixando de fora Financiamento/Empréstimo
+ * (categorias próprias desde 2026-07-21, ver `lib/calendarioCategorias.ts`)
+ * inteiramente — quem tinha parcela de financiamento no mês via "Despesas
+ * previstas" abaixo do valor real. FATURA_VENCIMENTO entra pelo mesmo
+ * motivo (é o evento que representa a fatura do cartão saindo da conta —
+ * `calendario_financeiro` nunca lista as compras individuais no cartão,
+ * `apenas_conta=True`, só o evento de Fatura). FATURA_FECHAMENTO fica de
+ * fora de propósito — é só informativo (fechamento do ciclo), o dinheiro
+ * ainda não saiu; somar os dois quando caem no mesmo mês contaria a MESMA
+ * fatura em dobro. */
+const CATEGORIAS_DE_DESPESA: ReadonlySet<CategoriaEventoCalendario> = new Set([
+  "DESPESA",
+  "FINANCIAMENTO",
+  "EMPRESTIMO",
+  "FATURA_VENCIMENTO",
+]);
 
 export interface ResumoMesCalendarioProps {
   eventos: EventoCalendario[];
@@ -36,7 +57,7 @@ export function ResumoMesCalendario({ eventos }: ResumoMesCalendarioProps) {
 
   const dados = useMemo(() => {
     const receitas = eventos.filter((e) => e.categoria === "RECEITA");
-    const despesas = eventos.filter((e) => e.categoria === "DESPESA");
+    const despesas = eventos.filter((e) => CATEGORIAS_DE_DESPESA.has(e.categoria));
     const totalReceitas = receitas.reduce((soma, e) => soma + Number(e.valor), 0);
     const totalDespesas = despesas.reduce((soma, e) => soma + Number(e.valor), 0);
 

@@ -525,7 +525,13 @@ def test_calendario_financeiro_inclui_fatura_mesmo_com_mais_de_tres_ciclos_de_hi
     no histórico passava a nunca mais mostrar o ciclo ATUAL no calendário,
     só os 3 mais antigos - corrigido usando `listar_recentes` (ordem
     DESCENDENTE), método novo e separado porque as duas telas têm ordens
-    opostas e nenhuma relação entre si."""
+    opostas e nenhuma relação entre si.
+
+    2026-07-22: `listar_recentes(limit=3)` em si foi substituído por
+    `listar_no_periodo` (ver teste abaixo,
+    `test_calendario_financeiro_inclui_fatura_de_mes_passado_com_muitas_faturas_mais_recentes`,
+    para o cenário que ainda quebrava com `limit=3`: navegar para um mês
+    PASSADO)."""
     headers = _registrar_e_logar(client)
     conta = _criar_conta(client, headers)
     cartao = _criar_cartao(client, headers, conta["id"])
@@ -555,6 +561,48 @@ def test_calendario_financeiro_inclui_fatura_mesmo_com_mais_de_tres_ciclos_de_hi
         e["categoria"] for e in dados["eventos"] if e["origem_id"] == fatura_atual["id"]
     }
     assert categorias_da_fatura_atual & {"FATURA_FECHAMENTO", "FATURA_VENCIMENTO"}
+
+
+def test_calendario_financeiro_inclui_fatura_de_mes_passado_com_muitas_faturas_mais_recentes(client):
+    """Bug real relatado pelo usuário (2026-07-22): "vencimento de fatura
+    não aparece" no calendário. Causa: `calendario_financeiro` buscava
+    `listar_recentes(cartao.id, ..., limit=3)` (as 3 faturas mais RECENTES
+    por `mes_referencia`) - ao contrário do teste acima (que só provava que
+    o ciclo ATUAL sobrevivia a um histórico grande), navegar para um mês
+    PASSADO específico continuava quebrado: se o cartão já tinha 3+ faturas
+    mais novas que a desse mês, ela ficava fora do `limit=3` e seus eventos
+    (fechamento/vencimento) somem do calendário daquele mês. Corrigido
+    trocando para `FaturaRepository.listar_no_periodo` (filtra direto pela
+    janela de data pedida, sem nenhum corte por quantidade de ciclos)."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    hoje = date.today()
+
+    mes_alvo = _mes_referencia_ha_n_meses(hoje, 6)
+    fatura_alvo = client.post(
+        "/faturas", json={"cartao_id": cartao["id"], "mes_referencia": str(mes_alvo)}, headers=headers,
+    ).json()
+
+    # 5 ciclos mais recentes que o alvo - bem mais que o antigo `limit=3`.
+    for n in range(5, 0, -1):
+        resposta = client.post(
+            "/faturas",
+            json={"cartao_id": cartao["id"], "mes_referencia": str(_mes_referencia_ha_n_meses(hoje, n))},
+            headers=headers,
+        )
+        assert resposta.status_code == 201, resposta.text
+
+    dados = client.get(
+        "/central-financeira/calendario",
+        params={"ano": mes_alvo.year, "mes": mes_alvo.month},
+        headers=headers,
+    ).json()
+
+    categorias_da_fatura_alvo = {
+        e["categoria"] for e in dados["eventos"] if e["origem_id"] == fatura_alvo["id"]
+    }
+    assert categorias_da_fatura_alvo & {"FATURA_FECHAMENTO", "FATURA_VENCIMENTO"}
 
 
 def test_calendario_financeiro_inclui_transferencia_ativa_do_mes(client):

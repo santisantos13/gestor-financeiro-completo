@@ -7,7 +7,7 @@
       "label": "Desenvolvimento ativo"
     },
     "overallPercent": 91,
-    "updatedAt": "2026-07-22T18:00:00-03:00"
+    "updatedAt": "2026-07-22T18:20:00-03:00"
   },
   "areas": [
     {
@@ -312,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d72",
+        "title": "Correções no Calendário financeiro (despesas previstas + vencimento de fatura sumindo)",
+        "description": "Usuário reportou 2 inconsistências reais no Calendário: (1) o card 'Despesas previstas' do resumo do mês só somava categoria DESPESA, deixando de fora Financiamento/Empréstimo (categorias próprias desde 21/07) e o vencimento de fatura - corrigido em ResumoMesCalendario.tsx somando DESPESA+FINANCIAMENTO+EMPRESTIMO+FATURA_VENCIMENTO (FATURA_FECHAMENTO fica de fora de propósito, é só informativo). (2) vencimento (e às vezes fechamento) de fatura sumindo do calendário - causa raiz: calendario_financeiro buscava as faturas do cartão com listar_recentes(limit=3) (as 3 mais recentes por mes_referencia), um palpite de 'ciclo atual + folga' que quebrava ao navegar para um mês passado ou quando o cartão já tinha 3+ ciclos futuros criados. Corrigido na raiz: novo FaturaRepository.listar_no_periodo/FaturaService.listar_no_periodo filtram direto pela janela de data (fechamento OU vencimento dentro do mês consultado), eliminando a classe inteira do bug em vez de só aumentar o número mágico. 2 testes unitários novos (reproduzem fechamento/vencimento em meses diferentes, e a correção do limite de 3 ciclos) + 1 teste de integração novo (fatura de mês passado com muitos ciclos mais recentes). Suíte completa: 624 unit + integração de Fatura/Central Financeira/Cartão revalidada, tsc -b e vite build limpos. Versão 0.4.0 -> 0.4.1 (patch).",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-22"
+      },
       {
         "id": "d71",
         "title": "Primeira suíte de testes automatizados do frontend (Vitest + Testing Library)",
@@ -883,6 +891,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-22",
+      "type": "backend+frontend",
+      "title": "Calendário: 'Despesas previstas' agora soma Financiamento/Empréstimo/vencimento de fatura; corrigida a causa raiz de vencimento de fatura sumindo do calendário (busca por data em vez de 'últimos 3 ciclos'). Versão 0.4.0 → 0.4.1"
+    },
     {
       "date": "2026-07-22",
       "type": "frontend",

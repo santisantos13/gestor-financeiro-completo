@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.4.1",
+    data: "2026-07-22",
+    titulo: "Correções no Calendário financeiro",
+    itens: [
+      '"Despesas previstas" do resumo do mês não somava parcelas de Financiamento/Empréstimo (categorias próprias desde 21/07) - agora entram na soma, junto com o vencimento de fatura.',
+      "Vencimento (e às vezes fechamento) de fatura podia sumir do calendário - acontecia ao navegar para um mês passado, ou quando o cartão já tinha vários ciclos futuros criados. Corrigido na raiz: a busca agora filtra direto pela data, sem depender de um número fixo de ciclos recentes.",
+    ],
+  },
+  {
     versao: "0.4.0",
     data: "2026-07-22",
     titulo: "Primeira suíte de testes automatizados do frontend",
