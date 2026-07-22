@@ -249,3 +249,40 @@ export interface AtividadeRecente {
 export interface CentralAtividadesRead {
   atividades: AtividadeRecente[];
 }
+
+/** Etapa de Gráficos (docs/analise-arquitetural-graficos.md) — os 2 novos
+ * endpoints agregam exatamente os 4 gráficos da primeira etapa + o 5º
+ * (distribuição do saldo atual, que reaproveita `SaldoConsolidadoRead`
+ * acima, sem tipo próprio). */
+export interface PontoTendenciaMensal {
+  ano: number;
+  mes: number;
+  saldo_total: string;
+  entradas: string;
+  saidas: string;
+}
+
+export interface GraficosTendenciasRead {
+  meses: PontoTendenciaMensal[];
+}
+
+export interface GastoPorCategoria {
+  categoria_id: number | null;
+  categoria_nome: string;
+  categoria_cor: string | null;
+  categoria_icone: string | null;
+  total: string;
+}
+
+export interface GastoPorCartao {
+  cartao_id: number;
+  cartao_nome: string;
+  total: string;
+}
+
+export interface GraficosPeriodoRead {
+  ano: number;
+  mes: number;
+  gastos_por_categoria: GastoPorCategoria[];
+  gastos_por_cartao: GastoPorCartao[];
+}

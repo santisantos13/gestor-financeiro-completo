@@ -6,25 +6,25 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 86,
-    "updatedAt": "2026-07-21T19:15:00-03:00"
+    "overallPercent": 88,
+    "updatedAt": "2026-07-22T00:10:00-03:00"
   },
   "areas": [
     {
       "key": "backend",
       "label": "Backend",
-      "percent": 92,
-      "done": 21,
+      "percent": 94,
+      "done": 22,
       "inProgress": 0,
       "pending": 1
     },
     {
       "key": "frontend",
       "label": "Frontend",
-      "percent": 87,
-      "done": 23,
+      "percent": 90,
+      "done": 24,
       "inProgress": 0,
-      "pending": 3
+      "pending": 2
     },
     {
       "key": "database",
@@ -108,7 +108,7 @@
         "Animações e microinterações (Framer Motion, docs/motion-principles.md) — concluídas",
         "Organização personalizada da navegação (drag-and-drop + localStorage, Dashboard fixo) — concluída",
         "Relatórios exportáveis — pendente",
-        "Gráficos avançados no dashboard — pendente"
+        "Gráficos avançados no dashboard — concluído (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta — mini-card no Dashboard + página /graficos completa, Recharts)"
       ]
     },
     {
@@ -253,9 +253,9 @@
     },
     {
       "name": "Gráficos",
-      "category": "Frontend",
-      "status": "pending",
-      "progress": 5,
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
       "priority": "Média"
     },
     {
@@ -317,7 +317,7 @@
       {
         "id": "t8",
         "title": "Pipeline de CI",
-        "description": "Rodar a suíte de 1072 testes (615 unit + 457 integração) automaticamente a cada mudança, em vez de manual.",
+        "description": "Rodar a suíte de 1087 testes (622 unit + 465 integração) automaticamente a cada mudança, em vez de manual.",
         "category": "DevOps",
         "priority": "Média",
         "date": "2026-07-15"
@@ -326,6 +326,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d66",
+        "title": "Gráficos: mini-card no Dashboard + página /graficos completa (Recharts)",
+        "description": "5 gráficos, 100% camada de agregação (nenhuma regra de negócio duplicada, mesma filosofia da Central Financeira — ver docs/analise-arquitetural-graficos.md): Evolução do saldo (prefix-sum sobre 1 query SQL agrupada por mês, Transferência ignorada por não afetar o saldo TOTAL do usuário — nunca soma Transacao crua em Python, respeita docs/decisao-performance-saldo.md), Entradas x Saídas por mês, Gastos por categoria, Gastos por cartão (2 endpoints novos: /graficos/tendencias e /graficos/periodo, agrupando por janela de meses vs. mês único) e Distribuição do saldo por conta (5º, reaproveita saldo-consolidado, custo zero). Backend: 4 métodos novos em TransacaoRepository/Service (extract() do SQLAlchemy, cross-DB SQLite/Postgres), CentralFinanceiraService.graficos_tendencias/graficos_periodo, 15 novos testes (7 unit + 8 integração). Frontend: Recharts (biblioteca nova do projeto), EvolucaoSaldoCard no Dashboard + página /graficos completa com seletor de mês/janela, paleta 100% dos tokens de design-system.md seção 19 (polaridade para saldo/entradas-saídas, categórica para categoria/cartão/conta). Instalação do recharts via npm exigiu um contorno manual (mount de arquivos do projeto excepcionalmente lento para operações com muitos arquivos pequenos, ver nota técnica no histórico da sessão) — resolvido sem afetar o resultado final: package.json/package-lock.json sincronizados normalmente, node_modules validado 100% contra o lockfile. Suíte completa (622 unit + 465 integração, 1087 testes) e tsc -b/vite build validados.",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-22"
+      },
       {
         "id": "d65",
         "title": "Pós-deploy: Transações recentes trazia parcelas futuras de contrato + hero cards do Dashboard desalinhados",
@@ -850,6 +858,11 @@
   },
   "changelog": [
     {
+      "date": "2026-07-22",
+      "type": "full-stack",
+      "title": "Gráficos: 5 gráficos (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta) — mini-card no Dashboard + página /graficos, Recharts"
+    },
+    {
       "date": "2026-07-21",
       "type": "full-stack",
       "title": "Pós-deploy: 'Transações recentes' trazia parcelas futuras de Financiamento/Empréstimo (faltava corte data_fim=hoje em atividades_recentes) + hero cards do Dashboard desalinhados (items-start → items-stretch)"
@@ -1298,7 +1311,7 @@
   },
   "quality": {
     "testCoverage": {
-      "backend": "1072 testes (615 unit + 457 integração), 100% passando — incl. Contas Recorrentes (cursor+status+projeção), migração para Postgres validada, cascata de exclusão de Cartão/Conta (Parcelamento/ContaRecorrente), corte data_fim em Transações recentes e categoria própria de Financiamento/Empréstimo no Calendário",
+      "backend": "1087 testes (622 unit + 465 integração), 100% passando — incl. Contas Recorrentes (cursor+status+projeção), migração para Postgres validada, cascata de exclusão de Cartão/Conta (Parcelamento/ContaRecorrente), corte data_fim em Transações recentes, categoria própria de Financiamento/Empréstimo no Calendário e os 2 endpoints agregadores de Gráficos (tendências/período)",
       "frontend": "0 testes (fora de escopo por ora)"
     },
     "technicalDebt": 5,

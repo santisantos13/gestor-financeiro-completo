@@ -55,6 +55,12 @@ def _criar_transacao(client, headers, **overrides):
     return resposta.json()
 
 
+def _criar_categoria(client, headers, nome="Categoria"):
+    resposta = client.post("/categorias", json={"nome": nome}, headers=headers)
+    assert resposta.status_code == 201, resposta.text
+    return resposta.json()
+
+
 def _criar_financiamento(client, headers, conta_id, **overrides):
     payload = {
         "descricao": "Carro",
@@ -107,6 +113,8 @@ ENDPOINTS = [
     "/visao-mensal",
     "/indicadores",
     "/atividades",
+    "/graficos/tendencias",
+    "/graficos/periodo",
 ]
 
 
@@ -740,3 +748,109 @@ def test_atividades_recentes_nao_vazam_entre_usuarios(client):
 
     descricoes = [a["descricao"] for a in dados_a["atividades"]]
     assert descricoes == ["Gasto de A"]
+
+
+# --- gráficos (docs/analise-arquitetural-graficos.md) ---------------------------
+
+def test_graficos_tendencias_usuario_novo_devolve_baseline_zero(client):
+    headers = _registrar_e_logar(client)
+    dados = client.get("/central-financeira/graficos/tendencias", params={"meses": 3}, headers=headers).json()
+
+    assert len(dados["meses"]) == 3
+    assert all(m["saldo_total"] == "0" for m in dados["meses"])
+    assert all(m["entradas"] == "0" and m["saidas"] == "0" for m in dados["meses"])
+
+
+def test_graficos_tendencias_reflete_saldo_inicial_e_movimentacao_do_mes(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers, saldo_inicial="1000.00")
+    _criar_transacao(client, headers, tipo="RECEITA", valor="500.00", status="PAGO", conta_id=conta["id"])
+    _criar_transacao(client, headers, tipo="DESPESA", valor="80.00", status="PAGO", conta_id=conta["id"])
+
+    dados = client.get("/central-financeira/graficos/tendencias", params={"meses": 3}, headers=headers).json()
+
+    mes_atual = dados["meses"][-1]
+    assert mes_atual["saldo_total"] == "1420.00"
+    assert mes_atual["entradas"] == "500.00"
+    assert mes_atual["saidas"] == "80.00"
+    # Meses anteriores (sem nenhum lançamento) ficam no ponto de partida.
+    assert dados["meses"][0]["saldo_total"] == "1000.00"
+
+
+def test_graficos_tendencias_valida_limite_de_meses(client):
+    headers = _registrar_e_logar(client)
+    resposta = client.get("/central-financeira/graficos/tendencias", params={"meses": 37}, headers=headers)
+    assert resposta.status_code == 422
+
+
+def test_graficos_periodo_usuario_novo_devolve_listas_vazias(client):
+    headers = _registrar_e_logar(client)
+    dados = client.get("/central-financeira/graficos/periodo", headers=headers).json()
+    assert dados["gastos_por_categoria"] == []
+    assert dados["gastos_por_cartao"] == []
+
+
+def test_graficos_periodo_agrupa_despesas_por_categoria(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    categoria = _criar_categoria(client, headers, nome="Mercado")
+    _criar_transacao(
+        client, headers, tipo="DESPESA", valor="120.00", status="PAGO",
+        conta_id=conta["id"], categoria_id=categoria["id"],
+    )
+    _criar_transacao(client, headers, tipo="DESPESA", valor="30.00", status="PAGO", conta_id=conta["id"])
+
+    dados = client.get("/central-financeira/graficos/periodo", headers=headers).json()
+
+    por_id = {item["categoria_id"]: item for item in dados["gastos_por_categoria"]}
+    assert por_id[categoria["id"]]["categoria_nome"] == "Mercado"
+    assert por_id[categoria["id"]]["total"] == "120.00"
+    assert por_id[None]["categoria_nome"] == "Sem categoria"
+    assert por_id[None]["total"] == "30.00"
+
+
+def test_graficos_periodo_agrupa_gastos_por_cartao(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"], nome="Nubank")
+    _criar_transacao(client, headers, tipo="DESPESA", valor="200.00", cartao_id=cartao["id"])
+
+    dados = client.get("/central-financeira/graficos/periodo", headers=headers).json()
+
+    assert dados["gastos_por_cartao"] == [
+        {"cartao_id": cartao["id"], "cartao_nome": "Nubank", "total": "200.00"}
+    ]
+
+
+def test_graficos_periodo_respeita_mes_selecionado(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    categoria = _criar_categoria(client, headers)
+    mes_passado = _mes_referencia_ha_n_meses(date.today(), 2)
+    _criar_transacao(
+        client, headers, tipo="DESPESA", valor="90.00", status="PAGO",
+        conta_id=conta["id"], categoria_id=categoria["id"], data=str(mes_passado),
+    )
+
+    dados_mes_atual = client.get("/central-financeira/graficos/periodo", headers=headers).json()
+    dados_mes_passado = client.get(
+        "/central-financeira/graficos/periodo",
+        params={"ano": mes_passado.year, "mes": mes_passado.month},
+        headers=headers,
+    ).json()
+
+    assert dados_mes_atual["gastos_por_categoria"] == []
+    assert dados_mes_passado["gastos_por_categoria"][0]["total"] == "90.00"
+
+
+def test_graficos_nao_vazam_entre_usuarios(client):
+    headers_a = _registrar_e_logar(client, email="graf-a@example.com")
+    headers_b = _registrar_e_logar(client, email="graf-b@example.com")
+    conta_a = _criar_conta(client, headers_a, saldo_inicial="1000.00")
+    conta_b = _criar_conta(client, headers_b, saldo_inicial="0.00")
+
+    dados_a = client.get("/central-financeira/graficos/tendencias", headers=headers_a).json()
+    dados_b = client.get("/central-financeira/graficos/tendencias", headers=headers_b).json()
+
+    assert dados_a["meses"][-1]["saldo_total"] == "1000.00"
+    assert dados_b["meses"][-1]["saldo_total"] == "0.00"

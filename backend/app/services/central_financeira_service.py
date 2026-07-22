@@ -42,6 +42,7 @@ from app.models.enums import (
     TipoTransacao,
 )
 from app.services.cartao_service import CartaoService
+from app.services.categoria_service import CategoriaService
 from app.services.conta_recorrente_service import ContaRecorrenteService
 from app.services.conta_service import ContaService
 from app.services.emprestimo_service import EmprestimoService
@@ -72,6 +73,7 @@ class CentralFinanceiraService:
         meta_service: MetaService,
         transferencia_service: TransferenciaService,
         conta_recorrente_service: "ContaRecorrenteService | None" = None,
+        categoria_service: "CategoriaService | None" = None,
     ) -> None:
         self.conta_service = conta_service
         self.cartao_service = cartao_service
@@ -94,6 +96,13 @@ class CentralFinanceiraService:
         # (testes unitários constroem com posicionais); quando None, o
         # calendário simplesmente não projeta nada.
         self.conta_recorrente_service = conta_recorrente_service
+        # Etapa de Gráficos (docs/analise-arquitetural-graficos.md): usado só
+        # por `graficos_periodo`, para resolver nome/cor/ícone da categoria de
+        # cada grupo devolvido por `TransacaoService.somar_agrupado_por_categoria`
+        # (que só tem `categoria_id`, nunca duplica o objeto Categoria inteiro
+        # numa query própria). Mesmo padrão aditivo/opcional de
+        # `conta_recorrente_service` acima - não reordena posicionais de teste.
+        self.categoria_service = categoria_service
 
     # --- 1. resumo financeiro geral ------------------------------------------
 
@@ -641,6 +650,135 @@ class CentralFinanceiraService:
             "parcelas_atrasadas": self._contar_parcelas_atrasadas(usuario_id),
         }
 
+    # --- 12. gráficos (docs/analise-arquitetural-graficos.md) -------------------------
+
+    def graficos_tendencias(self, usuario_id: int, *, meses: int = 12) -> dict:
+        """Série histórica dos últimos `meses` meses (padrão 12), usada
+        pelos 2 gráficos de tendência: "Evolução do saldo" (linha) e
+        "Entradas x Saídas por mês" (barras) - um payload só porque os dois
+        compartilham a mesma janela de tempo (ver análise, seção 3).
+
+        `saldo_total` de cada mês é uma soma ACUMULADA (saldo_inicial de
+        todas as contas + líquido de todo mês anterior até este, inclusive)
+        - por isso a query de líquido (`somar_liquido_por_mes`) não tem
+        `data_inicio`: sem o histórico completo desde sempre, o primeiro mês
+        da janela pedida começaria de um valor errado (ver análise, seção
+        2.1, sobre a limitação aceita de "toda conta ativa existe desde
+        sempre"). `entradas`/`saidas` de cada mês, ao contrário, não são
+        acumuladas - por isso a query dessas duas é bem mais barata
+        (bounded por `data_inicio`, sem precisar do histórico inteiro)."""
+        hoje = date.today()
+        saldo_inicial_total = self._saldo_inicial_total(usuario_id)
+
+        linhas_liquido = self.transacao_service.somar_liquido_por_mes(usuario_id, data_fim=hoje)
+        historico_completo = sorted(
+            ((int(linha.ano), int(linha.mes), Decimal(linha.liquido)) for linha in linhas_liquido)
+        )
+
+        acumulado = saldo_inicial_total
+        saldo_por_mes: dict[tuple[int, int], Decimal] = {}
+        for ano, mes, liquido in historico_completo:
+            acumulado += liquido
+            saldo_por_mes[(ano, mes)] = acumulado
+
+        janela = self._ultimos_n_meses(hoje.year, hoje.month, meses)
+        ano_inicio, mes_inicio = janela[0]
+        data_inicio_janela = date(ano_inicio, mes_inicio, 1)
+
+        linhas_entradas = self.transacao_service.somar_por_mes(
+            usuario_id, tipo=TipoTransacao.RECEITA, status=StatusTransacao.PAGO,
+            data_inicio=data_inicio_janela, data_fim=hoje,
+        )
+        linhas_saidas = self.transacao_service.somar_por_mes(
+            usuario_id, tipo=TipoTransacao.DESPESA, status=StatusTransacao.PAGO,
+            data_inicio=data_inicio_janela, data_fim=hoje,
+        )
+        mapa_entradas = {(int(linha.ano), int(linha.mes)): Decimal(linha.total) for linha in linhas_entradas}
+        mapa_saidas = {(int(linha.ano), int(linha.mes)): Decimal(linha.total) for linha in linhas_saidas}
+
+        # Saldo do mês mais antigo da janela pedida, caso NENHUM mês daquela
+        # janela (ou de antes dela) tenha atividade: sem isto, um usuário
+        # recém-criado (sem histórico algum) receberia `saldo_total=0` em
+        # vez do `saldo_inicial_total` de verdade.
+        ultimo_saldo_conhecido = saldo_inicial_total
+
+        pontos = []
+        for ano, mes in janela:
+            if (ano, mes) in saldo_por_mes:
+                ultimo_saldo_conhecido = saldo_por_mes[(ano, mes)]
+            pontos.append(
+                {
+                    "ano": ano,
+                    "mes": mes,
+                    "saldo_total": ultimo_saldo_conhecido,
+                    "entradas": mapa_entradas.get((ano, mes), Decimal("0")),
+                    "saidas": mapa_saidas.get((ano, mes), Decimal("0")),
+                }
+            )
+        return {"meses": pontos}
+
+    def graficos_periodo(self, usuario_id: int, *, ano: int | None = None, mes: int | None = None) -> dict:
+        """Distribuição de um mês só (padrão: mês atual), usada pelos 2
+        gráficos de período: "Gastos por categoria" (donut) e "Gastos por
+        cartão" (barras) - mesmo padrão `ano`/`mes` de `/resumo`/
+        `/visao-mensal`/`/calendario`."""
+        hoje = date.today()
+        ano = ano or hoje.year
+        mes = mes or hoje.month
+        data_inicio, data_fim = self._limites_do_mes(ano, mes)
+
+        linhas_categoria = self.transacao_service.somar_agrupado_por_categoria(
+            usuario_id, tipo=TipoTransacao.DESPESA, status=StatusTransacao.PAGO,
+            data_inicio=data_inicio, data_fim=data_fim,
+        )
+        # `categoria_service` pode ser None (mesma tolerância de
+        # `conta_recorrente_service`) - nesse caso, todo grupo vira "Sem
+        # categoria" em vez de quebrar (nunca omitido).
+        categorias_por_id = (
+            {c.id: c for c in self.categoria_service.listar(usuario_id, apenas_ativas=False, incluir_ocultas=True, limit=500)}
+            if self.categoria_service is not None
+            else {}
+        )
+        gastos_por_categoria = []
+        for linha in linhas_categoria:
+            categoria = categorias_por_id.get(linha.categoria_id) if linha.categoria_id is not None else None
+            gastos_por_categoria.append(
+                {
+                    "categoria_id": linha.categoria_id,
+                    "categoria_nome": categoria.nome if categoria is not None else "Sem categoria",
+                    "categoria_cor": categoria.cor if categoria is not None else None,
+                    "categoria_icone": categoria.icone if categoria is not None else None,
+                    "total": Decimal(linha.total),
+                }
+            )
+        gastos_por_categoria.sort(key=lambda item: item["total"], reverse=True)
+
+        linhas_cartao = self.transacao_service.somar_agrupado_por_cartao(
+            usuario_id, status=StatusTransacao.PAGO, data_inicio=data_inicio, data_fim=data_fim,
+        )
+        cartoes_por_id = {c.id: c for c in self.cartao_service.listar(usuario_id, apenas_ativos=False)}
+        gastos_por_cartao = []
+        for linha in linhas_cartao:
+            cartao = cartoes_por_id.get(linha.cartao_id)
+            if cartao is None:
+                # Defensivo: Transacao.cartao_id é CASCADE (excluir o Cartão
+                # apaga a Transacao junto, ver CartaoService), então na
+                # prática todo cartao_id aqui tem um Cartao vivo - nunca
+                # deveria acontecer, mas nunca quebra o gráfico por causa
+                # disso.
+                continue
+            gastos_por_cartao.append(
+                {"cartao_id": linha.cartao_id, "cartao_nome": cartao.nome, "total": Decimal(linha.total)}
+            )
+        gastos_por_cartao.sort(key=lambda item: item["total"], reverse=True)
+
+        return {
+            "ano": ano,
+            "mes": mes,
+            "gastos_por_categoria": gastos_por_categoria,
+            "gastos_por_cartao": gastos_por_cartao,
+        }
+
     # --- helpers privados de orquestração (nenhuma regra de negócio nova) ------------
 
     @staticmethod
@@ -655,6 +793,34 @@ class CentralFinanceiraService:
         `saldo_consolidado` acima."""
         contas = self.conta_service.listar(usuario_id, apenas_ativas=True, apenas_visiveis=False)
         return sum((c.saldo_atual for c in contas), Decimal("0"))
+
+    def _saldo_inicial_total(self, usuario_id: int) -> Decimal:
+        """Soma de `Conta.saldo_inicial` (campo bruto, não `saldo_atual`
+        calculado) de todas as contas do usuário - o "ponto de partida"
+        usado por `graficos_tendencias` para reconstruir a série histórica
+        do saldo (ver docstring de `somar_liquido_por_mes` no repository e
+        análise, seção 2.1)."""
+        contas = self.conta_service.listar(usuario_id, apenas_ativas=True, apenas_visiveis=False)
+        return sum((c.saldo_inicial for c in contas), Decimal("0"))
+
+    @staticmethod
+    def _ultimos_n_meses(ano_fim: int, mes_fim: int, quantidade: int) -> list[tuple[int, int]]:
+        """Lista de `quantidade` pares (ano, mês) terminando em
+        `ano_fim`/`mes_fim` (inclusive), em ordem cronológica - ex.
+        `_ultimos_n_meses(2026, 7, 3)` = `[(2026,5), (2026,6), (2026,7)]`.
+        Usado por `graficos_tendencias` para montar a janela do gráfico e
+        preencher com zero todo mês sem nenhum lançamento (a query SQL só
+        devolve mês COM atividade)."""
+        meses = []
+        ano, mes = ano_fim, mes_fim
+        for _ in range(quantidade):
+            meses.append((ano, mes))
+            mes -= 1
+            if mes == 0:
+                mes = 12
+                ano -= 1
+        meses.reverse()
+        return meses
 
     def _somar_periodo(
         self, usuario_id: int, tipo: TipoTransacao, data_inicio: date, data_fim: date

@@ -12,9 +12,11 @@ sobre resultados já agregados (fluxo de caixa, patrimônio líquido), e as
 únicas iterações em Python são sobre listas pequenas e conhecidas (cartões
 do usuário, parcelas de UM contrato).
 """
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal
+from types import SimpleNamespace
 
 from app.models.enums import (
     CategoriaEventoCalendario,
@@ -36,6 +38,18 @@ class _Conta:
     nome: str = "Conta"
     ativo: bool = True
     oculta: bool = False
+    # Etapa de Gráficos: `_saldo_inicial_total` lê o campo BRUTO (não
+    # `saldo_atual`, já calculado) - default 0 preserva todo teste
+    # pré-existente que nunca olhava esse campo.
+    saldo_inicial: Decimal = Decimal("0")
+
+
+@dataclass
+class _Categoria:
+    id: int
+    nome: str
+    cor: str | None = None
+    icone: str | None = None
 
 
 @dataclass
@@ -83,6 +97,14 @@ class _Transacao:
     # (nenhum deles simula uma compra de cartão, todos representam
     # transações "de conta" implicitamente).
     cartao_id: int | None = None
+    # Etapa de Gráficos: `somar_liquido_por_mes` (fake) só conta Transacao
+    # DE CONTA (mesma regra do real, ver TransacaoRepository) - default
+    # `None` é deliberado (diferente do "implicitamente de conta" do
+    # comentário acima): nenhum teste pré-existente exercita os métodos
+    # novos desta etapa, então não há teste antigo para quebrar.
+    conta_id: int | None = None
+    importada: bool = False
+    categoria_id: int | None = None
 
 
 @dataclass
@@ -243,6 +265,56 @@ class FakeTransacaoService:
             Decimal("0"),
         )
 
+    # --- Etapa de Gráficos - fakes ingênuos em Python (o SQL SUM/GROUP BY é
+    # responsabilidade do Repository real, testado separadamente em
+    # test_transacao_repository.py; aqui só a INTERFACE precisa bater).
+
+    def somar_liquido_por_mes(self, usuario_id, *, data_fim):
+        acumulado = defaultdict(lambda: Decimal("0"))
+        for t in self._transacoes:
+            if t.conta_id is None or t.status != StatusTransacao.PAGO or t.importada or t.data > data_fim:
+                continue
+            sinal = 1 if t.tipo == TipoTransacao.RECEITA else -1
+            acumulado[(t.data.year, t.data.month)] += sinal * t.valor
+        return [SimpleNamespace(ano=ano, mes=mes, liquido=valor) for (ano, mes), valor in acumulado.items()]
+
+    def somar_por_mes(self, usuario_id, *, tipo, status, data_inicio, data_fim):
+        acumulado = defaultdict(lambda: Decimal("0"))
+        for t in self._transacoes:
+            if t.tipo != tipo or t.status != status or not (data_inicio <= t.data <= data_fim):
+                continue
+            acumulado[(t.data.year, t.data.month)] += t.valor
+        return [SimpleNamespace(ano=ano, mes=mes, total=valor) for (ano, mes), valor in acumulado.items()]
+
+    def somar_agrupado_por_categoria(self, usuario_id, *, tipo, status, data_inicio, data_fim):
+        acumulado = defaultdict(lambda: Decimal("0"))
+        for t in self._transacoes:
+            if t.tipo != tipo or t.status != status or not (data_inicio <= t.data <= data_fim):
+                continue
+            acumulado[t.categoria_id] += t.valor
+        return [SimpleNamespace(categoria_id=cid, total=valor) for cid, valor in acumulado.items()]
+
+    def somar_agrupado_por_cartao(self, usuario_id, *, status, data_inicio, data_fim):
+        acumulado = defaultdict(lambda: Decimal("0"))
+        for t in self._transacoes:
+            if (
+                t.cartao_id is None
+                or t.tipo != TipoTransacao.DESPESA
+                or t.status != status
+                or not (data_inicio <= t.data <= data_fim)
+            ):
+                continue
+            acumulado[t.cartao_id] += t.valor
+        return [SimpleNamespace(cartao_id=cid, total=valor) for cid, valor in acumulado.items()]
+
+
+class FakeCategoriaService:
+    def __init__(self, categorias):
+        self._categorias = categorias
+
+    def listar(self, usuario_id, *, apenas_ativas=True, incluir_ocultas=False, skip=0, limit=100):
+        return list(self._categorias)[skip : skip + limit]
+
 
 class FakeContratoService:
     def __init__(self, contratos):
@@ -288,6 +360,7 @@ def _service(
     parcelamentos=(),
     metas=(),
     transferencias=(),
+    categorias=(),
 ) -> CentralFinanceiraService:
     return CentralFinanceiraService(
         conta_service=FakeContaService(list(contas)),
@@ -299,6 +372,7 @@ def _service(
         parcelamento_service=FakeContratoService(list(parcelamentos)),
         meta_service=FakeMetaService(list(metas)),
         transferencia_service=FakeTransferenciaService(list(transferencias)),
+        categoria_service=FakeCategoriaService(list(categorias)),
     )
 
 
@@ -749,3 +823,133 @@ def test_indicadores_gerais_conta_parcelas_atrasadas_de_qualquer_contrato():
     # avulsa_atrasada nao conta - so parcelas de CONTRATO (financiamento/
     # emprestimo/parcelamento) contam como "atrasadas" neste indicador.
     assert service.indicadores_gerais(usuario_id=1)["parcelas_atrasadas"] == 1
+
+
+# --- gráficos (docs/analise-arquitetural-graficos.md) ---------------------------
+
+def test_graficos_tendencias_calcula_saldo_acumulado_e_fluxo_do_mes():
+    conta = _Conta(id=1, saldo_atual=Decimal("1420"), saldo_inicial=Decimal("1000"))
+    receita = _Transacao(
+        id=1, valor=Decimal("500"), data=HOJE, descricao="Salário", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.RECEITA, conta_id=1,
+    )
+    despesa = _Transacao(
+        id=2, valor=Decimal("80"), data=HOJE, descricao="Mercado", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, conta_id=1,
+    )
+    service = _service(contas=[conta], transacoes=[receita, despesa])
+
+    resultado = service.graficos_tendencias(usuario_id=1, meses=3)["meses"]
+
+    assert len(resultado) == 3
+    # Os 2 meses anteriores não têm nenhum lançamento - saldo fica no
+    # "ponto de partida" (saldo_inicial_total), entradas/saidas em zero.
+    assert resultado[0]["saldo_total"] == Decimal("1000")
+    assert resultado[0]["entradas"] == Decimal("0")
+    assert resultado[1]["saldo_total"] == Decimal("1000")
+    # Mês atual (último da lista): saldo acumulado reflete a receita/despesa
+    # de hoje, entradas/saidas são só deste mês.
+    assert resultado[2]["ano"] == HOJE.year
+    assert resultado[2]["mes"] == HOJE.month
+    assert resultado[2]["saldo_total"] == Decimal("1420")
+    assert resultado[2]["entradas"] == Decimal("500")
+    assert resultado[2]["saidas"] == Decimal("80")
+
+
+def test_graficos_tendencias_compra_no_cartao_entra_em_saidas_mas_nao_no_saldo():
+    """Diferente da Transacao de conta: compra no cartão (`conta_id=None`,
+    `cartao_id` preenchido) não afeta o saldo da conta diretamente (só
+    afetaria quando a fatura fosse PAGA, o que geraria outra Transacao com
+    `conta_id` preenchido) - mas já entra em "saídas do mês", mesma
+    semântica de `resumo_financeiro`/`visao_mensal` hoje."""
+    conta = _Conta(id=1, saldo_atual=Decimal("1000"), saldo_inicial=Decimal("1000"))
+    compra_cartao = _Transacao(
+        id=1, valor=Decimal("200"), data=HOJE, descricao="Compra cartão", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, cartao_id=9, conta_id=None,
+    )
+    service = _service(contas=[conta], transacoes=[compra_cartao])
+
+    resultado = service.graficos_tendencias(usuario_id=1, meses=1)["meses"][0]
+
+    assert resultado["saldo_total"] == Decimal("1000")
+    assert resultado["saidas"] == Decimal("200")
+
+
+def test_graficos_tendencias_ignora_transacao_importada_no_saldo_mas_conta_em_entradas():
+    """Mesma regra de `ContaRepository.somar_transacoes_pagas` (saldo real
+    da conta): parcela `importada=True` (onboarding de Financiamento/
+    Empréstimo pré-existente) não deduz/soma o saldo - mas continua
+    contando em "entradas/saídas do mês" (mesmo comportamento de
+    `resumo_financeiro` hoje, que nunca filtrou `importada`)."""
+    conta = _Conta(id=1, saldo_atual=Decimal("1000"), saldo_inicial=Decimal("1000"))
+    receita_importada = _Transacao(
+        id=1, valor=Decimal("300"), data=HOJE, descricao="Parcela antiga", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.RECEITA, conta_id=1, importada=True,
+    )
+    service = _service(contas=[conta], transacoes=[receita_importada])
+
+    resultado = service.graficos_tendencias(usuario_id=1, meses=1)["meses"][0]
+
+    assert resultado["saldo_total"] == Decimal("1000")
+    assert resultado["entradas"] == Decimal("300")
+
+
+def test_graficos_tendencias_usuario_sem_historico_devolve_baseline_em_todos_os_meses():
+    conta = _Conta(id=1, saldo_atual=Decimal("500"), saldo_inicial=Decimal("500"))
+    service = _service(contas=[conta])
+
+    resultado = service.graficos_tendencias(usuario_id=1, meses=6)["meses"]
+
+    assert len(resultado) == 6
+    assert all(ponto["saldo_total"] == Decimal("500") for ponto in resultado)
+    assert all(ponto["entradas"] == Decimal("0") and ponto["saidas"] == Decimal("0") for ponto in resultado)
+
+
+def test_graficos_periodo_agrupa_por_categoria_com_bucket_sem_categoria():
+    categoria = _Categoria(id=1, nome="Mercado", cor="#FF0000", icone="shopping-cart")
+    com_categoria = _Transacao(
+        id=1, valor=Decimal("100"), data=HOJE, descricao="Compra", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, categoria_id=1,
+    )
+    sem_categoria = _Transacao(
+        id=2, valor=Decimal("40"), data=HOJE, descricao="Avulsa", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, categoria_id=None,
+    )
+    service = _service(transacoes=[com_categoria, sem_categoria], categorias=[categoria])
+
+    resultado = service.graficos_periodo(usuario_id=1, ano=HOJE.year, mes=HOJE.month)["gastos_por_categoria"]
+
+    por_id = {item["categoria_id"]: item for item in resultado}
+    assert por_id[1]["categoria_nome"] == "Mercado"
+    assert por_id[1]["categoria_cor"] == "#FF0000"
+    assert por_id[1]["total"] == Decimal("100")
+    assert por_id[None]["categoria_nome"] == "Sem categoria"
+    assert por_id[None]["total"] == Decimal("40")
+    # Maior gasto primeiro.
+    assert resultado[0]["categoria_id"] == 1
+
+
+def test_graficos_periodo_agrupa_por_cartao():
+    cartao_a = _Cartao(id=1, nome="Nubank")
+    cartao_b = _Cartao(id=2, nome="Inter")
+    compra_a = _Transacao(
+        id=1, valor=Decimal("300"), data=HOJE, descricao="Compra A", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, cartao_id=1,
+    )
+    compra_b = _Transacao(
+        id=2, valor=Decimal("150"), data=HOJE, descricao="Compra B", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, cartao_id=2,
+    )
+    service = _service(cartoes=[cartao_a, cartao_b], transacoes=[compra_a, compra_b])
+
+    resultado = service.graficos_periodo(usuario_id=1, ano=HOJE.year, mes=HOJE.month)["gastos_por_cartao"]
+
+    assert len(resultado) == 2
+    assert resultado[0] == {"cartao_id": 1, "cartao_nome": "Nubank", "total": Decimal("300")}
+    assert resultado[1] == {"cartao_id": 2, "cartao_nome": "Inter", "total": Decimal("150")}
+
+
+def test_graficos_periodo_sem_lancamentos_devolve_listas_vazias():
+    resultado = _service().graficos_periodo(usuario_id=1)
+    assert resultado["gastos_por_categoria"] == []
+    assert resultado["gastos_por_cartao"] == []

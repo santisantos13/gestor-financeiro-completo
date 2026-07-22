@@ -316,6 +316,7 @@ def get_central_financeira_service(
     meta_service: Annotated[MetaService, Depends(get_meta_service)],
     transferencia_service: Annotated[TransferenciaService, Depends(get_transferencia_service)],
     conta_recorrente_service: Annotated[ContaRecorrenteService, Depends(get_conta_recorrente_service)],
+    categoria_service: Annotated[CategoriaService, Depends(get_categoria_service)],
 ) -> CentralFinanceiraService:
     # CentralFinanceiraService NAO recebe nenhum Repository - so os Services
     # de dominio ja existentes, injetados por construtor. Ver
@@ -324,7 +325,9 @@ def get_central_financeira_service(
     # só é usado por `calendario_financeiro` - nenhum outro método lê
     # Transferencia. `conta_recorrente_service` (expansão de Contas
     # Recorrentes, 2026-07-20): idem, só para a projeção virtual de
-    # ocorrências futuras no calendário (`previsto=True`).
+    # ocorrências futuras no calendário (`previsto=True`). `categoria_service`
+    # (Etapa de Gráficos, docs/analise-arquitetural-graficos.md): só usado por
+    # `graficos_periodo`, para resolver nome/cor/ícone de cada categoria.
     return CentralFinanceiraService(
         conta_service,
         cartao_service,
@@ -336,6 +339,7 @@ def get_central_financeira_service(
         meta_service,
         transferencia_service,
         conta_recorrente_service,
+        categoria_service,
     )
 
 

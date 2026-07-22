@@ -12,6 +12,7 @@ import { ResumoFinanceiroSection } from "../../components/domain/dashboard/Resum
 import { IndicadoresStrip } from "../../components/domain/dashboard/IndicadoresStrip";
 import { ContasCartoesCard } from "../../components/domain/dashboard/ContasCartoesCard";
 import { TransacoesRecentesCard } from "../../components/domain/dashboard/TransacoesRecentesCard";
+import { EvolucaoSaldoCard } from "../../components/domain/dashboard/EvolucaoSaldoCard";
 import { FaturasCard } from "../../components/domain/dashboard/FaturasCard";
 import { FinanciamentosCard } from "../../components/domain/dashboard/FinanciamentosCard";
 import { EmprestimosCard } from "../../components/domain/dashboard/EmprestimosCard";
@@ -141,6 +142,10 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         <ContasCartoesCard />
         <TransacoesRecentesCard />
+        {/* Etapa de Gráficos: mini-card fixo (não entra na personalização
+            do Bento Grid abaixo — mesmo tratamento de `ContasCartoesCard`/
+            `TransacoesRecentesCard`, sempre visível). */}
+        <EvolucaoSaldoCard />
         {layout.ordem
           .filter((id) => !layout.ocultos.includes(id))
           .map((id) => {

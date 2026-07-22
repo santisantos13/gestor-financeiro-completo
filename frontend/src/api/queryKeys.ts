@@ -40,6 +40,13 @@ export const queryKeys = {
     atividades: (limit: number) => ["dashboard", "atividades", limit] as const,
     visaoMensal: (ano?: number, mes?: number) => ["dashboard", "visao-mensal", ano, mes] as const,
     indicadores: ["dashboard", "indicadores"] as const,
+    /** Etapa de Gráficos — `GET /central-financeira/graficos/tendencias`,
+     * janela dos últimos `meses` meses. */
+    graficosTendencias: (meses: number) => ["dashboard", "graficos-tendencias", meses] as const,
+    /** `GET /central-financeira/graficos/periodo` — escopo de um único mês
+     * (mesmo padrão de `calendario`). */
+    graficosPeriodo: (ano?: number, mes?: number) =>
+      ["dashboard", "graficos-periodo", ano, mes] as const,
   },
   contas: {
     all: ["contas"] as const,

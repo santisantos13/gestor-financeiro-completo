@@ -266,6 +266,32 @@ class TransacaoService:
             usuario_id, tipo=tipo, status=status, data_inicio=data_inicio, data_fim=data_fim
         )
 
+    # --- Etapa de Gráficos (docs/analise-arquitetural-graficos.md) - wrappers
+    # finos sobre os 4 métodos agregados novos de TransacaoRepository, mesmo
+    # motivo do wrapper de somar_por_periodo acima.
+
+    def somar_liquido_por_mes(self, usuario_id: int, *, data_fim: date):
+        return self.transacao_repo.somar_liquido_por_mes(usuario_id, data_fim=data_fim)
+
+    def somar_por_mes(
+        self, usuario_id: int, *, tipo: TipoTransacao, status: StatusTransacao, data_inicio: date, data_fim: date
+    ):
+        return self.transacao_repo.somar_por_mes(
+            usuario_id, tipo=tipo, status=status, data_inicio=data_inicio, data_fim=data_fim
+        )
+
+    def somar_agrupado_por_categoria(
+        self, usuario_id: int, *, tipo: TipoTransacao, status: StatusTransacao, data_inicio: date, data_fim: date
+    ):
+        return self.transacao_repo.somar_agrupado_por_categoria(
+            usuario_id, tipo=tipo, status=status, data_inicio=data_inicio, data_fim=data_fim
+        )
+
+    def somar_agrupado_por_cartao(self, usuario_id: int, *, status: StatusTransacao, data_inicio: date, data_fim: date):
+        return self.transacao_repo.somar_agrupado_por_cartao(
+            usuario_id, status=status, data_inicio=data_inicio, data_fim=data_fim
+        )
+
     def atualizar(self, transacao_id: int, dados: TransacaoUpdate, usuario_id: int) -> Transacao:
         """Edita APENAS a linha `transacao_id` - diferente de `excluir()`,
         nunca propaga para as demais parcelas do mesmo `Parcelamento` hoje

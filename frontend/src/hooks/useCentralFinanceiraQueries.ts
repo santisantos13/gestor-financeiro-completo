@@ -121,3 +121,26 @@ export function useIndicadoresGeraisQuery() {
     queryFn: centralFinanceiraService.indicadores,
   });
 }
+
+/** Etapa de Gráficos (docs/analise-arquitetural-graficos.md) — "Evolução do
+ * saldo" + "Entradas x Saídas por mês", consumido tanto pelo mini-card do
+ * Dashboard quanto pela página `/graficos` (mesmo hook, `meses` diferente
+ * em cada lugar). */
+export function useGraficosTendenciasQuery(meses = 12) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.graficosTendencias(meses),
+    queryFn: () => centralFinanceiraService.graficosTendencias(meses),
+  });
+}
+
+/** "Gastos por categoria" + "Gastos por cartão" — irmão do hook acima, não
+ * substitui. `keepPreviousData` pelo mesmo motivo de `useCalendarioFinanceiroQuery`
+ * (navegação de mês na página `/graficos` não deve "piscar" para um
+ * esqueleto vazio). */
+export function useGraficosPeriodoQuery(ano?: number, mes?: number) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.graficosPeriodo(ano, mes),
+    queryFn: () => centralFinanceiraService.graficosPeriodo(ano, mes),
+    placeholderData: keepPreviousData,
+  });
+}

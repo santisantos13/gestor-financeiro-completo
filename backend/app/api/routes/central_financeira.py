@@ -16,6 +16,8 @@ from app.schemas.central_financeira import (
     AgendaFinanceiraRead,
     CalendarioFinanceiroRead,
     CentralAtividadesRead,
+    GraficosPeriodoRead,
+    GraficosTendenciasRead,
     IndicadoresGeraisRead,
     ProgressoMetasRead,
     ResumoCartoesAgregadoRead,
@@ -176,3 +178,29 @@ def indicadores_gerais(
 ) -> IndicadoresGeraisRead:
     dados = central_service.indicadores_gerais(usuario_atual.id)
     return IndicadoresGeraisRead.model_validate(dados)
+
+
+@router.get("/graficos/tendencias", response_model=GraficosTendenciasRead)
+def graficos_tendencias(
+    usuario_atual: CurrentUser,
+    central_service: CentralFinanceiraServiceDep,
+    meses: Annotated[int, Query(ge=1, le=36)] = 12,
+) -> GraficosTendenciasRead:
+    """Etapa de Gráficos (docs/analise-arquitetural-graficos.md) - série dos
+    últimos `meses` meses para "Evolução do saldo" e "Entradas x Saídas por
+    mês"."""
+    dados = central_service.graficos_tendencias(usuario_atual.id, meses=meses)
+    return GraficosTendenciasRead.model_validate(dados)
+
+
+@router.get("/graficos/periodo", response_model=GraficosPeriodoRead)
+def graficos_periodo(
+    usuario_atual: CurrentUser,
+    central_service: CentralFinanceiraServiceDep,
+    ano: AnoQuery = None,
+    mes: MesQuery = None,
+) -> GraficosPeriodoRead:
+    """Etapa de Gráficos - distribuição de um mês só (padrão: mês atual)
+    para "Gastos por categoria" e "Gastos por cartão"."""
+    dados = central_service.graficos_periodo(usuario_atual.id, ano=ano, mes=mes)
+    return GraficosPeriodoRead.model_validate(dados)

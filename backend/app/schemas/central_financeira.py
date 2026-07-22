@@ -228,3 +228,46 @@ class AtividadeRecente(OrmBaseModel):
 
 class CentralAtividadesRead(OrmBaseModel):
     atividades: list[AtividadeRecente]
+
+
+class PontoTendenciaMensal(OrmBaseModel):
+    """Um mês da série de `GET /central-financeira/graficos/tendencias`
+    (docs/analise-arquitetural-graficos.md). `saldo_total` é ACUMULADO
+    (saldo de todas as contas ao FINAL deste mês); `entradas`/`saidas` são
+    só deste mês (não acumuladas) - ver
+    `CentralFinanceiraService.graficos_tendencias`."""
+
+    ano: int
+    mes: int
+    saldo_total: Decimal
+    entradas: Decimal
+    saidas: Decimal
+
+
+class GraficosTendenciasRead(OrmBaseModel):
+    meses: list[PontoTendenciaMensal]
+
+
+class GastoPorCategoria(OrmBaseModel):
+    """`categoria_id` pode ser `None` (lançamento sem categoria) -
+    `categoria_nome` já vem resolvido como "Sem categoria" nesse caso,
+    nunca omitido do gráfico."""
+
+    categoria_id: int | None
+    categoria_nome: str
+    categoria_cor: str | None
+    categoria_icone: str | None
+    total: Decimal
+
+
+class GastoPorCartao(OrmBaseModel):
+    cartao_id: int
+    cartao_nome: str
+    total: Decimal
+
+
+class GraficosPeriodoRead(OrmBaseModel):
+    ano: int
+    mes: int
+    gastos_por_categoria: list[GastoPorCategoria]
+    gastos_por_cartao: list[GastoPorCartao]

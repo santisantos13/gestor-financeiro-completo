@@ -10,6 +10,8 @@ import type {
   AgendaFinanceiraRead,
   CalendarioFinanceiroRead,
   CentralAtividadesRead,
+  GraficosPeriodoRead,
+  GraficosTendenciasRead,
   IndicadoresGeraisRead,
   ProgressoMetasRead,
   ResumoCartoesAgregadoRead,
@@ -68,4 +70,15 @@ export const centralFinanceiraService = {
 
   indicadores: () =>
     httpClient.get<IndicadoresGeraisRead>("/central-financeira/indicadores"),
+
+  /** Etapa de Gráficos (docs/analise-arquitetural-graficos.md) — "Evolução
+   * do saldo" + "Entradas x Saídas por mês" (janela dos últimos `meses`
+   * meses, padrão 12). */
+  graficosTendencias: (meses = 12) =>
+    httpClient.get<GraficosTendenciasRead>("/central-financeira/graficos/tendencias", { meses }),
+
+  /** "Gastos por categoria" + "Gastos por cartão" (escopo de um único mês,
+   * padrão mês atual) — irmão de `graficosTendencias` acima, não substitui. */
+  graficosPeriodo: (ano?: number, mes?: number) =>
+    httpClient.get<GraficosPeriodoRead>("/central-financeira/graficos/periodo", { ano, mes }),
 };

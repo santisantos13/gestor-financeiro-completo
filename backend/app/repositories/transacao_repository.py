@@ -13,7 +13,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Sequence
 
-from sqlalchemy import func, select
+from sqlalchemy import Row, case, extract, func, select
 
 from app.models import Transacao
 from app.models.enums import StatusTransacao, TipoTransacao
@@ -134,3 +134,139 @@ class TransacaoRepository(SQLAlchemyRepository[Transacao]):
             Transacao.data <= data_fim,
         )
         return Decimal(self.db.execute(stmt).scalar_one())
+
+    # --- Etapa de Gráficos (docs/analise-arquitetural-graficos.md) ---------------
+    #
+    # As 4 queries abaixo usam `sqlalchemy.extract("year"/"month", Transacao.data)`
+    # para agrupar por mês - NUNCA `func.strftime` (SQLite-only, quebraria em
+    # Postgres/produção). `extract()` é traduzido pelo SQLAlchemy para o SQL
+    # correto de cada dialeto (EXTRACT no Postgres, strftime por baixo no
+    # SQLite), mantendo o projeto rodando nos dois bancos sem `if dialect`
+    # nenhum. Todas continuam SUM agregado no banco (nunca somar Transacao
+    # crua em Python - mesma diretriz de `somar_por_periodo` acima).
+
+    def somar_liquido_por_mes(self, usuario_id: int, *, data_fim: date) -> Sequence[Row]:
+        """Líquido (RECEITA - DESPESA) por mês, `PAGO`, não-importada, só
+        Transacao DE CONTA (`cartao_id` nulo, garantido pelo XOR do model) -
+        matéria-prima de "Evolução do saldo" (ver análise, seção 2.1): mesma
+        fórmula de `ContaRepository.somar_transacoes_pagas` (por conta), só
+        que agregada por mês para TODAS as contas do usuário de uma vez -
+        transferência entre contas próprias sempre soma líquido zero no
+        TOTAL, por isso nem entra aqui. Sem `data_inicio`: preciso do
+        histórico inteiro para a soma acumulada (prefix-sum) começar do
+        saldo inicial de verdade - só `data_fim` (normalmente hoje) evita
+        contar lançamento futuro. Devolve uma linha por (ano, mês) com pelo
+        menos 1 lançamento - meses sem atividade não aparecem (o chamador
+        preenche o buraco com 0)."""
+        stmt = (
+            select(
+                extract("year", Transacao.data).label("ano"),
+                extract("month", Transacao.data).label("mes"),
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (Transacao.tipo == TipoTransacao.RECEITA, Transacao.valor),
+                            else_=-Transacao.valor,
+                        )
+                    ),
+                    0,
+                ).label("liquido"),
+            )
+            .where(
+                Transacao.usuario_id == usuario_id,
+                Transacao.conta_id.is_not(None),
+                Transacao.status == StatusTransacao.PAGO,
+                Transacao.importada.is_(False),
+                Transacao.data <= data_fim,
+            )
+            .group_by(extract("year", Transacao.data), extract("month", Transacao.data))
+        )
+        return self.db.execute(stmt).all()
+
+    def somar_por_mes(
+        self,
+        usuario_id: int,
+        *,
+        tipo: TipoTransacao,
+        status: StatusTransacao,
+        data_inicio: date,
+        data_fim: date,
+    ) -> Sequence[Row]:
+        """Como `somar_por_periodo`, mas agrupado por mês - evita N chamadas
+        (uma por mês) para montar uma série de "Entradas x Saídas por mês".
+        Mesmo filtro de `_somar_periodo`/`resumo_financeiro` (sem
+        `apenas_conta`: compra de cartão já entra em "saídas do mês" hoje,
+        o gráfico precisa bater com o número que a Visão Mensal já mostra)."""
+        stmt = (
+            select(
+                extract("year", Transacao.data).label("ano"),
+                extract("month", Transacao.data).label("mes"),
+                func.coalesce(func.sum(Transacao.valor), 0).label("total"),
+            )
+            .where(
+                Transacao.usuario_id == usuario_id,
+                Transacao.tipo == tipo,
+                Transacao.status == status,
+                Transacao.data >= data_inicio,
+                Transacao.data <= data_fim,
+            )
+            .group_by(extract("year", Transacao.data), extract("month", Transacao.data))
+        )
+        return self.db.execute(stmt).all()
+
+    def somar_agrupado_por_categoria(
+        self,
+        usuario_id: int,
+        *,
+        tipo: TipoTransacao,
+        status: StatusTransacao,
+        data_inicio: date,
+        data_fim: date,
+    ) -> Sequence[Row]:
+        """Gastos por categoria de um período - `categoria_id` pode vir
+        `None` (transação sem categoria, agrupada à parte; o chamador
+        decide o rótulo "Sem categoria", nunca omitida)."""
+        stmt = (
+            select(
+                Transacao.categoria_id,
+                func.coalesce(func.sum(Transacao.valor), 0).label("total"),
+            )
+            .where(
+                Transacao.usuario_id == usuario_id,
+                Transacao.tipo == tipo,
+                Transacao.status == status,
+                Transacao.data >= data_inicio,
+                Transacao.data <= data_fim,
+            )
+            .group_by(Transacao.categoria_id)
+        )
+        return self.db.execute(stmt).all()
+
+    def somar_agrupado_por_cartao(
+        self,
+        usuario_id: int,
+        *,
+        status: StatusTransacao,
+        data_inicio: date,
+        data_fim: date,
+    ) -> Sequence[Row]:
+        """Gastos por cartão de um período - sempre `cartao_id IS NOT NULL`
+        (por definição). Deliberadamente distinto de `limite_utilizado`
+        (`CartaoService`): aqui é o total de compras REGISTRADAS no
+        período, não o saldo em aberto do ciclo atual."""
+        stmt = (
+            select(
+                Transacao.cartao_id,
+                func.coalesce(func.sum(Transacao.valor), 0).label("total"),
+            )
+            .where(
+                Transacao.usuario_id == usuario_id,
+                Transacao.cartao_id.is_not(None),
+                Transacao.tipo == TipoTransacao.DESPESA,
+                Transacao.status == status,
+                Transacao.data >= data_inicio,
+                Transacao.data <= data_fim,
+            )
+            .group_by(Transacao.cartao_id)
+        )
+        return self.db.execute(stmt).all()
