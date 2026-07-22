@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 88,
-    "updatedAt": "2026-07-22T00:10:00-03:00"
+    "overallPercent": 89,
+    "updatedAt": "2026-07-22T01:30:00-03:00"
   },
   "areas": [
     {
@@ -21,8 +21,8 @@
     {
       "key": "frontend",
       "label": "Frontend",
-      "percent": 90,
-      "done": 24,
+      "percent": 92,
+      "done": 26,
       "inProgress": 0,
       "pending": 2
     },
@@ -37,8 +37,8 @@
     {
       "key": "ux",
       "label": "UX/UI",
-      "percent": 94,
-      "done": 10,
+      "percent": 95,
+      "done": 11,
       "inProgress": 0,
       "pending": 1
     },
@@ -108,7 +108,9 @@
         "Animações e microinterações (Framer Motion, docs/motion-principles.md) — concluídas",
         "Organização personalizada da navegação (drag-and-drop + localStorage, Dashboard fixo) — concluída",
         "Relatórios exportáveis — pendente",
-        "Gráficos avançados no dashboard — concluído (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta — mini-card no Dashboard + página /graficos completa, Recharts)"
+        "Gráficos avançados no dashboard — concluído (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta — mini-card no Dashboard + página /graficos completa, Recharts)",
+        "Home (Dashboard renomeado): personalização corrigida (drag-and-drop e ocultar cards não funcionavam de forma confiável) e ampliada (todos os cards, não só 4) — concluído",
+        "Selo de versão + página de changelog (/novidades) no Header — concluído"
       ]
     },
     {
@@ -326,6 +328,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d67",
+        "title": "Home: rename + correção do Personalizar + selo de versão/changelog",
+        "description": "3 pedidos do usuário na mesma sessão. (1) 'Dashboard' renomeado para 'Home' na navegação, título/aria-label do drawer de personalização e Transações recentes reduzida de 6 para 3 linhas. (2) Personalizar Home: causa raiz encontrada para 'arrastar não funciona' e 'ocultar não some' - o atributo draggable estava na <li> INTEIRA, incluindo o Switch de mostrar/ocultar dentro dela; qualquer micro-movimento do mouse ao clicar no interruptor podia ser lido pelo navegador como início de arraste da linha toda, engolindo o clique (mesma causa explica os dois sintomas). draggable migrado para a alcinha (GripVertical) apenas; reordenação passou a ser calculada em estado local durante o dragover e commitada UMA vez no drop/dragend (antes escrevia em localStorage a cada dragover, dezenas de vezes por segundo, causando corrida de estado). Além disso, Contas e Cartões/Transações Recentes/Evolução do saldo (antes fixos, fora da personalização) voltaram para a lista de CARDS_PERSONALIZAVEIS - usuário reportou a lista incompleta; migração automática para quem já tinha personalizado usa a mesma lógica de 'ids faltantes' já existente. (3) Selo 'Alpha X.Y.Z' no Header (lido de package.json em build-time via vite.config.ts define) + link 'Últimas atualizações' levando a nova página /novidades (lib/changelog.ts, mantido à mão). docs/versionamento.md formaliza a convenção daqui pra frente: patch a cada ajuste pequeno, minor (reseta patch) a cada CRUD/funcionalidade grande. Versão bumped 0.1.0 → 0.2.2 (0.2.0 Gráficos retroativo, 0.2.1 fixes de Home, 0.2.2 este selo). tsc -b e vite build validados; nenhuma mudança de backend, suíte de testes intacta.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-22"
+      },
       {
         "id": "d66",
         "title": "Gráficos: mini-card no Dashboard + página /graficos completa (Recharts)",
@@ -859,6 +869,11 @@
   "changelog": [
     {
       "date": "2026-07-22",
+      "type": "frontend",
+      "title": "Home: rename de Dashboard, correção do arrastar/ocultar em Personalizar (causa raiz: draggable na linha inteira engolia o clique do interruptor), todos os cards viraram personalizáveis, selo de versão + página /novidades (changelog)"
+    },
+    {
+      "date": "2026-07-22",
       "type": "full-stack",
       "title": "Gráficos: 5 gráficos (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta) — mini-card no Dashboard + página /graficos, Recharts"
     },
@@ -1320,7 +1335,7 @@
       "total": 15,
       "label": "entidades de domínio no backend"
     },
-    "documentation": 93,
+    "documentation": 94,
     "security": 60
   }
 }
