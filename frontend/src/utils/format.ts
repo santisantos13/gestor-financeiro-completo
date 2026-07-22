@@ -111,6 +111,16 @@ export function toNumber(valor: string | number): number {
  * `formatMoneyInteligente` (compactação "R$ 1,2 mi" a partir de R$ 100 mil)
  * - juntos cobrem tanto o valor "comprido por ser grande" quanto o valor
  * "comprido por ocupar um card estreito". */
+/** Tamanho de arquivo legível ("2.3 MB") — usado pela lista de Anexos
+ * (`AnexosDrawer`). Mesma lógica já existente (duplicada) em
+ * `components/ui/FileUpload.tsx`; centralizada aqui para o novo consumidor,
+ * sem alterar o comportamento já validado do FileUpload. */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function tamanhoValorHero(formatado: string): string {
   const tamanho = formatado.length;
   if (tamanho <= 9) return "text-display";

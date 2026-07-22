@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Receipt, Trash2 } from "lucide-react";
+import { Paperclip, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { ConfirmAction } from "../../components/ui/ConfirmAction";
@@ -8,6 +8,7 @@ import { Select } from "../../components/ui/Select";
 import { PeriodoSeletor } from "../../components/domain/dashboard/PeriodoSeletor";
 import { TransacaoResumoPeriodo } from "../../components/domain/transacao/TransacaoResumoPeriodo";
 import { TransacaoFormDialog } from "../../components/domain/transacao/TransacaoFormDialog";
+import { AnexosDrawer } from "../../components/domain/anexo/AnexosDrawer";
 import {
   buildTransacaoTableColumns,
   FILTROS_STATUS_TRANSACAO,
@@ -87,6 +88,7 @@ export function TransacoesPage() {
 
   const [dialogo, setDialogo] = useState<EstadoDialogoTransacao>(DIALOGO_FECHADO);
   const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoRead | null>(null);
+  const [transacaoAnexos, setTransacaoAnexos] = useState<TransacaoRead | null>(null);
   const excluirTransacao = useExcluirTransacao(transacaoParaExcluir?.conta_id, transacaoParaExcluir?.cartao_id);
   // Diálogo de confirmação (seção 3, docs/analise-arquitetural-escopo-parcelamento.md):
   // busca o Parcelamento só para saber `num_parcelas` de verdade (em vez de
@@ -134,6 +136,7 @@ export function TransacoesPage() {
 
   const rowActions: RowAction<TransacaoRead>[] = [
     { label: "Editar", icon: Pencil, onClick: abrirEdicao },
+    { label: "Anexos", icon: Paperclip, onClick: (transacao) => setTransacaoAnexos(transacao) },
     { label: "Excluir", icon: Trash2, tone: "danger", onClick: (transacao) => setTransacaoParaExcluir(transacao) },
   ];
 
@@ -202,6 +205,12 @@ export function TransacoesPage() {
       />
 
       <TransacaoFormDialog open={dialogo.aberto} transacao={dialogo.transacao} onClose={fecharDialogo} />
+
+      <AnexosDrawer
+        transacaoId={transacaoAnexos?.id ?? null}
+        transacaoDescricao={transacaoAnexos?.descricao}
+        onClose={() => setTransacaoAnexos(null)}
+      />
 
       <ConfirmAction
         open={transacaoParaExcluir != null}

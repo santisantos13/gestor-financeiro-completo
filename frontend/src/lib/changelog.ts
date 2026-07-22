@@ -14,6 +14,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.3.0",
+    data: "2026-07-22",
+    titulo: "Anexos de transação",
+    itens: [
+      'Nova ação "Anexos" em cada transação (ícone de clipe), abrindo um painel com a lista de anexos.',
+      "Adicionar anexo por nome + caminho/link do arquivo (o app ainda não armazena o arquivo em si, só a referência).",
+      "Remover anexo com confirmação.",
+    ],
+  },
+  {
     versao: "0.2.2",
     data: "2026-07-22",
     titulo: "Selo de versão + página de novidades",

@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 89,
-    "updatedAt": "2026-07-22T01:30:00-03:00"
+    "overallPercent": 90,
+    "updatedAt": "2026-07-22T02:15:00-03:00"
   },
   "areas": [
     {
@@ -21,10 +21,10 @@
     {
       "key": "frontend",
       "label": "Frontend",
-      "percent": 92,
-      "done": 26,
+      "percent": 93,
+      "done": 27,
       "inProgress": 0,
-      "pending": 2
+      "pending": 1
     },
     {
       "key": "database",
@@ -87,7 +87,7 @@
         "Sistema de formulários reutilizável (React Hook Form + Zod, FormDialog) — concluído",
         "Sistema de tabelas reutilizável (DataTable) — concluído",
         "Dashboard financeiro real (Central Financeira, Bento Grid) — concluído",
-        "CRUD de entidade no frontend: 12 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta, Conta Recorrente, Parcelamento via toggle) - restam Anexo (backend em andamento, sem tela) e Alerta (nao iniciado). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Conta Recorrente ganhou modulo completo: cursor+status, pausar/reativar/encerrar/sincronizar, projecao no Calendario Financeiro (90 dias).",
+        "CRUD de entidade no frontend: 13 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta, Conta Recorrente, Parcelamento via toggle, Anexo via Drawer escopado por Transacao) - resta só Alerta (nao iniciado, aguardando decisao de escopo). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Conta Recorrente ganhou modulo completo: cursor+status, pausar/reativar/encerrar/sincronizar, projecao no Calendario Financeiro (90 dias).",
         "Revisão de UX/UI de toda a aplicação (Dashboard + Cartões) antes de seguir para Fatura/Transação — concluída",
         "Etapa F10 — CRUD de Fatura + página de detalhes do Cartão (/cartoes/:id) + padrão único de overlays (Drawer/RichPicker) + exclusão definitiva (hard delete) em 4 entidades — concluída",
         "Revisão de UX final do módulo de Cartões (grid de mini dashboards clicáveis, Action Bar, correção de cor semântica, correção de performance) — concluída",
@@ -234,9 +234,9 @@
     },
     {
       "name": "Anexos",
-      "category": "Backend",
-      "status": "in-progress",
-      "progress": 50,
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
       "priority": "Baixa"
     },
     {
@@ -301,14 +301,6 @@
         "date": "2026-07-15"
       },
       {
-        "id": "t3",
-        "title": "CRUD frontend de Anexo + decisão sobre Alerta",
-        "description": "Conta Recorrente e Meta já concluídos (ambos com CRUD completo). Restam Anexo (backend em andamento, sem tela própria — hoje só acessível via Transação) e Alerta (não iniciado, aguardando decisão de escopo — ver t1). Toda a infraestrutura já reutilizável (CardSelect/TagMultiSelect/RichPicker/DataTable/FormDialog).",
-        "category": "Frontend",
-        "priority": "Média",
-        "date": "2026-07-17"
-      },
-      {
         "id": "t7",
         "title": "Testes automatizados de frontend",
         "description": "Ao menos o fluxo crítico: autenticação, submissão de formulário, tabela.",
@@ -328,6 +320,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d68",
+        "title": "CRUD frontend de Anexo",
+        "description": "Última entidade do domínio a ganhar tela própria (13 de 14 - resta só Alerta). Backend já existia completo e sem alterações (Router/Service/Repository/testes já cobriam create/list-por-transação/get/soft-delete). Restrição estrutural: Anexo não tem listagem global (posse é sempre transitiva via Transação, AnexoRepository só expõe listar_por_transacao) - por isso a tela é um Drawer escopado a UMA transação por vez (novo AnexosDrawer.tsx), acionado por uma nova RowAction 'Anexos' (ícone Paperclip) em cada linha de TransacoesPage, e não uma seção dentro do TransacaoFormDialog (que também serve para criar - uma transação sem id ainda não pode ter anexo). Sem upload real de arquivo: o backend é metadados apenas (caminho_arquivo é referência textual, nunca o binário), então o formulário reflete isso - 'Selecionar arquivo' só lê File.name/type/size do navegador para pré-preencher, o campo 'Caminho ou link' continua editável manualmente com texto de apoio explicando a limitação. Sem edição (sem PATCH, decisão já confirmada no backend). Exclusão (soft delete) com confirmação inline por linha, mesma técnica anti-backdrop-duplicado de FinanciamentoDrawer. Nova doc docs/analise-arquitetural-anexo-frontend.md. Versão bumped 0.2.2 → 0.3.0 (minor: CRUD novo). tsc -b, vite build e suíte de testes do backend de Anexo (33 testes) validados; nenhuma mudança de backend.",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-22"
+      },
       {
         "id": "d67",
         "title": "Home: rename + correção do Personalizar + selo de versão/changelog",
@@ -870,6 +870,11 @@
     {
       "date": "2026-07-22",
       "type": "frontend",
+      "title": "CRUD frontend de Anexo: Drawer escopado por Transação (RowAction 'Anexos'), formulário de metadados sem upload real (backend é referência textual apenas), exclusão inline. Última entidade do domínio a ganhar tela — resta só Alerta. Versão 0.2.2 → 0.3.0"
+    },
+    {
+      "date": "2026-07-22",
+      "type": "frontend",
       "title": "Home: rename de Dashboard, correção do arrastar/ocultar em Personalizar (causa raiz: draggable na linha inteira engolia o clique do interruptor), todos os cards viraram personalizáveis, selo de versão + página /novidades (changelog)"
     },
     {
@@ -1335,7 +1340,7 @@
       "total": 15,
       "label": "entidades de domínio no backend"
     },
-    "documentation": 94,
+    "documentation": 95,
     "security": 60
   }
 }

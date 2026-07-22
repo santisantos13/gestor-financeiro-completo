@@ -179,4 +179,12 @@ export const queryKeys = {
     list: () => ["recorrentes", "list"] as const,
     detail: (id: number) => ["recorrentes", "detail", id] as const,
   },
+  /** CRUD frontend de Anexo (docs/analise-arquitetural-anexo-frontend.md).
+   * Diferente de toda entidade anterior, não existe `all`/`detail` — o
+   * backend não expõe uma listagem global (`AnexoRepository` só tem
+   * `listar_por_transacao`, posse é sempre transitiva via Transação), então
+   * a única chave é a lista escopada por `transacaoId`. */
+  anexos: {
+    list: (transacaoId: number) => ["anexos", "list", transacaoId] as const,
+  },
 } as const;
