@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.3.1",
+    data: "2026-07-22",
+    titulo: "Correção: site em produção travava com tela branca",
+    itens: [
+      'Selo de versão do Header quebrava toda a aplicação em produção (erro "__APP_VERSION__ is not defined"). Corrigida a forma como a versão é lida em tempo de build.',
+    ],
+  },
+  {
     versao: "0.3.0",
     data: "2026-07-22",
     titulo: "Anexos de transação",
