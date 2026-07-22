@@ -42,4 +42,32 @@ foi alterado.
 Wise e PayPal continuam sem logo real (instituições internacionais, fora do escopo do
 Open Finance Brasil) — `InstitutionBadge` cai no monograma de sempre para as duas.
 
+## Agibank, Stone, BRB (2026-07-22) — PNG, não SVG
+
+Mesma fonte (`rzmt/logos-bancos-br`, versão atualizada com 152 logos/470 instituições),
+mas capturados de um jeito diferente dos 15 acima: as ferramentas de busca web
+disponíveis nesta sessão só conseguem extrair texto de página, nunca bytes
+binários/vetoriais brutos — toda tentativa de baixar o SVG original (do repositório ou
+direto do domínio oficial de cada instituição) voltou vazia. Contornado navegando até a
+URL do logo oficial via o navegador Chrome do usuário (mesmo domínio de origem de cada
+instituição, nunca um agregador), tirando um screenshot e recortando a área do logo —
+resultado é PNG (raster), não SVG (vetor), mas o componente (`InstitutionBadge`, via
+`object-contain`) trata os dois formatos da mesma forma.
+
+- `agibank.png` — Agibank S.A. (ISPB 10664513) — fonte:
+  https://agibank.com.br/logo.svg (capturado via navegador, recortado, fundo removido)
+- `stone.png` — Stone Pagamentos S.A. (ISPB 16501555) — fonte:
+  https://public-assets.stone.com.br/openfinance/stone-logo.svg (idem)
+- `brb.png` — BRB - Banco de Brasília S.A. (ISPB 00000208) — fonte:
+  https://novo.brb.com.br/wp-content/uploads/2025/07/brb-preto-1.svg (idem). O arquivo
+  original é a versão "preto" (traço preto sobre transparente) — mesmo problema já
+  documentado para `c6.svg` acima (ilegível no tema escuro do app sem fundo sólido
+  atrás). Cores invertidas (preto → branco) durante o recorte, mesmo critério já usado
+  para o C6.
+
+Nenhuma proveniência por SHA-256 aqui (diferente dos 15 acima, que vieram do arquivo
+original bit-a-bit) — o processo de screenshot+recorte não preserva hash do arquivo
+fonte. Se uma versão vetorial ficar disponível no futuro (nova ferramenta, ou o próprio
+usuário baixando manualmente), trocar por SVG segue sendo preferível.
+
 Correção/remoção: ver processo de "Remoção de marca" no repositório de origem.

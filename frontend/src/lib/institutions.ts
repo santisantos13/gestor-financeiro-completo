@@ -19,6 +19,15 @@
  * fora do escopo desse dataset). `InstitutionBadge` usa `logoUrl` quando
  * presente, caindo no monograma sobre `cor` como fallback - exatamente a
  * extensão que este arquivo já previa desde a etapa de Branding original.
+ *
+ * Agibank/Stone/BRB (2026-07-22, mesma fonte `logos-bancos-br` atualizada):
+ * PNG em vez de SVG - as ferramentas de busca web disponíveis nesta sessão
+ * só extraem TEXTO de página, nunca bytes binários/vetoriais brutos (SVG
+ * incluído), então os 3 arquivos originais não puderam ser baixados como
+ * nos 15 acima. Capturados via navegador (Chrome), recortados e com fundo
+ * removido (ver `NOTICE.md`) - raster, não vetor, mas o mesmo tratamento
+ * (`object-contain` em `InstitutionBadge`) funciona igual para os dois
+ * formatos.
  */
 
 import { corDeContraste } from "./color";
@@ -37,6 +46,9 @@ import logoBtg from "../assets/institutions/btg.svg";
 import logoSicredi from "../assets/institutions/sicredi.svg";
 import logoSicoob from "../assets/institutions/sicoob.svg";
 import logoNubank from "../assets/institutions/nubank.svg";
+import logoAgibank from "../assets/institutions/agibank.png";
+import logoStone from "../assets/institutions/stone.png";
+import logoBrb from "../assets/institutions/brb.png";
 
 export interface InstitutionInfo {
   id: string;
@@ -73,6 +85,9 @@ const INSTITUICOES: InstitutionInfo[] = [
   { id: "btg", nome: "BTG Pactual", aliases: ["btg pactual", "btg"], cor: "#003DA5", iniciais: "BT", logoUrl: logoBtg },
   { id: "sicredi", nome: "Sicredi", aliases: ["sicredi"], cor: "#7AB51D", iniciais: "Si", logoUrl: logoSicredi },
   { id: "sicoob", nome: "Sicoob", aliases: ["sicoob"], cor: "#00A65E", iniciais: "Sc", logoUrl: logoSicoob },
+  { id: "agibank", nome: "Agibank", aliases: ["agibank", "agi bank"], cor: "#0062FB", iniciais: "Ag", logoUrl: logoAgibank },
+  { id: "stone", nome: "Stone", aliases: ["stone"], cor: "#00D700", iniciais: "St", logoUrl: logoStone },
+  { id: "brb", nome: "Banco de Brasília (BRB)", aliases: ["banco de brasilia", "banco de brasília", "brb"], cor: "#0D76E1", iniciais: "BR", logoUrl: logoBrb },
 ];
 
 /** Fallback quando `instituicao` é `null`/vazia — nenhuma cor de marca,

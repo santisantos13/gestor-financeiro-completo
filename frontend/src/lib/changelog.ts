@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.4.2",
+    data: "2026-07-22",
+    titulo: "Mais 3 logos de instituição: Agibank, Stone e BRB",
+    itens: [
+      "Selo de instituição (Conta/Cartão) agora reconhece Agibank, Stone e Banco de Brasília (BRB) com o logo oficial, além dos 15 já existentes.",
+    ],
+  },
+  {
     versao: "0.4.1",
     data: "2026-07-22",
     titulo: "Correções no Calendário financeiro",

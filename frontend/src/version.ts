@@ -18,4 +18,4 @@
  * conjunto com o campo "version" de `package.json` a cada bump (mesmo
  * commit) - ver checklist em docs/versionamento.md.
  */
-export const APP_VERSION = "0.4.1";
+export const APP_VERSION = "0.4.2";

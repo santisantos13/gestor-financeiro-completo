@@ -7,7 +7,7 @@
       "label": "Desenvolvimento ativo"
     },
     "overallPercent": 91,
-    "updatedAt": "2026-07-22T18:20:00-03:00"
+    "updatedAt": "2026-07-22T18:35:00-03:00"
   },
   "areas": [
     {
@@ -312,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d73",
+        "title": "Mais 3 logos de instituição: Agibank, Stone, BRB",
+        "description": "Pedido do usuário (link atualizado do pacote logos-bancos-br, 152 logos/470 instituições). Limitação descoberta: as ferramentas de busca web desta sessão só extraem texto de página, nunca bytes binários/SVG - toda tentativa de baixar o SVG bruto (do GitHub, jsdelivr, ou direto do domínio oficial de cada banco) voltou vazia, mesmo para bancos fora do GitHub (testado com Agibank). Contornado via Chrome: navegação até a URL oficial do logo + screenshot + recorte (PIL: bounding box, remoção de fundo branco->transparente, para BRB inversão preto->branco - mesmo problema já visto no C6, ilegível no tema escuro sem fundo sólido atrás). Resultado é PNG (raster), não SVG (vetor) - único caso do projeto, documentado em NOTICE.md. Banrisul e Safra (achados no dataset, mas com o mesmo bloqueio de download) foram pulados a pedido do usuário. tsc -b, vite build e suíte de testes (9 testes) revalidados. Versão 0.4.1 -> 0.4.2 (patch).",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-22"
+      },
       {
         "id": "d72",
         "title": "Correções no Calendário financeiro (despesas previstas + vencimento de fatura sumindo)",
@@ -891,6 +899,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-22",
+      "type": "frontend",
+      "title": "Mais 3 logos de instituição: Agibank, Stone e BRB (capturados via navegador, formato PNG). Versão 0.4.1 → 0.4.2"
+    },
     {
       "date": "2026-07-22",
       "type": "backend+frontend",
