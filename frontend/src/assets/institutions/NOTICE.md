@@ -64,6 +64,10 @@ resultado é PNG (raster), não SVG (vetor), mas o componente (`InstitutionBadge
   documentado para `c6.svg` acima (ilegível no tema escuro do app sem fundo sólido
   atrás). Cores invertidas (preto → branco) durante o recorte, mesmo critério já usado
   para o C6.
+- `pagbank.png` — PagSeguro Internet Instituição de Pagamento S.A. / PagBank (ISPB
+  08561701) — fonte: https://openfinance.api.pagseguro.uol.com.br/img/logo_pagbank.svg
+  (capturado via navegador, recortado, fundo removido). Pedido do usuário (2026-07-22),
+  faltava na lista.
 
 Nenhuma proveniência por SHA-256 aqui (diferente dos 15 acima, que vieram do arquivo
 original bit-a-bit) — o processo de screenshot+recorte não preserva hash do arquivo

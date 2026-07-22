@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.4.3",
+    data: "2026-07-22",
+    titulo: "Mais um logo de instituição: PagBank",
+    itens: [
+      "Selo de instituição (Conta/Cartão) agora reconhece PagBank/PagSeguro com o logo oficial - estava faltando na lista anterior.",
+    ],
+  },
+  {
     versao: "0.4.2",
     data: "2026-07-22",
     titulo: "Mais 3 logos de instituição: Agibank, Stone e BRB",
