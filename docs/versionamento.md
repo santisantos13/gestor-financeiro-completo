@@ -5,15 +5,35 @@ menu do usuário) e mantê-la crescendo a cada mudança feita no projeto.
 
 ## Onde vive
 
-A versão é o campo `"version"` de `frontend/package.json` — única fonte de
-verdade, nunca duplicada em outro arquivo. `vite.config.ts` lê esse valor em
-tempo de build e injeta como constante global `__APP_VERSION__` (ver
-`define` em `vite.config.ts` e a declaração de tipo em `src/vite-env.d.ts`).
-`components/layout/Header.tsx` exibe `Alpha {__APP_VERSION__}` num selo
-discreto, visível a partir de `md` (mesmo breakpoint do resto do Header).
+**Duas cópias mantidas manualmente em sincronia** (não uma única fonte
+injetada em build, como na primeira versão desta feature — ver "Histórico"
+abaixo):
+
+- `frontend/package.json`, campo `"version"` — convenção padrão do
+  ecossistema npm, usada por ferramentas/CI.
+- `frontend/src/version.ts`, constante `APP_VERSION` — é isso que
+  `components/layout/Header.tsx` de fato importa e exibe (`Alpha
+  {APP_VERSION}` num selo discreto, visível a partir de `md`).
+
+Sempre que a versão for bumped, os DOIS lugares mudam no mesmo commit.
 
 Prefixo **"Alpha"** enquanto o projeto não tiver um primeiro release
 estável (1.0.0) publicado — não é parte do número semântico em si.
+
+## Histórico: por que não é injetada automaticamente do package.json
+
+As duas primeiras tentativas desta feature usavam `vite.config.ts` (`define`)
+para ler `package.json` em tempo de build e injetar como constante global
+`__APP_VERSION__` — primeiro via `import { version } from "./package.json"`,
+depois via `process.env.npm_package_version`. As duas funcionavam neste
+ambiente de desenvolvimento/build, mas QUEBRARAM em produção no Render
+(`ReferenceError: __APP_VERSION__ is not defined`, app inteiro derrubado
+pelo ErrorBoundary) — confirmado diretamente contra o site real nas duas
+vezes, sem conseguir identificar a causa exata (sem acesso aos logs de
+build do Render). Depois da segunda falha, a decisão foi parar de depender
+de qualquer mecanismo de build/ambiente para isso e usar uma constante de
+código-fonte simples (`version.ts`), ao custo de precisar bump-ar dois
+arquivos em vez de um.
 
 ## Convenção de bump (a seguir em toda sessão futura)
 

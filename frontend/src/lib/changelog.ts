@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.3.2",
+    data: "2026-07-22",
+    titulo: "Correção definitiva: site em produção travava com tela branca",
+    itens: [
+      'A correção anterior (0.3.1) não resolveu de verdade - o mesmo erro "__APP_VERSION__ is not defined" persistiu em produção mesmo após o novo deploy. Trocado por uma constante fixa de código-fonte (sem nenhuma injeção em tempo de build), eliminando de vez a dependência de como o ambiente de build resolve isso.',
+    ],
+  },
+  {
     versao: "0.3.1",
     data: "2026-07-22",
     titulo: "Correção: site em produção travava com tela branca",

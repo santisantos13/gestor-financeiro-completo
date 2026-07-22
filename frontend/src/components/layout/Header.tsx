@@ -4,6 +4,7 @@ import { Menu, ListTree } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 import { AtividadesRecentesDrawer } from "../domain/dashboard/AtividadesRecentesDrawer";
+import { APP_VERSION } from "../../version";
 
 /**
  * Cabecalho fixo. backdrop-blur + fundo semi-transparente e o uso
@@ -39,16 +40,19 @@ export function Header() {
         <span className="text-h3 font-semibold text-text-primary">Financas Pessoais</span>
       </div>
       {/* Selo de versão + link de changelog (docs/versionamento.md) —
-          "Alpha X.Y.Z" a partir de `package.json`, nunca hardcoded aqui.
-          Convenção de bump: Z (patch) a cada ajuste/correção pequena, Y
-          (minor, reseta Z para 0) a cada CRUD novo ou funcionalidade
-          grande. Prefixo "Alpha" enquanto o projeto não tiver um primeiro
-          release estável. "Últimas atualizações" leva a `/novidades`
-          (`lib/changelog.ts`), pedido explícito do usuário para ver um
-          resumo do que mudou sem precisar perguntar. */}
+          "Alpha X.Y.Z" a partir de `APP_VERSION` (`version.ts`), mantida
+          manualmente em sincronia com `package.json` (ver docstring de
+          `version.ts` para o porquê: duas tentativas de injetar isso via
+          `vite.config.ts` funcionavam aqui mas quebravam em produção no
+          Render). Convenção de bump: Z (patch) a cada ajuste/correção
+          pequena, Y (minor, reseta Z para 0) a cada CRUD novo ou
+          funcionalidade grande. Prefixo "Alpha" enquanto o projeto não
+          tiver um primeiro release estável. "Últimas atualizações" leva a
+          `/novidades` (`lib/changelog.ts`), pedido explícito do usuário
+          para ver um resumo do que mudou sem precisar perguntar. */}
       <div className="hidden flex-col items-center gap-0.5 md:flex">
         <span className="select-none rounded-full border border-border-subtle px-2 py-0.5 text-caption text-text-tertiary">
-          Alpha {__APP_VERSION__}
+          Alpha {APP_VERSION}
         </span>
         <button
           type="button"
