@@ -19,8 +19,10 @@ from app.api.deps import CurrentUser, get_auth_service
 from app.schemas.auth import (
     LoginRequest,
     LogoutRequest,
+    PerfilUpdate,
     RefreshRequest,
     TokenResponse,
+    TrocarSenhaRequest,
     UsuarioCreate,
     UsuarioRead,
 )
@@ -76,3 +78,18 @@ def logout_todas(usuario_atual: CurrentUser, auth_service: AuthServiceDep) -> No
 @router.get("/me", response_model=UsuarioRead)
 def me(usuario_atual: CurrentUser) -> UsuarioRead:
     return UsuarioRead.model_validate(usuario_atual)
+
+
+@router.patch("/me", response_model=UsuarioRead)
+def atualizar_perfil(
+    dados: PerfilUpdate, usuario_atual: CurrentUser, auth_service: AuthServiceDep
+) -> UsuarioRead:
+    usuario = auth_service.atualizar_perfil(usuario_atual, dados)
+    return UsuarioRead.model_validate(usuario)
+
+
+@router.post("/trocar-senha", status_code=status.HTTP_204_NO_CONTENT)
+def trocar_senha(
+    dados: TrocarSenhaRequest, usuario_atual: CurrentUser, auth_service: AuthServiceDep
+) -> None:
+    auth_service.trocar_senha(usuario_atual, dados)

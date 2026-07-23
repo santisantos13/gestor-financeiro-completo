@@ -37,3 +37,13 @@ export interface RefreshRequest {
 export interface LogoutRequest {
   refresh_token: string;
 }
+
+export interface PerfilUpdate {
+  nome?: string;
+  email?: string;
+}
+
+export interface TrocarSenhaRequest {
+  senha_atual: string;
+  senha_nova: string;
+}

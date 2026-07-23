@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, ListOrdered, LogOut, Settings2 } from "lucide-react";
+import { ChevronDown, ListOrdered, LogOut, Settings, Settings2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DURATION, EASE } from "../../lib/motion";
 import { Avatar } from "../ui/Avatar";
@@ -106,6 +106,21 @@ export function UserMenu() {
                 <p className="truncate text-caption text-text-tertiary">{usuario.email}</p>
               </div>
             </div>
+
+            <Divider className="my-1.5" />
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                navigate("/configuracoes");
+              }}
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm text-text-secondary transition-colors duration-fast ease-out hover:bg-surface-2 hover:text-text-primary"
+            >
+              <Settings size={14} aria-hidden="true" />
+              Configurações
+            </button>
 
             <Divider className="my-1.5" />
 

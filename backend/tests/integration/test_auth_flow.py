@@ -175,3 +175,70 @@ def test_registro_rejeita_email_invalido(client):
         json={"nome": "Ana", "email": "nao-e-um-email", "senha": "12345678"},
     )
     assert resposta.status_code == 422
+
+
+def test_atualizar_perfil_troca_nome_e_email(client):
+    _registrar(client)
+    tokens = _login(client)
+
+    resposta = client.patch(
+        "/auth/me",
+        json={"nome": "Ana Paula", "email": "ana.paula@example.com"},
+        headers=_auth_header(tokens),
+    )
+
+    assert resposta.status_code == 200, resposta.text
+    corpo = resposta.json()
+    assert corpo["nome"] == "Ana Paula"
+    assert corpo["email"] == "ana.paula@example.com"
+
+    # login com o e-mail novo funciona (a troca foi persistida de verdade)
+    _login(client, email="ana.paula@example.com")
+
+
+def test_atualizar_perfil_com_email_ja_usado_por_outro_usuario_retorna_409(client):
+    _registrar(client, email="ana@example.com")
+    _registrar(client, email="bruno@example.com")
+    tokens_bruno = _login(client, email="bruno@example.com")
+
+    resposta = client.patch(
+        "/auth/me",
+        json={"email": "ana@example.com"},
+        headers=_auth_header(tokens_bruno),
+    )
+    assert resposta.status_code == 409
+
+
+def test_atualizar_perfil_sem_token_retorna_401(client):
+    resposta = client.patch("/auth/me", json={"nome": "Qualquer"})
+    assert resposta.status_code == 401
+
+
+def test_trocar_senha_com_senha_atual_correta(client):
+    _registrar(client)
+    tokens = _login(client)
+
+    resposta = client.post(
+        "/auth/trocar-senha",
+        json={"senha_atual": "12345678", "senha_nova": "novaSenha123"},
+        headers=_auth_header(tokens),
+    )
+    assert resposta.status_code == 204
+
+    # login com a senha antiga nao funciona mais...
+    resposta_login_antiga = client.post("/auth/login", json={"email": "ana@example.com", "senha": "12345678"})
+    assert resposta_login_antiga.status_code == 401
+    # ...mas com a senha nova sim
+    _login(client, senha="novaSenha123")
+
+
+def test_trocar_senha_com_senha_atual_incorreta_retorna_401(client):
+    _registrar(client)
+    tokens = _login(client)
+
+    resposta = client.post(
+        "/auth/trocar-senha",
+        json={"senha_atual": "errada123", "senha_nova": "novaSenha123"},
+        headers=_auth_header(tokens),
+    )
+    assert resposta.status_code == 401

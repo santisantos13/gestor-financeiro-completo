@@ -50,6 +50,9 @@ const RecorrentesPage = lazy(() =>
 const NovidadesPage = lazy(() =>
   import("../pages/novidades/NovidadesPage").then((m) => ({ default: m.NovidadesPage })),
 );
+const ConfiguracoesPage = lazy(() =>
+  import("../pages/configuracoes/ConfiguracoesPage").then((m) => ({ default: m.ConfiguracoesPage })),
+);
 const DevPage = lazy(() => import("../pages/dev/DevPage").then((m) => ({ default: m.DevPage })));
 const DevTablesPage = lazy(() => import("../pages/dev/DevTablesPage").then((m) => ({ default: m.DevTablesPage })));
 const DevFormsPage = lazy(() => import("../pages/dev/DevFormsPage").then((m) => ({ default: m.DevFormsPage })));
@@ -211,6 +214,14 @@ export function AppRoutes() {
             element={
               <Suspense fallback={<RouteLoadingFallback />}>
                 <NovidadesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/configuracoes"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <ConfiguracoesPage />
               </Suspense>
             }
           />

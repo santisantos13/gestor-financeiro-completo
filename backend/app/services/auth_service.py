@@ -21,7 +21,15 @@ from app.models import SessaoUsuario, Usuario
 from app.models.enums import TipoPapel
 from app.repositories.sessao_usuario_repository import SessaoUsuarioRepository
 from app.repositories.usuario_repository import UsuarioRepository
-from app.schemas.auth import LoginRequest, LogoutRequest, RefreshRequest, TokenResponse, UsuarioCreate
+from app.schemas.auth import (
+    LoginRequest,
+    LogoutRequest,
+    PerfilUpdate,
+    RefreshRequest,
+    TokenResponse,
+    TrocarSenhaRequest,
+    UsuarioCreate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +160,43 @@ class AuthService:
         quantidade = self.sessao_repo.revogar_todas_do_usuario(usuario_atual.id)
         logger.info("logout_global usuario_id=%s sessoes_revogadas=%s", usuario_atual.id, quantidade)
         return quantidade
+
+    def atualizar_perfil(self, usuario_atual: Usuario, dados: PerfilUpdate) -> Usuario:
+        """Atualiza nome e/ou e-mail do usuário autenticado. `exclude_unset`
+        (não `exclude_none`) porque `None` explícito não é um valor válido
+        para nenhum dos dois campos (`PerfilUpdate` já garante isso via
+        `EmailStr`/`min_length=1`) - só campos omitidos pelo cliente devem
+        ser ignorados."""
+        alteracoes = dados.model_dump(exclude_unset=True)
+
+        novo_email = alteracoes.get("email")
+        if novo_email is not None and novo_email != usuario_atual.email:
+            if self.usuario_repo.buscar_por_email(novo_email) is not None:
+                raise ConflictError("Já existe um usuário cadastrado com este e-mail.")
+            usuario_atual.email = novo_email
+
+        if "nome" in alteracoes:
+            usuario_atual.nome = alteracoes["nome"]
+
+        usuario_atual = self.usuario_repo.update(usuario_atual)
+        logger.info("perfil_atualizado usuario_id=%s", usuario_atual.id)
+        return usuario_atual
+
+    def trocar_senha(self, usuario_atual: Usuario, dados: TrocarSenhaRequest) -> None:
+        """Troca a senha do usuário autenticado, exigindo a senha atual.
+
+        Não invalida sessões existentes (diferente de um "logout de todos os
+        dispositivos" explícito, que já existe como ação separada em
+        `logout_todas`) - decisão deliberada de manter os dois fluxos
+        independentes, para não surpreender quem só queria trocar a senha
+        com um logout forçado em outro aparelho."""
+        if not security.verificar_senha(dados.senha_atual, usuario_atual.senha_hash):
+            logger.warning("troca_senha_invalida usuario_id=%s motivo=senha_atual_incorreta", usuario_atual.id)
+            raise NaoAutenticadoError("Senha atual incorreta.")
+
+        usuario_atual.senha_hash = security.hash_senha(dados.senha_nova)
+        self.usuario_repo.update(usuario_atual)
+        logger.info("senha_trocada usuario_id=%s", usuario_atual.id)
 
     def _validar_sessao(self, refresh_token: str) -> tuple[SessaoUsuario, Usuario]:
         sessao = self.sessao_repo.buscar_por_token_hash(security.hash_token_sessao(refresh_token))

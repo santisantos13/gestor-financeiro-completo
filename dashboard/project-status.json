@@ -263,8 +263,8 @@
     {
       "name": "Configurações",
       "category": "Frontend",
-      "status": "pending",
-      "progress": 10,
+      "status": "in-progress",
+      "progress": 30,
       "priority": "Baixa"
     },
     {
@@ -312,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d75",
+        "title": "Configurações: editar perfil e trocar senha",
+        "description": "Primeira fatia do módulo Configurações (0% real antes desta entrega, apesar do rótulo anterior de 10%). Backend: PATCH /auth/me (nome/e-mail) e POST /auth/trocar-senha (exige senha atual) em AuthService/auth.py - reaproveitam bcrypt/verificação já existentes, nenhuma criptografia nova. Frontend: nova página /configuracoes (dois cards/dois formulários independentes: Perfil e Senha), acessível pelo menu do usuário (não pela Sidebar, mesmo tratamento de /novidades). AuthContext ganhou atualizarPerfil/trocarSenha, atualizando o cache de auth.me otimisticamente (Header/UserMenu refletem nome novo sem esperar refetch). Erros de negócio (409 e-mail duplicado, 401 senha atual incorreta) mapeados manualmente para o campo do formulário. Testes: unit+integração no backend (troca de nome/e-mail, e-mail duplicado, e-mail igual ao próprio não conflita, senha atual certa/errada), 6 testes novos de frontend (ConfiguracoesPage.test.tsx). tsc -b, vite build e suíte completa (630 unit + integração) revalidados. Doc: docs/analise-arquitetural-configuracoes.md. Versão 0.4.3 -> 0.5.0 (minor - primeiro CRUD/feature nova do módulo).",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-23"
+      },
       {
         "id": "d74",
         "title": "Mais um logo de instituição: PagBank",
@@ -907,6 +915,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-23",
+      "type": "backend+frontend",
+      "title": "Configurações: nova página para editar perfil (nome/e-mail) e trocar senha - primeira fatia do módulo. Versão 0.4.3 → 0.5.0"
+    },
     {
       "date": "2026-07-22",
       "type": "frontend",

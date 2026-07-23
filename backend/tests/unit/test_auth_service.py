@@ -7,7 +7,7 @@ import pytest
 
 from app.core.exceptions import AcessoNegadoError, ConflictError, NaoAutenticadoError
 from app.core.security import agora_utc_naive
-from app.schemas.auth import LoginRequest, LogoutRequest, RefreshRequest, UsuarioCreate
+from app.schemas.auth import LoginRequest, LogoutRequest, PerfilUpdate, RefreshRequest, TrocarSenhaRequest, UsuarioCreate
 from app.services.auth_service import AuthService, ContextoRequisicao
 
 
@@ -29,6 +29,9 @@ class FakeUsuarioRepository:
         usuario.id = self._proximo_id
         self._proximo_id += 1
         self._usuarios[usuario.id] = usuario
+        return usuario
+
+    def update(self, usuario):
         return usuario
 
 
@@ -216,3 +219,47 @@ def test_logout_todas_revoga_todas_as_sessoes_do_usuario(service):
         service.renovar(RefreshRequest(refresh_token=tokens_1.refresh_token), ContextoRequisicao())
     with pytest.raises(NaoAutenticadoError):
         service.renovar(RefreshRequest(refresh_token=tokens_2.refresh_token), ContextoRequisicao())
+
+
+def test_atualizar_perfil_troca_nome_e_email(service):
+    usuario = _registrar(service)
+    atualizado = service.atualizar_perfil(usuario, PerfilUpdate(nome="Ana Paula", email="ana.paula@example.com"))
+    assert atualizado.nome == "Ana Paula"
+    assert atualizado.email == "ana.paula@example.com"
+
+
+def test_atualizar_perfil_so_altera_campo_informado(service):
+    usuario = _registrar(service)
+    service.atualizar_perfil(usuario, PerfilUpdate(nome="Ana Paula"))
+    assert usuario.nome == "Ana Paula"
+    assert usuario.email == "ana@example.com"  # inalterado
+
+
+def test_atualizar_perfil_com_email_ja_usado_por_outro_usuario_levanta_conflict_error(service):
+    _registrar(service, email="ana@example.com")
+    usuario_b = _registrar(service, email="bruno@example.com")
+    with pytest.raises(ConflictError):
+        service.atualizar_perfil(usuario_b, PerfilUpdate(email="ana@example.com"))
+
+
+def test_atualizar_perfil_mantendo_o_proprio_email_nao_conflita_consigo_mesmo(service):
+    usuario = _registrar(service)
+    # nao deve levantar ConflictError so por reenviar o mesmo e-mail que ja e dele
+    atualizado = service.atualizar_perfil(usuario, PerfilUpdate(nome="Ana", email="ana@example.com"))
+    assert atualizado.email == "ana@example.com"
+
+
+def test_trocar_senha_com_senha_atual_correta_atualiza_o_hash(service):
+    usuario = _registrar(service)
+    hash_antigo = usuario.senha_hash
+    service.trocar_senha(usuario, TrocarSenhaRequest(senha_atual="12345678", senha_nova="novaSenha123"))
+    assert usuario.senha_hash != hash_antigo
+    # login com a senha nova deve funcionar
+    resposta = _login(service, senha="novaSenha123")
+    assert resposta.access_token
+
+
+def test_trocar_senha_com_senha_atual_incorreta_levanta_nao_autenticado(service):
+    usuario = _registrar(service)
+    with pytest.raises(NaoAutenticadoError):
+        service.trocar_senha(usuario, TrocarSenhaRequest(senha_atual="errada12", senha_nova="novaSenha123"))

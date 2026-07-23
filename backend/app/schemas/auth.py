@@ -35,6 +35,27 @@ class UsuarioRead(OrmBaseModel):
     criado_em: datetime
 
 
+class PerfilUpdate(BaseModel):
+    """Payload de `PATCH /auth/me` - atualiza nome e/ou e-mail do usuário
+    autenticado. Ambos os campos são opcionais (o cliente manda só o que
+    quer trocar); trocar senha é um fluxo separado (ver `TrocarSenhaRequest`),
+    exige a senha atual e por isso não faz sentido misturar no mesmo payload."""
+
+    nome: str | None = Field(default=None, min_length=1, max_length=120)
+    email: EmailStr | None = None
+
+
+class TrocarSenhaRequest(BaseModel):
+    """Payload de `POST /auth/trocar-senha`. Exige a senha atual (mesmo com o
+    usuário já autenticado) para confirmar que quem está na sessão é quem
+    realmente decide trocar a senha - mesma trava usada por qualquer app
+    sério, evita que uma sessão esquecida aberta em outro dispositivo baste
+    para sequestrar a conta."""
+
+    senha_atual: str
+    senha_nova: str = Field(min_length=8, max_length=72)
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     senha: str

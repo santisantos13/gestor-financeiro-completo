@@ -15,7 +15,7 @@ import {
   setRefreshToken,
 } from "../api/tokenStore";
 import { authService } from "../services/authService";
-import type { LoginRequest, UsuarioCreate, UsuarioRead } from "../types/auth";
+import type { LoginRequest, PerfilUpdate, TrocarSenhaRequest, UsuarioCreate, UsuarioRead } from "../types/auth";
 
 export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -30,6 +30,11 @@ export interface AuthContextValue {
   registrar: (dados: UsuarioCreate) => Promise<void>;
   logout: () => Promise<void>;
   logoutTodas: () => Promise<void>;
+  /** Configurações → Perfil. Atualiza o cache de `auth.me` diretamente com
+   * a resposta do PATCH (em vez de só invalidar) - o Header/UserMenu
+   * refletem nome/email novos no mesmo instante, sem esperar um refetch. */
+  atualizarPerfil: (dados: PerfilUpdate) => Promise<UsuarioRead>;
+  trocarSenha: (dados: TrocarSenhaRequest) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -127,6 +132,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSettled: clearSession,
   });
 
+  const atualizarPerfilMutation = useMutation({
+    mutationFn: authService.atualizarPerfil,
+    onSuccess: (usuarioAtualizado) => {
+      queryClient.setQueryData(queryKeys.auth.me, usuarioAtualizado);
+    },
+  });
+
+  const trocarSenhaMutation = useMutation({ mutationFn: authService.trocarSenha });
+
   const login = useCallback(
     async (dados: LoginRequest) => {
       await loginMutation.mutateAsync(dados);
@@ -150,6 +164,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await logoutTodasMutation.mutateAsync();
   }, [logoutTodasMutation]);
 
+  const atualizarPerfil = useCallback(
+    async (dados: PerfilUpdate) => atualizarPerfilMutation.mutateAsync(dados),
+    [atualizarPerfilMutation],
+  );
+
+  const trocarSenha = useCallback(
+    async (dados: TrocarSenhaRequest) => {
+      await trocarSenhaMutation.mutateAsync(dados);
+    },
+    [trocarSenhaMutation],
+  );
+
   let status: AuthStatus;
   if (!hasBootstrapped || (hasToken && meQuery.isLoading)) {
     status = "loading";
@@ -166,6 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     registrar,
     logout,
     logoutTodas,
+    atualizarPerfil,
+    trocarSenha,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

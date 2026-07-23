@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.5.0",
+    data: "2026-07-23",
+    titulo: "Configurações: editar perfil e trocar senha",
+    itens: [
+      'Nova página "Configurações" (menu do usuário → Configurações): altere seu nome/e-mail e troque sua senha.',
+      "Primeira fatia do módulo de Configurações - preferências, notificações e temas chegam em entregas seguintes.",
+    ],
+  },
+  {
     versao: "0.4.3",
     data: "2026-07-22",
     titulo: "Mais um logo de instituição: PagBank",

@@ -2,8 +2,10 @@ import { httpClient } from "../api/httpClient";
 import type {
   LoginRequest,
   LogoutRequest,
+  PerfilUpdate,
   RefreshRequest,
   TokenResponse,
+  TrocarSenhaRequest,
   UsuarioCreate,
   UsuarioRead,
 } from "../types/auth";
@@ -26,4 +28,8 @@ export const authService = {
   logoutTodas: () => httpClient.post<void>("/auth/logout-todas"),
 
   me: () => httpClient.get<UsuarioRead>("/auth/me"),
+
+  atualizarPerfil: (dados: PerfilUpdate) => httpClient.patch<UsuarioRead>("/auth/me", dados),
+
+  trocarSenha: (dados: TrocarSenhaRequest) => httpClient.post<void>("/auth/trocar-senha", dados),
 };
