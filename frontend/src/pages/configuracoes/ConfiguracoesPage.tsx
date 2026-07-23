@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound, User } from "lucide-react";
+import { KeyRound, Sparkles, User } from "lucide-react";
 import { Form } from "../../components/ui/Form";
 import { TextField } from "../../components/ui/TextField";
 import { EmailField } from "../../components/ui/EmailField";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { SubmitButton } from "../../components/ui/SubmitButton";
+import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { DateFormatToggle } from "../../components/ui/DateFormatToggle";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { getErrorMessage, getFieldErrors } from "../../utils/errors";
@@ -21,19 +23,26 @@ import {
 const SENHA_VAZIA: TrocarSenhaFormValues = { senha_atual: "", senha_nova: "", senha_confirmacao: "" };
 
 /**
- * `/configuracoes` — primeira etapa do módulo (roadmap "Configurações",
- * pendente desde o início do projeto). Escopo desta entrega: aba Perfil
- * (editar nome/email + trocar senha). Preferências/Notificações/Temas
- * chegam em etapas seguintes, cada uma some seu próprio card aqui — quando
- * a segunda existir, esta página ganha `Tabs` (já em `ui/Tabs.tsx`, usado
- * pelo Dashboard) para navegar entre elas; com um card só, `Tabs` seria
- * over-engineering.
+ * `/configuracoes` — módulo do roadmap "Configurações". Escopo até agora:
+ * Perfil (editar nome/email + trocar senha) e Preferências (formato de
+ * data + tema, este último reaproveitando 100% o `ThemeToggle` que já
+ * existia no `UserMenu` - não duplicado, só também exposto aqui para quem
+ * espera encontrar "Aparência" numa página de Configurações de verdade).
+ * Notificações (depende do backend de Alertas) e mais opções de tema
+ * chegam em etapas seguintes. Moeda ficou deliberadamente FORA das
+ * Preferências: um seletor de símbolo (R$/US$/€) sem conversão real de
+ * valores arriscaria dar a impressão de que o saldo virou outra moeda de
+ * verdade - decisão do usuário, ver docs/analise-arquitetural-configuracoes.md.
+ * Ainda sem `Tabs`: com poucos cards curtos, cada um seu próprio card
+ * empilhado é mais simples que introduzir navegação por abas.
  *
- * Estrutura deliberada de dois cards/dois formulários independentes (não um
- * formulário só): trocar senha exige a senha ATUAL como confirmação (ver
- * `AuthService.trocar_senha`) e tem seu próprio ciclo de
- * sucesso/erro/limpeza — misturar os dois num único `useForm` obrigaria a
- * resetar campos de senha toda vez que só o nome mudasse, e vice-versa.
+ * Estrutura deliberada de cards/formulários independentes (não um
+ * formulário gigante): trocar senha exige a senha ATUAL como confirmação
+ * (ver `AuthService.trocar_senha`) e tem seu próprio ciclo de
+ * sucesso/erro/limpeza — misturar com o de Perfil obrigaria a resetar
+ * campos de senha toda vez que só o nome mudasse, e vice-versa. Preferências
+ * nem usa `useForm`: cada opção já se aplica ao ser clicada (mesmo padrão
+ * do `ThemeToggle` original), sem precisar de um botão "Salvar" separado.
  *
  * Diferente do resto do app, isto não é um `FormDialog`: é a primeira tela
  * do projeto sobre o próprio usuário autenticado, não uma entidade
@@ -134,6 +143,24 @@ export function ConfiguracoesPage() {
             Alterar senha
           </SubmitButton>
         </Form>
+      </div>
+
+      <div className="rounded-lg border border-border bg-surface-2 p-5">
+        <div className="mb-4 flex items-center gap-2 text-text-primary">
+          <Sparkles size={16} aria-hidden="true" />
+          <h2 className="text-body font-semibold">Preferências</h2>
+        </div>
+        <div className="max-w-md space-y-4">
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-text-secondary">Formato de data</p>
+            <DateFormatToggle />
+            <p className="mt-1.5 text-caption text-text-tertiary">A página recarrega ao trocar.</p>
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-text-secondary">Tema</p>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
     </div>
   );

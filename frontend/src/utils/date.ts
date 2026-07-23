@@ -4,13 +4,36 @@
  * é aritmética de calendário pura (não financeira): converte um dia-do-mês
  * já autoritativo (`Cartao.dia_fechamento`/`dia_vencimento`) na próxima data
  * de calendário em que ele ocorre, só para exibição.
+ *
+ * `formatDate`/`formatDateTime` respeitam a preferência de formato de data
+ * (Configurações → Preferências, `lib/preferencesStore.ts`) — por isso
+ * constroem a string manualmente a partir dos componentes (dia/mês/ano) em
+ * vez de um único `Intl.DateTimeFormat` fixo em "pt-BR": o padrão de
+ * separador/ordem (DD/MM/AAAA, AAAA-MM-DD, MM/DD/AAAA) é uma escolha do
+ * usuário, não do locale do navegador.
  */
+import { getFormatoData } from "../lib/preferencesStore";
 
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Monta `dia/mes/ano` já formatados (2 dígitos, ano com 4 dígitos) na
+ * ordem/separador escolhidos pela preferência atual. */
+function formatarComponentes(dia: number, mes: number, ano: number): string {
+  const d = pad2(dia);
+  const m = pad2(mes);
+  const a = String(ano).padStart(4, "0");
+  switch (getFormatoData()) {
+    case "AAAA-MM-DD":
+      return `${a}-${m}-${d}`;
+    case "MM/DD/AAAA":
+      return `${m}/${d}/${a}`;
+    case "DD/MM/AAAA":
+    default:
+      return `${d}/${m}/${a}`;
+  }
+}
 
 /** `iso` no formato `AAAA-MM-DD` (como o backend serializa `date`). Evita
  * `new Date(iso)` puro porque isso interpreta a string como UTC meia-noite,
@@ -19,16 +42,10 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
 export function formatDate(iso: string): string {
   const [ano, mes, dia] = iso.split("-").map(Number);
   if (!ano || !mes || !dia) return iso;
-  return dateFormatter.format(new Date(ano, mes - 1, dia));
+  return formatarComponentes(dia, mes, ano);
 }
 
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+const horaFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 /** `iso` é um datetime completo (com hora), diferente de `formatDate` acima
  * (só `AAAA-MM-DD`) — usado pela Central de Atividades
@@ -37,7 +54,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
 export function formatDateTime(iso: string): string {
   const data = new Date(iso);
   if (Number.isNaN(data.getTime())) return iso;
-  return dateTimeFormatter.format(data);
+  const dataFormatada = formatarComponentes(data.getDate(), data.getMonth() + 1, data.getFullYear());
+  return `${dataFormatada} ${horaFormatter.format(data)}`;
 }
 
 const NOMES_MES = [

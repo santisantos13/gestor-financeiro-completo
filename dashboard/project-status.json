@@ -264,7 +264,7 @@
       "name": "Configurações",
       "category": "Frontend",
       "status": "in-progress",
-      "progress": 30,
+      "progress": 55,
       "priority": "Baixa"
     },
     {
@@ -312,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d76",
+        "title": "Configurações: preferências de formato de data e tema",
+        "description": "Segunda fatia do módulo Configurações, mesmo dia. Usuário decidiu deixar 'moeda' fora do seletor de preferências: trocar só o símbolo (R$/US$/€) sem converter valores de verdade arriscaria confundir sobre o saldo real - risco alto demais para um app financeiro. Implementado: formato de data (DD/MM/AAAA, AAAA-MM-DD, MM/DD/AAAA) via novo lib/preferencesStore.ts (ponte não-React, mesmo padrão de tokenStore.ts) + PreferenciasContext; utils/date.ts (formatDate/formatDateTime) monta a string manualmente em vez de Intl fixo em pt-BR. Mudar a preferência recarrega a página (window.location.reload) - decisão deliberada para não ter que refatorar todo consumidor de formatDate para reagir a contexto. Tema (já existente via ThemeToggle) agora também exposto nesta página, sem duplicar lógica. Testes: utils/date.test.ts (5 novos, prova os 3 formatos) + 1 teste novo em ConfiguracoesPage.test.tsx (renderização, sem clicar - clicar dispararia o reload real). tsc -b, vite build e suíte completa (21 testes frontend) revalidados. Versão 0.5.0 -> 0.5.1 (patch).",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-23"
+      },
       {
         "id": "d75",
         "title": "Configurações: editar perfil e trocar senha",
@@ -915,6 +923,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-23",
+      "type": "frontend",
+      "title": "Configurações: preferências de formato de data e tema (moeda deixada de fora, decisão do usuário). Versão 0.5.0 → 0.5.1"
+    },
     {
       "date": "2026-07-23",
       "type": "backend+frontend",

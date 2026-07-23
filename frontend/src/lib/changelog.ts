@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.5.1",
+    data: "2026-07-23",
+    titulo: "Configurações: preferências de formato de data e tema",
+    itens: [
+      "Nova seção \"Preferências\" em Configurações: escolha o formato de data (DD/MM/AAAA, AAAA-MM-DD ou MM/DD/AAAA) e o tema (claro/escuro, já existente, agora também aqui).",
+      "Moeda ficou de fora - trocar só o símbolo (R$/US$/€) sem converter os valores poderia confundir sobre quanto dinheiro você realmente tem.",
+    ],
+  },
+  {
     versao: "0.5.0",
     data: "2026-07-23",
     titulo: "Configurações: editar perfil e trocar senha",

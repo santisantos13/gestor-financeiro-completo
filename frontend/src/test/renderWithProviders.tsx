@@ -1,12 +1,16 @@
 /**
- * Utilitário de teste — envolve só os providers que os alvos desta etapa
- * (LoginPage, TagFormDialog, DataTable) realmente precisam, confirmado por
- * leitura direta do código antes de escrever qualquer teste (ver
- * docs/analise-arquitetural-testes-frontend.md). Mesma ordem relativa de
- * `App.tsx`: QueryClientProvider > AuthProvider > ToastProvider - AuthProvider
- * usa `useQueryClient()` internamente, por isso precisa estar DENTRO do
- * QueryClientProvider. ThemeProvider/NavOrderProvider ficam de fora: nenhum
- * dos 3 alvos depende de tema ou de ordem de navegação.
+ * Utilitário de teste — envolve os providers que os alvos usados até agora
+ * (LoginPage, TagFormDialog, DataTable, ConfiguracoesPage) precisam,
+ * confirmado por leitura direta do código antes de escrever qualquer teste
+ * (ver docs/analise-arquitetural-testes-frontend.md). Mesma ordem relativa
+ * de `App.tsx`: QueryClientProvider > AuthProvider > ToastProvider -
+ * AuthProvider usa `useQueryClient()` internamente, por isso precisa estar
+ * DENTRO do QueryClientProvider. `PreferenciasProvider`/`ThemeProvider`
+ * entraram na etapa de Configurações (`ConfiguracoesPage` usa
+ * `DateFormatToggle` + `ThemeToggle`, que chamam `usePreferencias()`/
+ * `useTheme()`) - ficam fora do `QueryClientProvider` (só localStorage, sem
+ * rede), mesma posição relativa de `App.tsx`. `NavOrderProvider` continua
+ * de fora: nenhum alvo atual depende de ordem de navegação.
  *
  * `MemoryRouter` no lugar do `BrowserRouter` de produção - permite controlar
  * a rota inicial (`initialEntries`) sem depender do histórico real do
@@ -18,6 +22,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../contexts/AuthContext";
 import { ToastProvider } from "../contexts/ToastContext";
+import { PreferenciasProvider } from "../contexts/PreferenciasContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 export function createTestQueryClient(): QueryClient {
   return new QueryClient({
@@ -39,13 +45,17 @@ export function renderWithProviders(ui: ReactElement, options: RenderWithProvide
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-          </ToastProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <PreferenciasProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <ToastProvider>
+                <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+              </ToastProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </PreferenciasProvider>
+      </ThemeProvider>
     );
   }
 

@@ -7,7 +7,7 @@
  * verdade quando a página é recarregada com uma sessão válida).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../test/renderWithProviders";
 import { ConfiguracoesPage } from "./ConfiguracoesPage";
@@ -165,5 +165,20 @@ describe("ConfiguracoesPage", () => {
     await user.click(screen.getByRole("button", { name: "Alterar senha" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Senha atual incorreta.");
+  });
+
+  it("mostra as opções de formato de data com DD/MM/AAAA ativo por padrão", async () => {
+    renderConfiguracoes();
+
+    await screen.findByDisplayValue("Sant");
+    // Clicar de verdade recarregaria a página (ver PreferenciasContext) -
+    // fora do escopo deste teste, que só confere a renderização e o padrão.
+    const grupo = screen.getByRole("radiogroup", { name: "Formato de data" });
+    const opcoes = within(grupo).getAllByRole("radio");
+    expect(opcoes).toHaveLength(3);
+    expect(opcoes[0]).toHaveAccessibleName(); // DD/MM/AAAA (data de hoje formatada)
+    expect(opcoes[0]).toHaveAttribute("aria-checked", "true");
+    expect(opcoes[1]).toHaveAttribute("aria-checked", "false");
+    expect(opcoes[2]).toHaveAttribute("aria-checked", "false");
   });
 });
