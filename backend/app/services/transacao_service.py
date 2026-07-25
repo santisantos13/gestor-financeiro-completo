@@ -291,15 +291,25 @@ class TransacaoService:
         status: StatusTransacao,
         data_inicio: date,
         data_fim: date,
+        apenas_conta: bool = False,
     ) -> Decimal:
         """Wrapper fino sobre `TransacaoRepository.somar_por_periodo` - sem
         nenhuma regra de negócio própria, só delega. Existe como método
         público de Service (em vez de a Central Financeira acessar
         `TransacaoRepository` diretamente) para manter o princípio já
         estabelecido no projeto: nenhuma camada de orquestração acessa
-        Repository - ver docs/analise-arquitetural-central-financeira.md."""
+        Repository - ver docs/analise-arquitetural-central-financeira.md.
+
+        `apenas_conta` só repassa o mesmo filtro aditivo/opt-in de
+        `listar`/`listar_do_usuario` (default False - todo chamador
+        existente continua incluindo compra de cartão)."""
         return self.transacao_repo.somar_por_periodo(
-            usuario_id, tipo=tipo, status=status, data_inicio=data_inicio, data_fim=data_fim
+            usuario_id,
+            tipo=tipo,
+            status=status,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            apenas_conta=apenas_conta,
         )
 
     # --- Etapa de Gráficos (docs/analise-arquitetural-graficos.md) - wrappers

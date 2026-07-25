@@ -176,3 +176,60 @@ Nenhum valor histórico foi alterado - a fatura fechada, seu `valor_total` conge
 período continuam exatamente como sempre foram (o invariante "documento financeiro fechado
 nunca é reescrito", já citado na seção 2, permanece intacto). Esta é puramente uma correção de
 comunicação visual.
+
+## 6. Revisão da decisão: "Despesas do período" também não deve contar cartão (2026-07-25, mesmo dia)
+
+Depois da correção da seção 5, o usuário voltou: "os valores de despesas ainda está errado.
+lembra das nossas decisões sobre esta aba?" - referência direta à seção 14 de
+`docs/analise-arquitetural-transacao-frontend.md` (2026-07-20): compra de cartão nunca aparece
+como linha na tabela de `/transacoes`.
+
+Até este ponto, `TransacaoResumoPeriodo` (os 3 `MetricCard`s "Receitas/Despesas/Saldo do
+período" no topo da página) reaproveitava `GET /central-financeira/visao-mensal` **sem** nenhum
+filtro - o mesmo total usado pelo Dashboard, que sempre incluiu compra de cartão de propósito
+(gasto real do mês, independente da forma de pagamento). Resultado: o total no topo da página de
+Transações somava mais do que a soma das linhas realmente visíveis logo abaixo - toda compra de
+cartão do mês entrava no número sem nunca aparecer como linha, com nenhuma explicação visível
+(diferente da seção 5, aqui não tem nem uma parcela "órfã" para apontar - a extensão inteira do
+gasto de cartão do mês simplesmente não bate).
+
+**Decisão do usuário**: não, cartão não deve contar em "Despesas/Receitas do período" desta
+tela também - o total precisa bater com a tabela.
+
+### Por que não reaproveitar `visao-mensal` sem alteração
+
+`visao-mensal` é usado por DOIS consumidores com necessidades opostas: `ResumoFinanceiroSection`
+(Dashboard, quer o gasto real do mês, cartão incluído - nunca foi questionado, continua correto)
+e agora `TransacaoResumoPeriodo` (quer bater com a tabela, cartão excluído). Mudar o
+comportamento padrão do endpoint quebraria o Dashboard. Solução: mesmo padrão aditivo/opt-in já
+usado para a tabela em si (`apenas_conta: bool = False`, seção 14 de
+`analise-arquitetural-transacao-frontend.md`), agora estendido para a AGREGAÇÃO:
+
+- `TransacaoRepository.somar_por_periodo` ganhou `apenas_conta: bool = False` - quando `True`,
+  soma `Transacao.cartao_id IS NULL` (mesma condição já usada em `listar_do_usuario`).
+- `TransacaoService.somar_por_periodo` e `CentralFinanceiraService._somar_periodo`/`visao_mensal`
+  só repassam o parâmetro adiante - nenhuma regra nova.
+- `GET /central-financeira/visao-mensal?apenas_conta=true` - novo query param opcional, mesmo
+  default `False` de sempre.
+- Frontend: `queryKeys.dashboard.visaoMensal` ganhou um terceiro parâmetro `apenasConta`
+  **dentro da própria chave** - crítico, porque os dois consumidores (Dashboard e
+  `TransacaoResumoPeriodo`) chamam o MESMO endpoint com resultados DIFERENTES agora; sem entrar
+  na chave, os dois React Query cache colidiriam (o que buscar por último "vence" e o outro
+  consumidor mostraria o número errado até uma invalidação forçar um refetch - um bug sutil e
+  intermitente, evitado desde o início). `centralFinanceiraService.visaoMensal` e
+  `useVisaoMensalQuery` só repassam o parâmetro. `TransacaoResumoPeriodo` chama
+  `useVisaoMensalQuery(ano, mes, true)`; `ResumoFinanceiroSection` continua chamando
+  `useVisaoMensalQuery(ano, mes)` (sem o terceiro argumento), preservando 100% do comportamento
+  do Dashboard.
+
+`resumo_financeiro` (outro consumidor de `_somar_periodo`, usado por `/central-financeira/resumo`
+- saldo total/patrimônio líquido/fluxo de caixa geral do Dashboard) não foi tocado - continua
+sem passar `apenas_conta`, mesmo raciocínio de "gasto real" do Dashboard.
+
+### Validação
+
+Backend: 1 teste unitário novo (`test_visao_mensal_com_apenas_conta_exclui_compra_de_cartao`) +
+1 de integração novo (mesmo nome, `test_central_financeira_flow.py`) provando que, com a mesma
+massa de dados (uma despesa de Conta + uma de Cartão), `apenas_conta=false` soma as duas e
+`apenas_conta=true` só a de Conta. Suíte completa (634 unit + toda integração) revalidada.
+Frontend: `tsc -b`, `vite build` e suíte de 21 testes revalidados.

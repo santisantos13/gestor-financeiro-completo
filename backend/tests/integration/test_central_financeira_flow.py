@@ -356,6 +356,32 @@ def test_visao_mensal_aceita_periodo_explicito_diferente_do_atual(client):
     assert dados["entradas"] == "500.00"
 
 
+def test_visao_mensal_com_apenas_conta_exclui_compra_de_cartao(client):
+    """Decisão do usuário (2026-07-25, revendo a regra de 2026-07-20):
+    `apenas_conta=True` (usado por TransacoesPage) precisa bater com a
+    tabela, que já escondia compra de cartão - o total não pode continuar
+    somando por trás. Sem o filtro, as duas despesas entram; com o
+    filtro, só a de Conta."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    hoje = date.today()
+    _criar_transacao(client, headers, tipo="DESPESA", valor="200.00", conta_id=conta["id"], data=str(hoje))
+    _criar_transacao(client, headers, tipo="DESPESA", valor="80.00", cartao_id=cartao["id"], data=str(hoje))
+
+    sem_filtro = client.get(
+        "/central-financeira/visao-mensal", params={"ano": hoje.year, "mes": hoje.month}, headers=headers
+    ).json()
+    com_filtro = client.get(
+        "/central-financeira/visao-mensal",
+        params={"ano": hoje.year, "mes": hoje.month, "apenas_conta": True},
+        headers=headers,
+    ).json()
+
+    assert Decimal(sem_filtro["saidas"]) == Decimal("280.00")
+    assert Decimal(com_filtro["saidas"]) == Decimal("200.00")
+
+
 def test_resumo_financeiro_com_mes_fora_de_faixa_devolve_422(client):
     """`mes=13` chegaria em `calendar.monthrange` e levantaria um ValueError
     não tratado (500) se não fosse validado no Router - ver

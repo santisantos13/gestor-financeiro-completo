@@ -167,8 +167,12 @@ def visao_mensal(
     central_service: CentralFinanceiraServiceDep,
     ano: AnoQuery = None,
     mes: MesQuery = None,
+    # Aditivo/opt-in (default False), decisão do usuário 2026-07-25 - só
+    # TransacoesPage envia true, para bater com a tabela (que já escondia
+    # compra de cartão desde 2026-07-20). Ver CentralFinanceiraService.visao_mensal.
+    apenas_conta: bool = False,
 ) -> VisaoMensalRead:
-    dados = central_service.visao_mensal(usuario_atual.id, ano=ano, mes=mes)
+    dados = central_service.visao_mensal(usuario_atual.id, ano=ano, mes=mes, apenas_conta=apenas_conta)
     return VisaoMensalRead.model_validate(dados)
 
 

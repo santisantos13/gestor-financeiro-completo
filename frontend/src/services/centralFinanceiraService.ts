@@ -65,8 +65,12 @@ export const centralFinanceiraService = {
   atividades: (limit = 30) =>
     httpClient.get<CentralAtividadesRead>("/central-financeira/atividades", { limit }),
 
-  visaoMensal: (ano?: number, mes?: number) =>
-    httpClient.get<VisaoMensalRead>("/central-financeira/visao-mensal", { ano, mes }),
+  /** `apenasConta` (decisão do usuário, 2026-07-25): omitido/false para o
+   * Dashboard (gasto real do mês, incluindo cartão); `true` só para
+   * `TransacoesPage`, batendo com a tabela (que já escondia compra de
+   * cartão desde 2026-07-20). */
+  visaoMensal: (ano?: number, mes?: number, apenasConta?: boolean) =>
+    httpClient.get<VisaoMensalRead>("/central-financeira/visao-mensal", { ano, mes, apenas_conta: apenasConta }),
 
   indicadores: () =>
     httpClient.get<IndicadoresGeraisRead>("/central-financeira/indicadores"),

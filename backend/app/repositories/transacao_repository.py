@@ -114,6 +114,7 @@ class TransacaoRepository(SQLAlchemyRepository[Transacao]):
         status: StatusTransacao,
         data_inicio: date,
         data_fim: date,
+        apenas_conta: bool = False,
     ) -> Decimal:
         """Soma `Transacao.valor` (usuário, tipo, status e intervalo de
         datas) via `SUM` no banco - matéria-prima usada pela Central
@@ -125,14 +126,28 @@ class TransacaoRepository(SQLAlchemyRepository[Transacao]):
         com `SUM`, nunca carregar as linhas em Python para somar - o mesmo
         padrão de `ContaRepository.somar_transacoes_pagas`/
         `MetaRepository.somar_transacoes_pagas`, só que parametrizado por
-        tipo/status/intervalo em vez de fixo."""
-        stmt = select(func.coalesce(func.sum(Transacao.valor), 0)).where(
+        tipo/status/intervalo em vez de fixo.
+
+        `apenas_conta` (aditivo, opt-in, default False - mesmo parâmetro e
+        mesmo raciocínio de `listar_do_usuario`): decisão do usuário
+        (2026-07-25) revendo a regra de 2026-07-20 - "Despesas/Receitas do
+        período" da tela de Transações também NÃO deve contar compra de
+        cartão, para bater com a soma das linhas realmente visíveis
+        naquela tabela (que já escondia compra de cartão, mas o total
+        continuava somando por trás - inconsistência visual real). Todo
+        outro chamador (Dashboard/Central Financeira, que quer o gasto
+        real independente da forma de pagamento) continua sem passar este
+        parâmetro."""
+        condicoes = [
             Transacao.usuario_id == usuario_id,
             Transacao.tipo == tipo,
             Transacao.status == status,
             Transacao.data >= data_inicio,
             Transacao.data <= data_fim,
-        )
+        ]
+        if apenas_conta:
+            condicoes.append(Transacao.cartao_id.is_(None))
+        stmt = select(func.coalesce(func.sum(Transacao.valor), 0)).where(*condicoes)
         return Decimal(self.db.execute(stmt).scalar_one())
 
     # --- Etapa de Gráficos (docs/analise-arquitetural-graficos.md) ---------------

@@ -38,7 +38,14 @@ export const queryKeys = {
     /** Central de Atividades (Sprint de Refinamento Premium, item 17) -
      * `GET /central-financeira/atividades`, feed cronológico. */
     atividades: (limit: number) => ["dashboard", "atividades", limit] as const,
-    visaoMensal: (ano?: number, mes?: number) => ["dashboard", "visao-mensal", ano, mes] as const,
+    /** `apenasConta` (decisão do usuário, 2026-07-25) entra na própria
+     * chave — `TransacoesPage` (true) e o Dashboard (false/omitido)
+     * chamam o mesmo endpoint com resultados DIFERENTES (a tela de
+     * Transações não deve contar compra de cartão, o Dashboard deve);
+     * sem isso os dois consumidores colidiriam no mesmo cache e um
+     * pisaria no resultado do outro. */
+    visaoMensal: (ano?: number, mes?: number, apenasConta?: boolean) =>
+      ["dashboard", "visao-mensal", ano, mes, apenasConta] as const,
     indicadores: ["dashboard", "indicadores"] as const,
     /** Etapa de Gráficos — `GET /central-financeira/graficos/tendencias`,
      * janela dos últimos `meses` meses. */

@@ -18,9 +18,19 @@ export interface TransacaoResumoPeriodoProps {
  * `TransacaoRepository.somar_por_periodo` preferir `SUM` no banco a somar
  * em Python). Ver docs/analise-arquitetural-transacao-frontend.md, seção
  * 10.
+ *
+ * `apenasConta: true` (decisão do usuário, 2026-07-25, revendo a regra de
+ * 2026-07-20): esta tela já esconde compra de cartão da tabela — o total
+ * aqui em cima precisa bater com a soma das linhas realmente visíveis
+ * abaixo, senão o número parece "errado" (compra de cartão entrando no
+ * total sem nunca aparecer como linha). Diferente do Dashboard
+ * (`ResumoFinanceiroSection`), que chama `useVisaoMensalQuery` sem esse
+ * parâmetro de propósito — ali o objetivo é o gasto real do mês,
+ * independente da forma de pagamento. Ver
+ * docs/analise-arquitetural-escopo-parcelamento.md, seção 5.
  */
 export function TransacaoResumoPeriodo({ ano, mes }: TransacaoResumoPeriodoProps) {
-  const { data, isLoading } = useVisaoMensalQuery(ano, mes);
+  const { data, isLoading } = useVisaoMensalQuery(ano, mes, true);
 
   if (isLoading || !data) {
     return (

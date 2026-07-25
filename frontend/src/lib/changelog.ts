@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.5.3",
+    data: "2026-07-25",
+    titulo: "Transações: \"Despesas/Receitas do período\" agora batem com a tabela",
+    itens: [
+      'O total no topo de Transações incluía compras de cartão, mas a tabela logo abaixo nunca as mostra (regra de 20/07) - os números pareciam não bater. Agora "Receitas/Despesas/Saldo do período" desta tela contam só o que aparece na tabela (lançamentos de Conta e pagamentos de fatura). O Dashboard continua mostrando o gasto real do mês, cartão incluído - só mudou aqui.',
+    ],
+  },
+  {
     versao: "0.5.2",
     data: "2026-07-25",
     titulo: "Transações: aviso quando uma compra cancelada deixa parcela para trás",

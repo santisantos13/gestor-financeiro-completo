@@ -108,10 +108,14 @@ export function useAtividadesRecentesQuery(limit = 30) {
   });
 }
 
-export function useVisaoMensalQuery(ano?: number, mes?: number) {
+/** `apenasConta` (decisão do usuário, 2026-07-25): repassado 1:1 para
+ * `centralFinanceiraService.visaoMensal` e para a query key (evita colidir
+ * no cache com o outro consumidor — Dashboard chama sem passar nada,
+ * `TransacoesPage` passa `true`). */
+export function useVisaoMensalQuery(ano?: number, mes?: number, apenasConta?: boolean) {
   return useQuery({
-    queryKey: queryKeys.dashboard.visaoMensal(ano, mes),
-    queryFn: () => centralFinanceiraService.visaoMensal(ano, mes),
+    queryKey: queryKeys.dashboard.visaoMensal(ano, mes, apenasConta),
+    queryFn: () => centralFinanceiraService.visaoMensal(ano, mes, apenasConta),
   });
 }
 

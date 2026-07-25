@@ -313,6 +313,14 @@
     "review": [],
     "done": [
       {
+        "id": "d78",
+        "title": "Transações: total do período volta a bater com a tabela (sem cartão)",
+        "description": "Usuário voltou logo após o d77: 'os valores de despesas ainda está errado. lembra das nossas decisões sobre esta aba?' - referência à regra de 20/07 (compra de cartão nunca aparece como linha em /transacoes). O total dos 3 MetricCards (Receitas/Despesas/Saldo do período) reaproveitava visao-mensal sem filtro, então continuava somando compra de cartão por trás mesmo com a linha escondida - números não batiam. Decisão do usuário: cartão também não deve contar nesse total. Implementado como filtro aditivo/opt-in (apenas_conta, default False, mesmo padrão já usado na tabela): TransacaoRepository.somar_por_periodo -> TransacaoService.somar_por_periodo -> CentralFinanceiraService._somar_periodo/visao_mensal -> GET /central-financeira/visao-mensal?apenas_conta=true. Dashboard (ResumoFinanceiroSection) continua chamando sem o parâmetro - gasto real do mês, cartão incluído, comportamento intocado. Frontend: apenasConta entrou na própria query key (queryKeys.dashboard.visaoMensal) para os dois consumidores (Dashboard e TransacoesPage) não colidirem no mesmo cache do React Query. Testes: 1 unitário + 1 integração novos provando a mesma massa de dados com/sem o filtro. Suíte completa (634 unit + integração) e frontend (tsc-b/vite build/21 testes) revalidados. Doc: docs/analise-arquitetural-escopo-parcelamento.md, seção 6. Versão 0.5.2 -> 0.5.3 (patch).",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-25"
+      },
+      {
         "id": "d77",
         "title": "Transações: aviso quando compra cancelada deixa parcela para trás",
         "description": "Bug relatado pelo usuário: 'registro despesas, mas depois excluo e o valor não sai da informação geral' (print de TransacoesPage). Investigação: comportamento correto e já deliberado (seção 2 de docs/analise-arquitetural-escopo-parcelamento.md) - excluir uma compra parcelada no cartão preserva a(s) parcela(s) que já estão em fatura fechada, para nunca reescrever um total já congelado. O problema real não era o cálculo (visão mensal continua certa), era a ausência de qualquer explicação visível do porquê - e a parcela sobrevivente nunca aparece em TransacoesPage (que sempre filtra apenas_conta=true, escondendo toda compra de cartão), só em FaturaDrawer > Compras desta fatura. Implementado: TransacaoService._marcar_parcelamento_cancelado (busca em lote via novo ParcelamentoRepository.listar_por_ids, 1 query IN) anexa TransacaoRead.parcelamento_cancelado=true quando a parcela sobrevive a um Parcelamento cancelado; FaturaDrawer mostra uma etiqueta 'Compra cancelada' nessas linhas. Nenhum valor histórico foi alterado - correção puramente de comunicação visual. Testes: 3 unitários novos + 2 de integração novos (test_parcelamento_flow.py). Suíte completa (backend: unit 630 + toda integração; frontend: 21 testes) revalidada, tsc -b e vite build limpos. Aproveitado o mesmo momento para uma ronda de otimizações de backend: GZipMiddleware nas respostas e pool_pre_ping+pool_recycle na engine SQLAlchemy (evita conexão morta descartada por Postgres gerenciado gratuito após período ocioso - achado real relevante para o plano free do Render). Versão 0.5.1 -> 0.5.2 (patch).",
@@ -931,6 +939,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-25",
+      "type": "backend+frontend",
+      "title": "Transações: 'Despesas/Receitas do período' passa a excluir compra de cartão, batendo com a tabela (apenas_conta em visao-mensal, opt-in - Dashboard não muda). Versão 0.5.2 → 0.5.3"
+    },
     {
       "date": "2026-07-25",
       "type": "backend+frontend",

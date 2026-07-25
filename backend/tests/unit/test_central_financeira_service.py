@@ -267,12 +267,14 @@ class FakeTransacaoService:
             resultado = [t for t in resultado if getattr(t, "cartao_id", None) is None]
         return resultado[skip : skip + limit]
 
-    def somar_por_periodo(self, usuario_id, *, tipo, status, data_inicio, data_fim):
+    def somar_por_periodo(self, usuario_id, *, tipo, status, data_inicio, data_fim, apenas_conta=False):
         return sum(
             (
                 t.valor
                 for t in self._transacoes
-                if t.status == status and data_inicio <= t.data <= data_fim
+                if t.status == status
+                and data_inicio <= t.data <= data_fim
+                and (not apenas_conta or getattr(t, "cartao_id", None) is None)
             ),
             Decimal("0"),
         )
@@ -528,6 +530,33 @@ def test_visao_mensal_usa_mes_corrente_quando_omitido_e_calcula_fluxo():
     assert resultado["ano"] == HOJE.year
     assert resultado["mes"] == HOJE.month
     assert resultado["fluxo_caixa"] == resultado["entradas"] - resultado["saidas"]
+
+
+def test_visao_mensal_com_apenas_conta_exclui_compra_de_cartao():
+    """Decisão do usuário (2026-07-25, revendo a regra de 2026-07-20):
+    `apenas_conta=True` (usado por `TransacoesPage`) precisa bater com a
+    tabela, que já escondia compra de cartão - o TOTAL não pode continuar
+    somando por trás."""
+    transacoes = [
+        _Transacao(
+            id=1, valor=Decimal("300"), data=HOJE, descricao="Salario",
+            status=StatusTransacao.PAGO, cartao_id=None,
+        ),
+        _Transacao(
+            id=2, valor=Decimal("150"), data=HOJE, descricao="Compra no cartao",
+            status=StatusTransacao.PAGO, cartao_id=10,
+        ),
+    ]
+    service = _service(transacoes=transacoes)
+
+    sem_filtro = service.visao_mensal(usuario_id=1, ano=HOJE.year, mes=HOJE.month)
+    com_filtro = service.visao_mensal(usuario_id=1, ano=HOJE.year, mes=HOJE.month, apenas_conta=True)
+
+    # sem filtro, o fake bruto conta as duas como "entrada" (mesma nota de
+    # test_resumo_financeiro_calcula_fluxo_de_caixa_por_aritmetica_pura) -
+    # o que importa aqui é a DIFERENÇA entre os dois resultados.
+    assert sem_filtro["entradas"] == Decimal("450")
+    assert com_filtro["entradas"] == Decimal("300")
 
 
 # --- resumo de financiamentos / empréstimos (métricas de parcelas) ----------------

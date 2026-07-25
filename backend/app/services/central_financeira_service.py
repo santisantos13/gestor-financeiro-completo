@@ -614,13 +614,24 @@ class CentralFinanceiraService:
 
     # --- 10. visão mensal ------------------------------------------------------------
 
-    def visao_mensal(self, usuario_id: int, *, ano: int | None = None, mes: int | None = None) -> dict:
+    def visao_mensal(
+        self, usuario_id: int, *, ano: int | None = None, mes: int | None = None, apenas_conta: bool = False
+    ) -> dict:
+        """`apenas_conta` (aditivo, opt-in, default False - decisão do
+        usuário, 2026-07-25): usado só por `TransacoesPage` (via
+        `GET /central-financeira/visao-mensal?apenas_conta=true`) para
+        "Receitas/Despesas/Saldo do período" baterem com a soma das linhas
+        realmente visíveis naquela tabela (que já escondia compra de
+        cartão desde 2026-07-20 - só o TOTAL continuava somando por trás,
+        inconsistência visual real). O Dashboard (`ResumoFinanceiroSection`)
+        continua chamando sem este parâmetro - ali o objetivo é o gasto
+        real do mês, incluindo cartão."""
         hoje = date.today()
         ano = ano or hoje.year
         mes = mes or hoje.month
         data_inicio, data_fim = self._limites_do_mes(ano, mes)
-        entradas = self._somar_periodo(usuario_id, TipoTransacao.RECEITA, data_inicio, data_fim)
-        saidas = self._somar_periodo(usuario_id, TipoTransacao.DESPESA, data_inicio, data_fim)
+        entradas = self._somar_periodo(usuario_id, TipoTransacao.RECEITA, data_inicio, data_fim, apenas_conta=apenas_conta)
+        saidas = self._somar_periodo(usuario_id, TipoTransacao.DESPESA, data_inicio, data_fim, apenas_conta=apenas_conta)
         return {"ano": ano, "mes": mes, "entradas": entradas, "saidas": saidas, "fluxo_caixa": entradas - saidas}
 
     # --- 11. indicadores gerais --------------------------------------------------------
@@ -831,10 +842,21 @@ class CentralFinanceiraService:
         return meses
 
     def _somar_periodo(
-        self, usuario_id: int, tipo: TipoTransacao, data_inicio: date, data_fim: date
+        self,
+        usuario_id: int,
+        tipo: TipoTransacao,
+        data_inicio: date,
+        data_fim: date,
+        *,
+        apenas_conta: bool = False,
     ) -> Decimal:
         return self.transacao_service.somar_por_periodo(
-            usuario_id, tipo=tipo, status=StatusTransacao.PAGO, data_inicio=data_inicio, data_fim=data_fim
+            usuario_id,
+            tipo=tipo,
+            status=StatusTransacao.PAGO,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            apenas_conta=apenas_conta,
         )
 
     @staticmethod
