@@ -737,10 +737,10 @@ class CentralFinanceiraService:
         return {"meses": pontos}
 
     def graficos_periodo(self, usuario_id: int, *, ano: int | None = None, mes: int | None = None) -> dict:
-        """Distribuição de um mês só (padrão: mês atual), usada pelos 2
-        gráficos de período: "Gastos por categoria" (donut) e "Gastos por
-        cartão" (barras) - mesmo padrão `ano`/`mes` de `/resumo`/
-        `/visao-mensal`/`/calendario`."""
+        """Distribuição de um mês só (padrão: mês atual), usada pelos 3
+        gráficos de período: "Gastos por categoria" (donut), "Gastos por
+        cartão" (barras) e "Gastos por conta" (donut) - mesmo padrão
+        `ano`/`mes` de `/resumo`/`/visao-mensal`/`/calendario`."""
         hoje = date.today()
         ano = ano or hoje.year
         mes = mes or hoje.month
@@ -791,11 +791,34 @@ class CentralFinanceiraService:
             )
         gastos_por_cartao.sort(key=lambda item: item["total"], reverse=True)
 
+        linhas_conta = self.transacao_service.somar_agrupado_por_conta(
+            usuario_id, status=StatusTransacao.PAGO, data_inicio=data_inicio, data_fim=data_fim,
+        )
+        # `apenas_ativas=False, apenas_visiveis=False` - mesmo par usado em
+        # `_nomes_de_conta_para_calendario` (linha ~456): um gasto do mês
+        # pode ter sido registrado numa conta hoje inativa ou oculta
+        # (cofrinho de Meta), e o gráfico nunca deve omitir esse valor por
+        # isso, só resolver o nome certo.
+        contas_por_id = {c.id: c for c in self.conta_service.listar(usuario_id, apenas_ativas=False, apenas_visiveis=False)}
+        gastos_por_conta = []
+        for linha in linhas_conta:
+            conta = contas_por_id.get(linha.conta_id)
+            if conta is None:
+                # Defensivo, mesmo raciocínio do bloco de cartão acima:
+                # Transacao.conta_id é CASCADE, então na prática sempre há
+                # uma Conta viva - nunca deveria acontecer.
+                continue
+            gastos_por_conta.append(
+                {"conta_id": linha.conta_id, "conta_nome": conta.nome, "total": Decimal(linha.total)}
+            )
+        gastos_por_conta.sort(key=lambda item: item["total"], reverse=True)
+
         return {
             "ano": ano,
             "mes": mes,
             "gastos_por_categoria": gastos_por_categoria,
             "gastos_por_cartao": gastos_por_cartao,
+            "gastos_por_conta": gastos_por_conta,
         }
 
     # --- helpers privados de orquestração (nenhuma regra de negócio nova) ------------

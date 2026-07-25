@@ -285,3 +285,34 @@ class TransacaoRepository(SQLAlchemyRepository[Transacao]):
             .group_by(Transacao.cartao_id)
         )
         return self.db.execute(stmt).all()
+
+    def somar_agrupado_por_conta(
+        self,
+        usuario_id: int,
+        *,
+        status: StatusTransacao,
+        data_inicio: date,
+        data_fim: date,
+    ) -> Sequence[Row]:
+        """Gastos por conta de um período - sempre `conta_id IS NOT NULL` e
+        `tipo == DESPESA` (mesmo par de filtros de `somar_agrupado_por_cartao`,
+        seu irmão). `conta_id IS NOT NULL` já exclui toda compra de cartão
+        (que grava `cartao_id`, não `conta_id`) sem precisar de nenhum flag
+        `apenas_conta` extra - a mesma exclusão de cartão da decisão de
+        2026-07-25, só que por construção da query em vez de um parâmetro."""
+        stmt = (
+            select(
+                Transacao.conta_id,
+                func.coalesce(func.sum(Transacao.valor), 0).label("total"),
+            )
+            .where(
+                Transacao.usuario_id == usuario_id,
+                Transacao.conta_id.is_not(None),
+                Transacao.tipo == TipoTransacao.DESPESA,
+                Transacao.status == status,
+                Transacao.data >= data_inicio,
+                Transacao.data <= data_fim,
+            )
+            .group_by(Transacao.conta_id)
+        )
+        return self.db.execute(stmt).all()

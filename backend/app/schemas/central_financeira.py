@@ -266,8 +266,20 @@ class GastoPorCartao(OrmBaseModel):
     total: Decimal
 
 
+class GastoPorConta(OrmBaseModel):
+    """Irmã de `GastoPorCartao`, mas para `Conta` - `conta_id IS NOT NULL`
+    já exclui compra de cartão por construção (ver `TransacaoRepository.
+    somar_agrupado_por_conta`), então este gráfico nunca mistura os dois
+    tipos de gasto."""
+
+    conta_id: int
+    conta_nome: str
+    total: Decimal
+
+
 class GraficosPeriodoRead(OrmBaseModel):
     ano: int
     mes: int
     gastos_por_categoria: list[GastoPorCategoria]
     gastos_por_cartao: list[GastoPorCartao]
+    gastos_por_conta: list[GastoPorConta]

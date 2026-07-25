@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.6.0",
+    data: "2026-07-25",
+    titulo: "Gráficos: novo gráfico \"Gastos por conta\"",
+    itens: [
+      'Nova página /gráficos ganha um 6º gráfico: "Gastos por conta", em círculo (como "Gastos por categoria"), mostrando quanto foi gasto direto de cada conta no mês - irmão de "Gastos por cartão", nunca mistura os dois (compra de cartão não conta aqui).',
+      "O total do período agora também aparece escrito no miolo do círculo, não só na lista ao lado.",
+    ],
+  },
+  {
     versao: "0.5.3",
     data: "2026-07-25",
     titulo: "Transações: \"Despesas/Receitas do período\" agora batem com a tabela",

@@ -862,6 +862,7 @@ def test_graficos_periodo_usuario_novo_devolve_listas_vazias(client):
     dados = client.get("/central-financeira/graficos/periodo", headers=headers).json()
     assert dados["gastos_por_categoria"] == []
     assert dados["gastos_por_cartao"] == []
+    assert dados["gastos_por_conta"] == []
 
 
 def test_graficos_periodo_agrupa_despesas_por_categoria(client):
@@ -893,6 +894,23 @@ def test_graficos_periodo_agrupa_gastos_por_cartao(client):
 
     assert dados["gastos_por_cartao"] == [
         {"cartao_id": cartao["id"], "cartao_nome": "Nubank", "total": "200.00"}
+    ]
+
+
+def test_graficos_periodo_agrupa_gastos_por_conta(client):
+    """Irmão de `test_graficos_periodo_agrupa_gastos_por_cartao` - despesa
+    de cartão não deve aparecer em `gastos_por_conta` (conta_id é nulo
+    nesse caso), e vice-versa."""
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers, nome="Nubank Conta")
+    cartao = _criar_cartao(client, headers, conta["id"])
+    _criar_transacao(client, headers, tipo="DESPESA", valor="80.00", conta_id=conta["id"])
+    _criar_transacao(client, headers, tipo="DESPESA", valor="200.00", cartao_id=cartao["id"])
+
+    dados = client.get("/central-financeira/graficos/periodo", headers=headers).json()
+
+    assert dados["gastos_por_conta"] == [
+        {"conta_id": conta["id"], "conta_nome": "Nubank Conta", "total": "80.00"}
     ]
 
 

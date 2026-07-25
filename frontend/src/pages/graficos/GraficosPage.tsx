@@ -10,6 +10,7 @@ import { EvolucaoSaldoChart } from "../../components/domain/graficos/EvolucaoSal
 import { EntradasSaidasChart } from "../../components/domain/graficos/EntradasSaidasChart";
 import { GastosPorCategoriaChart } from "../../components/domain/graficos/GastosPorCategoriaChart";
 import { GastosPorCartaoChart } from "../../components/domain/graficos/GastosPorCartaoChart";
+import { GastosPorContaChart } from "../../components/domain/graficos/GastosPorContaChart";
 import { SaldoPorContaChart } from "../../components/domain/graficos/SaldoPorContaChart";
 import {
   useGraficosPeriodoQuery,
@@ -25,14 +26,16 @@ const OPCOES_JANELA = [
 
 /**
  * Página `/graficos` — segunda das "duas coisas" pedidas (a primeira é o
- * mini-card `EvolucaoSaldoCard` do Dashboard). 5 gráficos, cada um em seu
+ * mini-card `EvolucaoSaldoCard` do Dashboard). 6 gráficos, cada um em seu
  * próprio `Card`, sem cross-filtering entre eles (fora de escopo, ver
  * docs/analise-arquitetural-graficos.md, seção 7): "Evolução do saldo" e
  * "Entradas x Saídas" compartilham a janela de meses (`useGraficosTendenciasQuery`,
- * um único fetch); "Gastos por categoria"/"por cartão" compartilham o
- * seletor de mês (`useGraficosPeriodoQuery`); "Saldo por conta" reaproveita
- * `useSaldoConsolidadoQuery`, já usado pelo hero do Dashboard — nenhuma
- * chamada nova para esse 5º gráfico.
+ * um único fetch); "Gastos por categoria"/"por cartão"/"por conta"
+ * compartilham o seletor de mês (`useGraficosPeriodoQuery`) — `gastos_por_conta`
+ * já vem na mesma resposta dos outros dois, nenhum fetch novo (seção 8);
+ * "Saldo por conta" (distribuição do saldo ATUAL, não o gasto DO MÊS do
+ * gráfico novo) reaproveita `useSaldoConsolidadoQuery`, já usado pelo hero
+ * do Dashboard.
  */
 export function GraficosPage() {
   const hoje = new Date();
@@ -121,6 +124,25 @@ export function GraficosPage() {
             </>
           ) : (
             <GastosPorCartaoChart gastos={periodoQuery.data?.gastos_por_cartao ?? []} />
+          )}
+        </Card>
+
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <SectionTitle>Gastos por conta</SectionTitle>
+            <MesAnoSeletor ano={periodo.ano} mes={periodo.mes} onSelecionar={(ano, mes) => setPeriodo({ ano, mes })} />
+          </div>
+          {periodoQuery.isLoading ? (
+            <LoadingCard lines={4} />
+          ) : periodoQuery.error ? (
+            <>
+              <ErrorMessage error={periodoQuery.error} />
+              <Button size="sm" variant="secondary" onClick={() => periodoQuery.refetch()} className="mt-3">
+                Tentar novamente
+              </Button>
+            </>
+          ) : (
+            <GastosPorContaChart gastos={periodoQuery.data?.gastos_por_conta ?? []} />
           )}
         </Card>
 

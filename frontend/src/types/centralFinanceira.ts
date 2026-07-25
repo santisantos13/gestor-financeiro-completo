@@ -280,9 +280,16 @@ export interface GastoPorCartao {
   total: string;
 }
 
+export interface GastoPorConta {
+  conta_id: number;
+  conta_nome: string;
+  total: string;
+}
+
 export interface GraficosPeriodoRead {
   ano: number;
   mes: number;
   gastos_por_categoria: GastoPorCategoria[];
   gastos_por_cartao: GastoPorCartao[];
+  gastos_por_conta: GastoPorConta[];
 }

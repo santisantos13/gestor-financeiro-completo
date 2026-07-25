@@ -321,6 +321,19 @@ class FakeTransacaoService:
             acumulado[t.cartao_id] += t.valor
         return [SimpleNamespace(cartao_id=cid, total=valor) for cid, valor in acumulado.items()]
 
+    def somar_agrupado_por_conta(self, usuario_id, *, status, data_inicio, data_fim):
+        acumulado = defaultdict(lambda: Decimal("0"))
+        for t in self._transacoes:
+            if (
+                t.conta_id is None
+                or t.tipo != TipoTransacao.DESPESA
+                or t.status != status
+                or not (data_inicio <= t.data <= data_fim)
+            ):
+                continue
+            acumulado[t.conta_id] += t.valor
+        return [SimpleNamespace(conta_id=cid, total=valor) for cid, valor in acumulado.items()]
+
 
 class FakeCategoriaService:
     def __init__(self, categorias):
@@ -1057,7 +1070,36 @@ def test_graficos_periodo_agrupa_por_cartao():
     assert resultado[1] == {"cartao_id": 2, "cartao_nome": "Inter", "total": Decimal("150")}
 
 
+def test_graficos_periodo_agrupa_por_conta():
+    """Irmã de `test_graficos_periodo_agrupa_por_cartao` - mesma forma,
+    mas para `Conta`. `conta_id IS NOT NULL` já exclui compra de cartão
+    por construção (`somar_agrupado_por_conta` real), então uma despesa
+    de cartão no fixture não deveria aparecer aqui."""
+    conta_a = _Conta(id=1, saldo_atual=Decimal("0"), nome="Nubank Conta")
+    conta_b = _Conta(id=2, saldo_atual=Decimal("0"), nome="Itaú")
+    despesa_a = _Transacao(
+        id=1, valor=Decimal("300"), data=HOJE, descricao="Despesa A", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, conta_id=1,
+    )
+    despesa_b = _Transacao(
+        id=2, valor=Decimal("150"), data=HOJE, descricao="Despesa B", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, conta_id=2,
+    )
+    despesa_cartao = _Transacao(
+        id=3, valor=Decimal("999"), data=HOJE, descricao="Compra no cartão", status=StatusTransacao.PAGO,
+        tipo=TipoTransacao.DESPESA, cartao_id=10,
+    )
+    service = _service(contas=[conta_a, conta_b], transacoes=[despesa_a, despesa_b, despesa_cartao])
+
+    resultado = service.graficos_periodo(usuario_id=1, ano=HOJE.year, mes=HOJE.month)["gastos_por_conta"]
+
+    assert len(resultado) == 2
+    assert resultado[0] == {"conta_id": 1, "conta_nome": "Nubank Conta", "total": Decimal("300")}
+    assert resultado[1] == {"conta_id": 2, "conta_nome": "Itaú", "total": Decimal("150")}
+
+
 def test_graficos_periodo_sem_lancamentos_devolve_listas_vazias():
     resultado = _service().graficos_periodo(usuario_id=1)
     assert resultado["gastos_por_categoria"] == []
     assert resultado["gastos_por_cartao"] == []
+    assert resultado["gastos_por_conta"] == []

@@ -143,3 +143,37 @@ dependência nova do frontend (não havia nenhuma lib de gráfico no projeto at�
 - Filtro de categoria/cartão específico dentro do próprio gráfico (drill-down) — os 2 endpoints
   novos devolvem a distribuição completa do período, sem filtro adicional client-side além do que
   o próprio Recharts já oferece (hover/legenda).
+
+## 8. "Gastos por conta" — 6º gráfico, pedido em cima da etapa já em produção (2026-07-25)
+
+Pedido do usuário: "pode ter uma espécie de gastos por conta, em formato de círculo também, porém
+relacionados a conta usada" — irmão direto de "Gastos por cartão" (seção 3), mas agrupando por
+`Conta` em vez de `Cartão`, e em donut (como "Gastos por categoria") em vez de barras.
+
+**Não confundir com "Distribuição do saldo atual por conta"** (o 5º gráfico, seção 6): aquele é o
+*saldo hoje* de cada conta (`SaldoConsolidadoRead`, foto do momento); este é o *quanto foi gasto
+diretamente daquela conta durante o mês selecionado* (mesma janela `ano`/`mes` de "Gastos por
+categoria"/"por cartão"). São dois recortes diferentes do mesmo substantivo "conta" — o nome dos
+dois cards na página deixa isso explícito.
+
+**Backend** — mesmo padrão de `somar_agrupado_por_cartao`/`GastoPorCartao`, sem nenhum endpoint
+novo: `TransacaoRepository.somar_agrupado_por_conta` agrupa por `conta_id`, hardcoding
+`conta_id IS NOT NULL` e `tipo == DESPESA` — essa dupla condição já exclui toda compra de cartão
+por construção (compra de cartão grava `cartao_id`, nunca `conta_id`, ver constraint
+`ck_transacao_conta_xor_cartao`), o mesmo resultado da decisão de 2026-07-25 sobre `apenas_conta`
+(seção 6 de `docs/analise-arquitetural-escopo-parcelamento.md`), só que aqui de graça, sem precisar
+de nenhum parâmetro extra. `CentralFinanceiraService.graficos_periodo()` ganhou o terceiro bloco
+(`gastos_por_conta`), resolvendo nome via `conta_service.listar(apenas_ativas=False,
+apenas_visiveis=False)` — mesmo par usado para resolver nome de conta no calendário (uma despesa
+pode ter sido lançada numa conta hoje inativa/oculta, e o gráfico nunca deve omitir o valor por
+isso). `GraficosPeriodoRead` ganhou `gastos_por_conta: list[GastoPorConta]` — resposta do endpoint
+`/central-financeira/graficos/periodo` já existente, nenhum novo fetch no frontend.
+
+**Frontend** — novo componente `GastosPorContaChart.tsx`, mesma estrutura de
+`GastosPorCategoriaChart.tsx` (donut + legenda com % ao lado), paleta categórica por índice (como
+`GastoPorCartao`, sem cor própria). Único toque visual novo, a pedido explícito do usuário como
+inspiração no app do Mercado Pago: o total do período fica escrito no miolo vazio do donut (um
+`<div>` posicionado em absoluto sobre o `ResponsiveContainer`), além de continuar na lista ao lado
+— nenhuma outra tela do app tem esse elemento ainda; se o padrão for aprovado no uso real, é
+candidato a subir para um componente compartilhado (`DonutChartComTotal` ou similar) e substituir a
+duplicação atual entre "Gastos por categoria"/"Saldo por conta"/"Gastos por conta".

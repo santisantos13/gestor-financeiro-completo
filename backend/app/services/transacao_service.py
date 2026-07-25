@@ -338,6 +338,11 @@ class TransacaoService:
             usuario_id, status=status, data_inicio=data_inicio, data_fim=data_fim
         )
 
+    def somar_agrupado_por_conta(self, usuario_id: int, *, status: StatusTransacao, data_inicio: date, data_fim: date):
+        return self.transacao_repo.somar_agrupado_por_conta(
+            usuario_id, status=status, data_inicio=data_inicio, data_fim=data_fim
+        )
+
     def atualizar(self, transacao_id: int, dados: TransacaoUpdate, usuario_id: int) -> Transacao:
         """Edita APENAS a linha `transacao_id` - diferente de `excluir()`,
         nunca propaga para as demais parcelas do mesmo `Parcelamento` hoje

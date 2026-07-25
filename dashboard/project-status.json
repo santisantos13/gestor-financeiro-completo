@@ -313,6 +313,14 @@
     "review": [],
     "done": [
       {
+        "id": "d79",
+        "title": "Gráficos: novo gráfico \"Gastos por conta\" (em círculo)",
+        "description": "Pedido do usuário em cima da etapa de Gráficos já em produção: 'pode ter uma espécie de gastos por conta, em formato de círculo também, porém relacionados a conta usada'. Implementado como 6º gráfico de /graficos, irmão de 'Gastos por cartão' (mesmo par de filtros: conta_id/cartao_id IS NOT NULL + tipo DESPESA, então nunca mistura os dois), mas em donut como 'Gastos por categoria'. Backend: TransacaoRepository.somar_agrupado_por_conta (novo) -> TransacaoService.somar_agrupado_por_conta (novo) -> CentralFinanceiraService.graficos_periodo ganha o bloco gastos_por_conta, resolvendo nome via conta_service.listar(apenas_ativas=False, apenas_visiveis=False) - mesmo endpoint GET /central-financeira/graficos/periodo já existente, nenhuma rota nova. Schema GastoPorConta + campo GraficosPeriodoRead.gastos_por_conta. Frontend: novo GastosPorContaChart.tsx (mesma estrutura de GastosPorCategoriaChart), com um toque a mais pedido como inspiração no app do Mercado Pago - o total do período escrito no miolo do donut, além da lista ao lado. Nenhum fetch novo no frontend (gastos_por_conta já vem na mesma resposta de useGraficosPeriodoQuery). Testes: 1 unitário + 1 integração novos. Suíte completa backend (unit + integração) revalidada; frontend (tsc -b, vite build, 21 testes) revalidado num ambiente auxiliar (npm install local para contornar lentidão de I/O do diretório montado nesta sessão - só usado para rodar a validação, os arquivos de código-fonte editados são os originais do projeto). Doc: docs/analise-arquitetural-graficos.md, seção 8. Versão 0.5.3 -> 0.6.0 (minor, novo gráfico/funcionalidade).",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-25"
+      },
+      {
         "id": "d78",
         "title": "Transações: total do período volta a bater com a tabela (sem cartão)",
         "description": "Usuário voltou logo após o d77: 'os valores de despesas ainda está errado. lembra das nossas decisões sobre esta aba?' - referência à regra de 20/07 (compra de cartão nunca aparece como linha em /transacoes). O total dos 3 MetricCards (Receitas/Despesas/Saldo do período) reaproveitava visao-mensal sem filtro, então continuava somando compra de cartão por trás mesmo com a linha escondida - números não batiam. Decisão do usuário: cartão também não deve contar nesse total. Implementado como filtro aditivo/opt-in (apenas_conta, default False, mesmo padrão já usado na tabela): TransacaoRepository.somar_por_periodo -> TransacaoService.somar_por_periodo -> CentralFinanceiraService._somar_periodo/visao_mensal -> GET /central-financeira/visao-mensal?apenas_conta=true. Dashboard (ResumoFinanceiroSection) continua chamando sem o parâmetro - gasto real do mês, cartão incluído, comportamento intocado. Frontend: apenasConta entrou na própria query key (queryKeys.dashboard.visaoMensal) para os dois consumidores (Dashboard e TransacoesPage) não colidirem no mesmo cache do React Query. Testes: 1 unitário + 1 integração novos provando a mesma massa de dados com/sem o filtro. Suíte completa (634 unit + integração) e frontend (tsc-b/vite build/21 testes) revalidados. Doc: docs/analise-arquitetural-escopo-parcelamento.md, seção 6. Versão 0.5.2 -> 0.5.3 (patch).",
@@ -939,6 +947,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-25",
+      "type": "backend+frontend",
+      "title": "Gráficos: novo gráfico 'Gastos por conta' em círculo (irmão de 'Gastos por cartão'), com total no miolo do donut. Versão 0.5.3 → 0.6.0"
+    },
     {
       "date": "2026-07-25",
       "type": "backend+frontend",
