@@ -57,6 +57,17 @@ export interface TransacaoRead {
    * backend). Mesmo espírito de `Fatura.importada`. */
   importada: boolean;
 
+  /** True só quando esta parcela SOBREVIVEU à exclusão/cancelamento do
+   * Parcelamento a que pertencia, porque já estava numa fatura fechada
+   * (o snapshot de uma fatura já fechada nunca é corrompido
+   * retroativamente — ver `TransacaoService.cancelar_parcelas_do_parcelamento`,
+   * backend). Sem este aviso a linha continua aparecendo (e contando no
+   * total do período) em "Compras desta fatura" sem nenhuma explicação —
+   * bug relatado pelo usuário, 2026-07-25: parecia que excluir a compra
+   * não tinha funcionado. Calculado pelo backend, nunca setado pelo
+   * cliente. */
+  parcelamento_cancelado: boolean;
+
   tags: TagRead[];
 }
 

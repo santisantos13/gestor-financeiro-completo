@@ -313,6 +313,14 @@
     "review": [],
     "done": [
       {
+        "id": "d77",
+        "title": "Transações: aviso quando compra cancelada deixa parcela para trás",
+        "description": "Bug relatado pelo usuário: 'registro despesas, mas depois excluo e o valor não sai da informação geral' (print de TransacoesPage). Investigação: comportamento correto e já deliberado (seção 2 de docs/analise-arquitetural-escopo-parcelamento.md) - excluir uma compra parcelada no cartão preserva a(s) parcela(s) que já estão em fatura fechada, para nunca reescrever um total já congelado. O problema real não era o cálculo (visão mensal continua certa), era a ausência de qualquer explicação visível do porquê - e a parcela sobrevivente nunca aparece em TransacoesPage (que sempre filtra apenas_conta=true, escondendo toda compra de cartão), só em FaturaDrawer > Compras desta fatura. Implementado: TransacaoService._marcar_parcelamento_cancelado (busca em lote via novo ParcelamentoRepository.listar_por_ids, 1 query IN) anexa TransacaoRead.parcelamento_cancelado=true quando a parcela sobrevive a um Parcelamento cancelado; FaturaDrawer mostra uma etiqueta 'Compra cancelada' nessas linhas. Nenhum valor histórico foi alterado - correção puramente de comunicação visual. Testes: 3 unitários novos + 2 de integração novos (test_parcelamento_flow.py). Suíte completa (backend: unit 630 + toda integração; frontend: 21 testes) revalidada, tsc -b e vite build limpos. Aproveitado o mesmo momento para uma ronda de otimizações de backend: GZipMiddleware nas respostas e pool_pre_ping+pool_recycle na engine SQLAlchemy (evita conexão morta descartada por Postgres gerenciado gratuito após período ocioso - achado real relevante para o plano free do Render). Versão 0.5.1 -> 0.5.2 (patch).",
+        "category": "Backend + Frontend",
+        "priority": "Alta",
+        "date": "2026-07-25"
+      },
+      {
         "id": "d76",
         "title": "Configurações: preferências de formato de data e tema",
         "description": "Segunda fatia do módulo Configurações, mesmo dia. Usuário decidiu deixar 'moeda' fora do seletor de preferências: trocar só o símbolo (R$/US$/€) sem converter valores de verdade arriscaria confundir sobre o saldo real - risco alto demais para um app financeiro. Implementado: formato de data (DD/MM/AAAA, AAAA-MM-DD, MM/DD/AAAA) via novo lib/preferencesStore.ts (ponte não-React, mesmo padrão de tokenStore.ts) + PreferenciasContext; utils/date.ts (formatDate/formatDateTime) monta a string manualmente em vez de Intl fixo em pt-BR. Mudar a preferência recarrega a página (window.location.reload) - decisão deliberada para não ter que refatorar todo consumidor de formatDate para reagir a contexto. Tema (já existente via ThemeToggle) agora também exposto nesta página, sem duplicar lógica. Testes: utils/date.test.ts (5 novos, prova os 3 formatos) + 1 teste novo em ConfiguracoesPage.test.tsx (renderização, sem clicar - clicar dispararia o reload real). tsc -b, vite build e suíte completa (21 testes frontend) revalidados. Versão 0.5.0 -> 0.5.1 (patch).",
@@ -923,6 +931,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-25",
+      "type": "backend+frontend",
+      "title": "Transações: etiqueta 'Compra cancelada' explica por que uma parcela sobrevivente ainda conta no total do período (fatura já fechada, snapshot nunca reescrito) + ronda de otimizações (gzip, pool_pre_ping). Versão 0.5.1 → 0.5.2"
+    },
     {
       "date": "2026-07-23",
       "type": "frontend",

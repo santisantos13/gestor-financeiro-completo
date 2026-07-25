@@ -15,9 +15,31 @@ from app.core.config import settings
 # Esse ajuste NAO se aplica a outros bancos (Postgres, MySQL...), por isso o if.
 connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
 
+# pool_pre_ping=True: testa a conexao ("SELECT 1") antes de emprestar do
+# pool - sem isso, uma conexao que o servidor de banco ja fechou por
+# ociosidade (comum em Postgres gerenciado gratuito tipo Neon/Supabase, que
+# derruba conexoes idle apos alguns minutos) so e descoberta quando a
+# query real falha no meio do request, virando um 500 (ou uma resposta bem
+# mais lenta, pelo retry). Custo desprezivel (uma query trivial a mais só
+# quando a conexao ja estava parada havia um tempo, nao a cada request) -
+# achado real da ronda de otimizacoes de performance (2026-07-23): sem
+# isso, o primeiro request depois de um periodo sem uso do app (exatamente
+# o cenario de producao no plano free) tinha uma chance real de cair numa
+# conexao morta.
+#
+# pool_recycle so se aplica a Postgres/MySQL (SQLite local nao tem esse
+# problema de conexao derrubada pelo servidor, e criar/reciclar conexao
+# sqlite com frequencia so adicionaria overhead a toa).
+eh_sqlite = settings.DATABASE_URL.startswith("sqlite")
+
 # engine: gerencia o pool de conexoes reais com o banco. Criado uma unica vez
 # quando o modulo e importado (nao a cada request).
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args=connect_args,
+    pool_pre_ping=True,
+    **({} if eh_sqlite else {"pool_recycle": 300}),
+)
 
 # fabrica de sessoes: cada chamada a SessionLocal() cria uma sessao nova.
 # autocommit=False / autoflush=False: controle explicito de quando os dados

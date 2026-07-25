@@ -108,4 +108,16 @@ class TransacaoRead(OrmBaseModel):
     # cliente.
     importada: bool
 
+    # Calculado (nunca armazenado), anexado por
+    # `TransacaoService._marcar_parcelamento_cancelado` - True quando esta
+    # parcela SOBREVIVEU a uma exclusão/cancelamento do Parcelamento porque
+    # já estava numa fatura fechada (o snapshot da fatura já fechada nunca
+    # é corrompido retroativamente, ver
+    # `TransacaoService.cancelar_parcelas_do_parcelamento`). Existe só para
+    # o frontend explicar visualmente por que a linha continua aparecendo
+    # (e contando no total do período) mesmo depois do usuário "excluir" a
+    # compra inteira - bug relatado pelo usuário, 2026-07-25: sem este
+    # aviso, parecia que a exclusão simplesmente não tinha funcionado.
+    parcelamento_cancelado: bool = False
+
     tags: list[TagRead] = Field(default_factory=list)

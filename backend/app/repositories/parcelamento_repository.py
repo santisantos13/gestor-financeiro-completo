@@ -30,3 +30,16 @@ class ParcelamentoRepository(SQLAlchemyRepository[Parcelamento]):
             .limit(limit)
         )
         return self.db.execute(stmt).scalars().all()
+
+    def listar_por_ids(self, parcelamento_ids: Sequence[int]) -> Sequence[Parcelamento]:
+        """Busca em lote (1 query) - usada por `TransacaoService` para
+        anexar `parcelamento_cancelado` a uma página inteira de
+        `Transacao` sem 1 query por linha (mesmo raciocínio de
+        `CentralFinanceiraService._fatura_aberta_do_cartao` evitar N+1).
+        Sem filtro de `usuario_id`: quem chama já validou posse de cada
+        `Transacao` (e portanto do `parcelamento_id` que ela carrega) - não
+        duplica essa checagem aqui, só resolve os ids já confiáveis."""
+        if not parcelamento_ids:
+            return []
+        stmt = select(Parcelamento).where(Parcelamento.id.in_(parcelamento_ids))
+        return self.db.execute(stmt).scalars().all()

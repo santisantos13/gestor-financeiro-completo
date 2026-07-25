@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.5.2",
+    data: "2026-07-25",
+    titulo: "Transações: aviso quando uma compra cancelada deixa parcela para trás",
+    itens: [
+      'Excluir uma compra parcelada no cartão sempre preservou a(s) parcela(s) que já estavam numa fatura fechada (o total daquele mês não muda de propósito) - mas não havia nenhum aviso disso. Agora "Compras desta fatura" (dentro do cartão) mostra uma etiqueta "Compra cancelada" nessas parcelas, explicando por que elas continuam contando no total do período.',
+    ],
+  },
+  {
     versao: "0.5.1",
     data: "2026-07-23",
     titulo: "Configurações: preferências de formato de data e tema",

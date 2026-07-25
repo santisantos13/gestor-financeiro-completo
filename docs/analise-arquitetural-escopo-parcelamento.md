@@ -131,3 +131,48 @@ Backend: suíte completa (~700+ testes) + testes novos cobrindo compra simples, 
 exclusão de QUALQUER parcela, não só a "clicada" do teste anterior), múltiplos cartões,
 `GET /parcelamentos/{id}` (usado pelo novo diálogo), e o novo `NotImplementedError` de
 `EscopoOperacaoParcela.ESTA_PARCELA`. Frontend: `tsc -b` e `vite build` limpos.
+
+## 5. `parcelamento_cancelado` — a parcela preservada precisava de um aviso (2026-07-25)
+
+Bug relatado pelo usuário: "registro despesas, mas depois excluo e o valor não sai da
+informação geral" (print de `TransacoesPage`, cards "Despesas do período"/"Receitas do
+período"/"Saldo do período").
+
+**Reprodução** (script ad-hoc contra `TestClient`, não um teste automatizado - só para isolar a
+causa): compra parcelada em 3x num cartão, primeira parcela cai num ciclo cujo `fatura_id` foi
+fechado (`POST /faturas/{id}/fechar`). Excluir a compra inteira (clicando em qualquer parcela
+destravada) preserva a parcela da fatura fechada, exatamente como a seção 2 deste documento já
+documenta - **isso não é um bug novo, é o comportamento deliberado de sempre**. O
+`GET /central-financeira/visao-mensal` do mês da parcela preservada continuou corretamente
+somando aquele valor (`_somar_periodo` não filtra por `Parcelamento.ativo` - não faria sentido,
+já que a Transacao continua existindo de verdade e o dinheiro realmente saiu do cartão).
+
+**A causa raiz real não era um cálculo errado - era a ausência de qualquer explicação visível**
+de por que aquela parcela específica sobrevivia. Sem isso, o usuário via "excluí a compra" e o
+total do mês não mudando (para o mês da parcela travada), com nenhum jeito de descobrir o
+porquê a partir da tela de Transações.
+
+**Por que não em `TransacoesPage`, e sim em `FaturaDrawer`**: `TransacoesPage` sempre envia
+`apenas_conta=true` (`TransacaoRepository.listar_do_usuario`, pedido de 2026-07-20: "a tela de
+Transações não deve listar compras de cartão") - toda parcela sobrevivente tem `cartao_id`
+preenchido (só compra de CARTÃO tem `fatura_id`/conceito de fechamento; parcelamento de CONTA
+nunca preserva nada, `_impedir_escrita_em_fatura_fechada` não trava nada sem `fatura_id`), então
+ela NUNCA aparece naquela tabela, badge nenhum ajudaria ali. O único lugar onde a parcela
+preservada é de fato visível é `FaturaDrawer` → "Compras desta fatura" (`useComprasDaFatura`,
+sem esse filtro) - é lá que o aviso foi colocado.
+
+**Implementação**: `TransacaoService._marcar_parcelamento_cancelado` (chamado por
+`obter`/`listar`/`criar`/`atualizar`/`marcar_parcela_de_contrato_paga` - todo return path que
+vira `TransacaoRead`, mesmo cuidado de sempre anexar o campo calculado em 100% dos casos, nunca
+só "quando dá") anexa `Transacao.parcelamento_cancelado` (transiente, nunca persistido) = `True`
+só quando `parcelamento_id` aponta para um `Parcelamento` com `ativo=False`. Busca em lote
+(`ParcelamentoRepository.listar_por_ids`, 1 query `IN` para toda a página) - nunca 1 query por
+transação. `TransacaoRead.parcelamento_cancelado: bool = False` no schema;
+`TransacaoRead.parcelamento_cancelado: boolean` no tipo do frontend. `FaturaDrawer` renderiza um
+`Badge` "Compra cancelada" ao lado da descrição da compra quando o campo é `true`, com `title`
+explicando o motivo.
+
+Nenhum valor histórico foi alterado - a fatura fechada, seu `valor_total` congelado e o total do
+período continuam exatamente como sempre foram (o invariante "documento financeiro fechado
+nunca é reescrito", já citado na seção 2, permanece intacto). Esta é puramente uma correção de
+comunicação visual.

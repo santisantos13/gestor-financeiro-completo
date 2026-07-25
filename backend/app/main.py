@@ -8,6 +8,7 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
@@ -53,6 +54,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compressao gzip das respostas - ronda de otimizacoes de performance
+# (2026-07-23): endpoints de listagem (ex: /transacoes, /central-financeira/
+# calendario, /central-financeira/graficos-tendencias) devolvem JSON
+# repetitivo (mesmas chaves em cada item da lista), que comprime muito bem.
+# `minimum_size=500` evita gastar CPU comprimindo respostas pequenas (ex:
+# um 204/401) onde o overhead do gzip nao compensaria o ganho de tamanho.
+# Adicionado DEPOIS do CORSMiddleware de proposito: no Starlette, o ultimo
+# middleware registrado fica na camada mais EXTERNA, entao a resposta ja
+# sai com os headers de CORS certos antes de ser comprimida por ultimo.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 
 # --- traducao de excecoes de dominio para HTTP -----------------------------

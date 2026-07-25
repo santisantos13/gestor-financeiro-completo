@@ -343,9 +343,30 @@ def test_excluir_uma_parcela_pelo_endpoint_generico_preserva_a_que_ja_esta_em_fa
     ).json()
     assert len(parcelas_restantes) == 1
     assert parcelas_restantes[0]["numero_parcela"] == 1
+    # bug real relatado pelo usuário (2026-07-25): a parcela sobrevivente
+    # continuava aparecendo (e contando no total do período) sem nenhum
+    # aviso de que pertencia a uma compra já cancelada - dava a impressão
+    # de que a exclusão simplesmente não tinha funcionado.
+    assert parcelas_restantes[0]["parcelamento_cancelado"] is True
 
     todos = client.get("/parcelamentos?apenas_ativos=false", headers=headers).json()
     assert next(p for p in todos if p["id"] == parcelamento["id"])["ativo"] is False
+
+
+def test_parcela_de_parcelamento_ainda_ativo_nao_tem_flag_parcelamento_cancelado(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"], dia_fechamento=10, dia_vencimento=17)
+    parcelamento = _criar_parcelamento(
+        client, headers, cartao_id=cartao["id"], conta_id=None, num_parcelas=3, data_inicio="2026-07-15"
+    ).json()
+
+    parcelas = client.get(f"/transacoes?parcelamento_id={parcelamento['id']}", headers=headers).json()
+    assert all(p["parcelamento_cancelado"] is False for p in parcelas)
+
+    primeira_parcela = parcelas[0]
+    obtida = client.get(f"/transacoes/{primeira_parcela['id']}", headers=headers).json()
+    assert obtida["parcelamento_cancelado"] is False
 
 
 def test_excluir_a_parcela_clicada_com_fatura_fechada_ainda_retorna_422(client):

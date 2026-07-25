@@ -227,6 +227,9 @@ class FakeParcelamentoRepository:
     def update(self, parcelamento):
         return parcelamento
 
+    def listar_por_ids(self, ids):
+        return [p for p in self._parcelamentos.values() if p.id in ids]
+
 
 class _FinanciamentoFalso:
     def __init__(self, id, usuario_id, num_parcelas):
@@ -1225,6 +1228,49 @@ def test_excluir_uma_parcela_preserva_a_que_ja_esta_em_fatura_fechada(
     assert transacao_repo.get(parcela_paga.id) is not None
     assert transacao_repo.get(parcela_futura.id) is None
     assert parcelamento_repo.get(1).ativo is False
+
+
+# --- parcelamento_cancelado (bug real relatado pelo usuario, 2026-07-25) --
+# Achado: a parcela preservada acima (fatura ja fechada) continuava
+# aparecendo na lista/soma de Transacao sem nenhum sinal de que pertencia a
+# uma compra ja cancelada - dava a impressao de que "excluir nao funcionou".
+# `parcelamento_cancelado` e o aviso calculado que resolve isso.
+
+def test_parcela_preservada_apos_cancelamento_e_marcada_como_parcelamento_cancelado(
+    service, transacao_repo, parcelamento_repo, cartao_repo, fatura_repo
+):
+    cartao_repo.adicionar(cartao_id=10, usuario_id=1)
+    parcela_paga = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/2)"
+    )
+    fatura_repo.get(parcela_paga.fatura_id).status = StatusFatura.FECHADA
+    parcela_futura = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=2, descricao="Compra (2/2)"
+    )
+
+    service.excluir(parcela_futura.id, usuario_id=1)
+
+    sobrevivente = service.obter(parcela_paga.id, usuario_id=1)
+    assert sobrevivente.parcelamento_cancelado is True
+
+
+def test_parcela_de_parcelamento_ainda_ativo_nao_e_marcada(service, transacao_repo, cartao_repo):
+    cartao_repo.adicionar(cartao_id=10, usuario_id=1)
+    parcela = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/3)"
+    )
+
+    obtida = service.obter(parcela.id, usuario_id=1)
+    assert obtida.parcelamento_cancelado is False
+
+    listadas = service.listar(usuario_id=1, parcelamento_id=1)
+    assert all(t.parcelamento_cancelado is False for t in listadas)
+
+
+def test_transacao_sem_parcelamento_nunca_e_marcada(service):
+    transacao = _criar(service, conta_id=100, cartao_id=None)
+    assert transacao.parcelamento_cancelado is False
+    assert service.obter(transacao.id, usuario_id=1).parcelamento_cancelado is False
 
 
 def test_excluir_a_parcela_clicada_com_fatura_fechada_ainda_levanta_business_rule_error(

@@ -199,10 +199,14 @@ class TransacaoService:
             fatura_id=fatura_id,
             tags=tags,
         )
-        return self.transacao_repo.create(transacao)
+        transacao = self.transacao_repo.create(transacao)
+        self._marcar_parcelamento_cancelado([transacao])
+        return transacao
 
     def obter(self, transacao_id: int, usuario_id: int) -> Transacao:
-        return self._buscar_da_propriedade_do_usuario(transacao_id, usuario_id)
+        transacao = self._buscar_da_propriedade_do_usuario(transacao_id, usuario_id)
+        self._marcar_parcelamento_cancelado([transacao])
+        return transacao
 
     def listar(
         self,
@@ -225,7 +229,7 @@ class TransacaoService:
         skip: int = 0,
         limit: int = 100,
     ) -> list[Transacao]:
-        return list(
+        transacoes = list(
             self.transacao_repo.listar_do_usuario(
                 usuario_id,
                 conta_id=conta_id,
@@ -246,6 +250,38 @@ class TransacaoService:
                 limit=limit,
             )
         )
+        self._marcar_parcelamento_cancelado(transacoes)
+        return transacoes
+
+    def _marcar_parcelamento_cancelado(self, transacoes: list[Transacao]) -> None:
+        """Anexa `parcelamento_cancelado` (calculado, nunca armazenado) a
+        cada `Transacao` - mesmo padrão de `Cartao.limite_disponivel`/
+        `Conta.saldo_atual` nos outros Services. `True` só para a parcela
+        que SOBREVIVEU a um `excluir()`/`cancelar()` de Parcelamento porque
+        já estava numa fatura fechada (`cancelar_parcelas_do_parcelamento`
+        preserva essas de propósito - não corrompe o snapshot da fatura já
+        fechada, ver docstring daquele método). Sem esse aviso, a linha
+        continuava aparecendo na tabela de Transações (e contando no total
+        do período) sem nenhuma explicação visível do motivo, dando a
+        impressão de que "excluir não funcionou" (bug relatado pelo
+        usuário, 2026-07-25).
+
+        Busca os Parcelamentos referenciados em 1 única query (`IN`), nunca
+        1 por transação - mesmo cuidado de N+1 já seguido em todo o
+        projeto (ver `ParcelamentoRepository.listar_por_ids`)."""
+        ids_parcelamento = {t.parcelamento_id for t in transacoes if t.parcelamento_id is not None}
+        parcelamentos_por_id = (
+            {p.id: p for p in self.parcelamento_repo.listar_por_ids(list(ids_parcelamento))}
+            if ids_parcelamento
+            else {}
+        )
+        for transacao in transacoes:
+            parcelamento = (
+                parcelamentos_por_id.get(transacao.parcelamento_id)
+                if transacao.parcelamento_id is not None
+                else None
+            )
+            transacao.parcelamento_cancelado = parcelamento is not None and not parcelamento.ativo
 
     def somar_por_periodo(
         self,
@@ -385,7 +421,9 @@ class TransacaoService:
 
         for campo, valor in alteracoes.items():
             setattr(transacao, campo, valor)
-        return self.transacao_repo.update(transacao)
+        transacao = self.transacao_repo.update(transacao)
+        self._marcar_parcelamento_cancelado([transacao])
+        return transacao
 
     def excluir(self, transacao_id: int, usuario_id: int) -> None:
         """Sem soft delete: Transacao é lançamento de livro-razão, não
@@ -487,7 +525,9 @@ class TransacaoService:
         if transacao.status == StatusTransacao.PAGO:
             raise BusinessRuleError("Esta parcela já está paga.")
         transacao.status = StatusTransacao.PAGO
-        return self.transacao_repo.update(transacao)
+        transacao = self.transacao_repo.update(transacao)
+        self._marcar_parcelamento_cancelado([transacao])
+        return transacao
 
     # --- validações estruturais (mesma família dos CheckConstraints do model) ---
 

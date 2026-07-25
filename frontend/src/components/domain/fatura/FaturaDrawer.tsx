@@ -420,7 +420,17 @@ export function FaturaDrawer({ cartaoId, contaPagamentoId, faturaId, onClose, on
                             className="flex items-center justify-between gap-3 rounded-sm border border-border-subtle bg-surface-2 px-3 py-2"
                           >
                             <div className="min-w-0">
-                              <p className="truncate text-caption text-text-primary">{compra.descricao}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="truncate text-caption text-text-primary">{compra.descricao}</p>
+                                {compra.parcelamento_cancelado && (
+                                  <span
+                                    className="shrink-0"
+                                    title="A compra parcelada foi cancelada, mas esta parcela já estava numa fatura fechada — preservada como histórico, ainda conta no total do período."
+                                  >
+                                    <Badge tone="neutral">Compra cancelada</Badge>
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-caption text-text-tertiary">{formatDate(compra.data)}</p>
                             </div>
                             <div className="flex shrink-0 items-center gap-2">
