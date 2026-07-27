@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, ListTree } from "lucide-react";
+import { Menu, ListTree, Bell } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 import { AtividadesRecentesDrawer } from "../domain/dashboard/AtividadesRecentesDrawer";
+import { AlertasDrawer } from "../domain/alerta/AlertasDrawer";
+import { useAlertas } from "../../hooks/useAlertaQueries";
 import { APP_VERSION } from "../../version";
 
 /**
@@ -23,6 +25,12 @@ export function Header() {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
   const [atividadesAberto, setAtividadesAberto] = useState(false);
+  const [alertasAberto, setAlertasAberto] = useState(false);
+  // `useAlertas()` já é usado de novo dentro de `AlertasDrawer` (mesmo
+  // cache do React Query, sem requisição extra) - aqui só para o
+  // contador do sino, que precisa existir mesmo com o Drawer fechado.
+  const { data: alertas } = useAlertas(false);
+  const quantidadeDisparados = (alertas ?? []).filter((a) => a.disparado).length;
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg/80 px-4 backdrop-blur-sm sm:px-6">
@@ -64,6 +72,24 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-1">
+        {/* Alertas (frontend do CRUD de Alerta, item t139) - contador mostra
+            quantos alertas ATIVOS estão disparados agora (avaliação em
+            tempo real, nunca um histórico - ver docs/analise-arquitetural-alertas.md). */}
+        <button
+          type="button"
+          onClick={() => setAlertasAberto(true)}
+          aria-label={`Ver alertas${quantidadeDisparados > 0 ? ` (${quantidadeDisparados} disparado(s))` : ""}`}
+          aria-haspopup="dialog"
+          aria-expanded={alertasAberto}
+          className="relative rounded-sm p-1.5 text-text-secondary transition-colors duration-fast ease-out hover:bg-surface-2 hover:text-text-primary"
+        >
+          <Bell size={18} aria-hidden="true" />
+          {quantidadeDisparados > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-negative px-1 text-[10px] font-semibold leading-none text-text-onAccent">
+              {quantidadeDisparados > 9 ? "9+" : quantidadeDisparados}
+            </span>
+          )}
+        </button>
         {/* Central de Atividades (Sprint de Refinamento Premium, item 17) */}
         <button
           type="button"
@@ -80,6 +106,7 @@ export function Header() {
 
       <MobileNav open={menuAberto} onClose={() => setMenuAberto(false)} />
       <AtividadesRecentesDrawer open={atividadesAberto} onClose={() => setAtividadesAberto(false)} />
+      <AlertasDrawer open={alertasAberto} onClose={() => setAlertasAberto(false)} />
     </header>
   );
 }

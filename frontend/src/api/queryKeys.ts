@@ -194,4 +194,14 @@ export const queryKeys = {
   anexos: {
     list: (transacaoId: number) => ["anexos", "list", transacaoId] as const,
   },
+  /** Alertas (frontend, item `t139` do roadmap — backend já existia desde
+   * a entrega anterior). `list` depende de `apenasAtivos`, mesmo padrão de
+   * `contas`/`cartoes` — a `AlertasDrawer` sempre busca `false` (precisa
+   * ver os pausados para oferecer "Reativar"), então hoje só essa chave é
+   * usada de verdade, mas o parâmetro fica na assinatura por
+   * consistência com o resto do arquivo. */
+  alertas: {
+    all: ["alertas"] as const,
+    list: (apenasAtivos: boolean) => ["alertas", "list", apenasAtivos] as const,
+  },
 } as const;

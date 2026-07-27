@@ -14,6 +14,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.9.0",
+    data: "2026-07-26",
+    titulo: "Alertas: sino de notificações, lista e criação",
+    itens: [
+      'Novo sino no cabeçalho (ícone de alerta) mostra quantos avisos configurados estão disparados agora - limite de cartão perto de estourar, fatura/conta recorrente perto de vencer, meta atingida, saldo baixo.',
+      'Clicar no sino abre a lista completa: pausar/reativar, editar ou excluir cada alerta.',
+      'Botão "Novo alerta" na lista permite criar um alerta do zero - escolha o tipo, o item monitorado (cartão/conta/meta/conta recorrente) e a condição (ex.: "avisar ao atingir 90% do limite").',
+    ],
+  },
+  {
     versao: "0.8.0",
     data: "2026-07-26",
     titulo: "Alertas: base pronta nos bastidores (ainda sem tela)",

@@ -242,8 +242,8 @@
     {
       "name": "Alertas",
       "category": "Backend + Frontend",
-      "status": "in-progress",
-      "progress": 55,
+      "status": "done",
+      "progress": 100,
       "priority": "Baixa"
     },
     {
@@ -304,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d82",
+        "title": "Alertas: frontend completo (sino + lista + criação/edição)",
+        "description": "Sequência da entrega anterior (d81, só backend). O item do roadmap dizia 'sino + lista', mas isso entregaria um sino permanentemente vazio (sem UI de criação, nenhum alerta existiria) - apresentado ao usuário via AskUserQuestion, que escolheu o escopo completo. Novo sino no Header (mesmo padrão do botão de Central de Atividades já existente) com contador de alertas disparados agora. AlertasDrawer lista todos os alertas (ativos e pausados), mostra a mensagem já calculada pelo backend para os disparados ou a descrição da regra para os demais, com pausar/reativar (PATCH ativo)/editar/excluir. AlertaFormDialog cria/edita: tipo e item monitorado só editáveis na criação (imutáveis no backend), picker de entidade troca de fonte conforme o tipo (Cartão/Conta/Meta/Conta Recorrente, via os hooks de CRUD real, não os agregadores do Dashboard), campo de condição troca junto (percentual/dias/valor mínimo/nenhum). Novos: types/alerta.ts, services/alertaService.ts, hooks/useAlertaQueries.ts, lib/alertaDescricao.ts, schemas/alerta.ts, components/domain/alerta/{AlertaFormDialog,AlertasDrawer}.tsx. Testes: 6 novos (AlertaFormDialog.test.tsx + AlertasDrawer.test.tsx), suíte completa (29 testes) validada num ambiente auxiliar (mesmo motivo de sessões anteriores: I/O do diretório montado), tsc -b e vite build limpos. Doc: docs/analise-arquitetural-alertas.md, seção 8. Versão 0.8.0 -> 0.9.0 (minor, módulo Alertas fica 100% completo).",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-26"
+      },
       {
         "id": "d81",
         "title": "Alertas: backend finalizado (repository/service/schema/router já existiam, faltava conectar)",
@@ -955,6 +963,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "frontend",
+      "title": "Alertas: sino de notificações no Header + lista (pausar/reativar/editar/excluir) + criação de novos alertas. Módulo Alertas fica 100% completo. Versão 0.8.0 → 0.9.0"
+    },
     {
       "date": "2026-07-26",
       "type": "backend",
