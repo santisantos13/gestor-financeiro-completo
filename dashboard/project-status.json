@@ -7,7 +7,7 @@
       "label": "Desenvolvimento ativo"
     },
     "overallPercent": 92,
-    "updatedAt": "2026-07-26T23:05:00-03:00"
+    "updatedAt": "2026-07-26T23:35:00-03:00"
   },
   "areas": [
     {
@@ -304,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d85",
+        "title": "Gráficos: total do mês com variação, seletor unificado, drill-down, \"Outros\" e comparação",
+        "description": "Usuário pediu sugestões de melhoria para /graficos, depois pediu para implementar todas (6 no total). 100% frontend, nenhum endpoint/cálculo de agregação novo. (1) ResumoGastosMes.tsx: total do mês (soma de gastos_por_categoria) + variação vs mês anterior (busca um 2º graficos_periodo via novo utils/date.ts:mesAnterior) - indicador de variação NÃO reaproveita ui/TrendIndicator (gasto subindo é notícia ruim, cor invertida em relação a saldo/receita). (2) os 3 MesAnoSeletor duplicados viraram 1 compartilhado num novo card 'Gastos do mês'. (3) botão 'Baixar relatório' leva para /relatorios?ano=&mes= (RelatoriosPage passou a ler o período da URL, com fallback pro mês atual). (4) drill-down: categoria/conta levam para /transacoes já filtrado (TransacoesPage ganhou leitura de categoria_id/conta_id/ano/mes da URL + novo Select de Conta); cartão leva para /cartoes/:id (nunca /transacoes, que por desenho nunca lista compra de cartão) - GastosPorCartaoChart ganhou uma lista clicável abaixo das barras (só o SVG do Recharts não é acessível por teclado/leitor de tela). (5) novo lib/agruparCaudaLonga.ts agrupa a cauda longa em 'Outros' acima de 6 itens nos 3 gráficos de período. (6) novo GastosComparativoChart.tsx (barras agrupadas atual x anterior, genérico por nome/total) substitui o donut/barra específico quando o toggle 'Comparar com mês anterior' está ativo. Testes: agruparCaudaLonga.test.ts (2), date.test.ts +2 (mesAnterior), novo GraficosPage.test.tsx (6). Suíte completa (45 testes), tsc -b e vite build revalidados. Doc: docs/analise-arquitetural-graficos.md, seção 9 (revisita o backlog da seção 7 - drill-down sai da lista de fora-de-escopo). Versão 0.11.0 -> 0.12.0 (minor, nova seção substancial de doc arquitetural).",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-26"
+      },
       {
         "id": "d84",
         "title": "Relatórios: exportar resumo do mês em CSV/PDF (backend + frontend)",
@@ -979,6 +987,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "frontend",
+      "title": "Gráficos: total do mês com variação vs mês anterior, seletor de mês unificado, drill-down para Transações/Cartão, agrupamento 'Outros' e comparação lado a lado com o mês anterior. Versão 0.11.0 → 0.12.0"
+    },
     {
       "date": "2026-07-26",
       "type": "backend+frontend",

@@ -14,6 +14,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.12.0",
+    data: "2026-07-26",
+    titulo: "Gráficos: total do mês com variação, drill-down, comparação e mais",
+    itens: [
+      'A seção "Gastos do mês" (categoria/cartão/conta) ganhou um total com a variação vs mês anterior, um único seletor de mês compartilhado e um atalho "Baixar relatório".',
+      "Clicar numa categoria ou conta leva direto para as transações filtradas daquele item; clicar num cartão leva para a página de detalhe dele.",
+      'Novo toggle "Comparar com mês anterior" mostra lado a lado o gasto deste mês e do mês passado.',
+      "Categorias/contas/cartões em excesso agora agrupam os menores num item \"Outros\", mantendo os gráficos legíveis.",
+    ],
+  },
+  {
     versao: "0.11.0",
     data: "2026-07-26",
     titulo: "Relatórios: exportar resumo do mês em CSV/PDF",

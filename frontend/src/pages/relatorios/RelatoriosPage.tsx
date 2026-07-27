@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FileDown, Table } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { SectionTitle } from "../../components/ui/SectionTitle";
@@ -27,10 +28,23 @@ import { formatMoney } from "../../utils/format";
  * O preview em tela (mesmos números que o arquivo baixado vai conter)
  * existe para o usuário confirmar ANTES de baixar - nenhum download é
  * "às cegas".
+ *
+ * Melhorias de Gráficos (2026-07-26): o período inicial também aceita vir
+ * da URL (`?ano=&mes=`) - atalho "Baixar relatório" em `/graficos` já
+ * chega aqui com o mês que o usuário tinha selecionado lá, evitando
+ * escolher o mesmo mês de novo. Sem `ano`/`mes` na URL (acesso direto pelo
+ * menu), cai no mês atual, como antes.
  */
 export function RelatoriosPage() {
+  const [searchParams] = useSearchParams();
   const hoje = new Date();
-  const [periodo, setPeriodo] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 });
+  const anoUrl = Number(searchParams.get("ano"));
+  const mesUrl = Number(searchParams.get("mes"));
+  const periodoInicial =
+    Number.isInteger(anoUrl) && anoUrl > 0 && Number.isInteger(mesUrl) && mesUrl >= 1 && mesUrl <= 12
+      ? { ano: anoUrl, mes: mesUrl }
+      : { ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 };
+  const [periodo, setPeriodo] = useState(periodoInicial);
   const toast = useToast();
 
   const visao = useVisaoMensalQuery(periodo.ano, periodo.mes);

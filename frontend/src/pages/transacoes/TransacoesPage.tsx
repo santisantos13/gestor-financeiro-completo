@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Paperclip, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -55,14 +56,32 @@ const DIALOGO_FECHADO: EstadoDialogoTransacao = { aberto: false, transacao: null
  * cartão, faturas, Central Financeira/Dashboard) - só não aparecem aqui.
  * Para ver/registrar compras de um cartão específico, a tela é
  * `/cartoes/:id` (ação "Nova compra").
+ *
+ * Melhorias de Gráficos (2026-07-26): período/categoria/conta iniciais
+ * também aceitam vir da URL (`?categoria_id=&conta_id=&ano=&mes=`) - o
+ * drill-down de "Gastos por categoria"/"Gastos por conta" em `/graficos`
+ * chega aqui já filtrado, em vez de o usuário refazer o filtro na mão.
+ * Só lido uma vez, na montagem (não fica sincronizando a URL depois -
+ * mesmo padrão simples de "seed inicial" usado por `RelatoriosPage`).
+ * Compra de CARTÃO nunca aparece aqui (`apenas_conta: true`), então
+ * "Gastos por cartão" leva para `/cartoes/:id` em vez de tentar um
+ * `cartao_id` que sempre voltaria vazio.
  */
 export function TransacoesPage() {
   const toast = useToast();
+  const [searchParams] = useSearchParams();
   const hoje = new Date();
-  const [periodo, setPeriodo] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 });
+  const anoUrl = Number(searchParams.get("ano"));
+  const mesUrl = Number(searchParams.get("mes"));
+  const periodoInicial =
+    Number.isInteger(anoUrl) && anoUrl > 0 && Number.isInteger(mesUrl) && mesUrl >= 1 && mesUrl <= 12
+      ? { ano: anoUrl, mes: mesUrl }
+      : { ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 };
+  const [periodo, setPeriodo] = useState(periodoInicial);
   const [tipoFiltro, setTipoFiltro] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState(searchParams.get("categoria_id") ?? "");
+  const [contaFiltro, setContaFiltro] = useState(searchParams.get("conta_id") ?? "");
 
   const { data: categorias } = useCategorias(false);
   const { data: contas } = useContas(false);
@@ -76,13 +95,14 @@ export function TransacoesPage() {
       tipo: tipoFiltro ? (tipoFiltro as TransacaoFiltros["tipo"]) : undefined,
       status: statusFiltro ? (statusFiltro as TransacaoFiltros["status"]) : undefined,
       categoria_id: categoriaFiltro ? Number(categoriaFiltro) : undefined,
+      conta_id: contaFiltro ? Number(contaFiltro) : undefined,
       // Compras de cartão não aparecem aqui - pedido explícito do usuário
       // (2026-07-20). Só compras/lançamentos de Conta e pagamentos de
       // fatura (que também são Transacao com conta_id, nunca cartao_id).
       apenas_conta: true,
       limit: 200,
     };
-  }, [periodo, tipoFiltro, statusFiltro, categoriaFiltro]);
+  }, [periodo, tipoFiltro, statusFiltro, categoriaFiltro, contaFiltro]);
 
   const { data: transacoes, isLoading, error, refetch } = useTransacoes(filtros);
 
@@ -109,6 +129,11 @@ export function TransacoesPage() {
   const categoriaOptions = useMemo(
     () => (categorias ?? []).map((c) => ({ value: String(c.id), label: c.nome })),
     [categorias],
+  );
+
+  const contaOptions = useMemo(
+    () => (contas ?? []).map((c) => ({ value: String(c.id), label: c.nome })),
+    [contas],
   );
 
   function abrirCriacao() {
@@ -179,6 +204,13 @@ export function TransacoesPage() {
           onChange={setCategoriaFiltro}
           options={[{ value: "", label: "Categoria: todas" }, ...categoriaOptions]}
           aria-label="Filtrar por categoria"
+        />
+        <Select
+          className="w-52"
+          value={contaFiltro}
+          onChange={setContaFiltro}
+          options={[{ value: "", label: "Conta: todas" }, ...contaOptions]}
+          aria-label="Filtrar por conta"
         />
       </div>
 

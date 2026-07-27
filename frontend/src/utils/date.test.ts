@@ -6,7 +6,7 @@
  * padrão entre testes (o store é module-level, não reseta sozinho).
  */
 import { describe, it, expect, afterEach } from "vitest";
-import { formatDate, formatDateTime } from "./date";
+import { formatDate, formatDateTime, mesAnterior } from "./date";
 import { setFormatoData, FORMATO_DATA_PADRAO } from "../lib/preferencesStore";
 
 describe("formatDate", () => {
@@ -42,5 +42,15 @@ describe("formatDateTime", () => {
     setFormatoData("AAAA-MM-DD");
     const resultado = formatDateTime("2026-03-05T14:30:00");
     expect(resultado).toMatch(/^2026-03-05 \d{2}:\d{2}$/);
+  });
+});
+
+describe("mesAnterior", () => {
+  it("volta um mês dentro do mesmo ano", () => {
+    expect(mesAnterior(2026, 7)).toEqual({ ano: 2026, mes: 6 });
+  });
+
+  it("faz rollover de ano em janeiro", () => {
+    expect(mesAnterior(2026, 1)).toEqual({ ano: 2025, mes: 12 });
   });
 });

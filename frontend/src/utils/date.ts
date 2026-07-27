@@ -67,6 +67,15 @@ export function nomeMes(mes: number): string {
   return NOMES_MES[mes - 1] ?? "";
 }
 
+/** Mês anterior a `ano`/`mes` (1-indexado, mesma convenção do resto do
+ * arquivo), com rollover de ano em janeiro — usado pela comparação "vs mês
+ * anterior" da página `/graficos` (Melhorias de Gráficos, 2026-07-26): busca
+ * o mesmo `graficos_periodo` do mês anterior para calcular a variação, sem
+ * nenhum endpoint novo. */
+export function mesAnterior(ano: number, mes: number): { ano: number; mes: number } {
+  return mes === 1 ? { ano: ano - 1, mes: 12 } : { ano, mes: mes - 1 };
+}
+
 function ultimoDiaDoMes(ano: number, mes: number): number {
   return new Date(ano, mes + 1, 0).getDate();
 }

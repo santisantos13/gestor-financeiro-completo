@@ -177,3 +177,76 @@ inspiração no app do Mercado Pago: o total do período fica escrito no miolo v
 — nenhuma outra tela do app tem esse elemento ainda; se o padrão for aprovado no uso real, é
 candidato a subir para um componente compartilhado (`DonutChartComTotal` ou similar) e substituir a
 duplicação atual entre "Gastos por categoria"/"Saldo por conta"/"Gastos por conta".
+
+## 9. Melhorias de Gráficos (2026-07-26) — 6 pedidos do usuário em cima da página já em produção
+
+Usuário pediu sugestões de melhoria para `/graficos` e, em seguida, pediu para implementar todas.
+100% frontend — nenhum endpoint novo, nenhum cálculo de agregação novo no backend. As 6 peças:
+
+**1. Total do mês + variação vs mês anterior.** `GraficosPage` passou a buscar um SEGUNDO
+`graficos_periodo` (mês anterior, via novo `utils/date.ts:mesAnterior`) além do já existente (mês
+selecionado) — mesmo endpoint, dois `useGraficosPeriodoQuery` com `ano`/`mes` diferentes, cacheados
+separadamente pelo React Query. O total do mês é a soma de `gastos_por_categoria` (cobre 100% das
+despesas do período — cartão e conta somados, ver seção 2 sobre a garantia de
+`somar_agrupado_por_conta`/`somar_agrupado_por_cartao` nunca se sobreporem). Novo componente
+`ResumoGastosMes.tsx` exibe o total + a variação percentual. Este último NÃO reaproveita
+`ui/TrendIndicator` (usado em `StatCard` para saldo/receita, onde "mais" é sempre bom, verde) —
+gasto SUBINDO é a notícia ruim, então a cor é invertida (vermelho para aumento, verde para queda) em
+um indicador local (`IndicadorVariacaoGasto`), preservando o "Sistema semântico de status" do
+projeto (tone correto por significado, nunca por sinal aritmético cru).
+
+**2. Seletor de mês unificado.** Os 3 cards de gasto (categoria/cartão/conta) tinham cada um seu
+próprio `MesAnoSeletor`, sempre sincronizados entre si (mesmo estado `periodo`) — virou um único
+seletor compartilhado num novo card de cabeçalho "Gastos do mês", junto do resumo/variação da peça
+1, do toggle da peça 6 e do atalho da peça 3.
+
+**3. Atalho para Relatórios.** Botão "Baixar relatório" no card de cabeçalho leva para
+`/relatorios?ano=&mes=` com o mês já selecionado aqui — evita escolher o mesmo mês de novo naquela
+página. `RelatoriosPage` passou a ler `ano`/`mes` da URL como seed inicial (`useSearchParams`, com
+fallback para o mês atual quando ausentes — acesso direto pelo menu continua funcionando igual).
+
+**4. Drill-down por categoria/conta/cartão.** A seção 7 (backlog) desta etapa original listava
+"Filtro de categoria/cartão específico dentro do próprio gráfico (drill-down)" como
+explicitamente fora de escopo — revisitado agora a pedido do usuário. `GastosPorCategoriaChart`/
+`GastosPorContaChart` ganharam `onSelecionarCategoria`/`onSelecionarConta` opcionais: cada linha da
+legenda (já existia, virou um `<button>`) leva para `/transacoes?categoria_id=&ano=&mes=` ou
+`?conta_id=&ano=&mes=` — filtro EXATO no caso de conta (mesma condição `conta_id IS NOT NULL` que
+`gastos_por_conta` já usa), aproximado no caso de categoria (categoria também é atribuída a compras
+de cartão, que `/transacoes` nunca lista — ver próximo parágrafo). `TransacoesPage` passou a ler
+`categoria_id`/`conta_id`/`ano`/`mes` da URL como seed inicial, e ganhou um novo `Select` "Conta:
+todas" (não existia nenhum filtro de conta na tela até então).
+
+"Gastos por cartão" é diferente: `GastosPorCartaoChart` leva para `/cartoes/:id` (a página de
+detalhe do cartão), NUNCA para `/transacoes` — compras de cartão nunca aparecem naquela tabela por
+desenho (`apenas_conta: true`, pedido explícito do usuário em 2026-07-20, ver
+`docs/analise-arquitetural-escopo-parcelamento.md`), então um filtro por `cartao_id` ali sempre
+voltaria vazio. Esse gráfico também ganhou uma lista clicável abaixo das barras (não existia
+nenhum elemento HTML de verdade ali antes, só o SVG do Recharts) — um `<Cell onClick>` sozinho não é
+navegável por teclado nem exposto a leitor de tela; a lista é a superfície acessível real do
+drill-down, o clique direto na barra continua funcionando como atalho extra.
+
+**5. Cauda longa agrupada em "Outros".** Novo `lib/agruparCaudaLonga.ts` (helper genérico, testado
+isoladamente em `agruparCaudaLonga.test.ts`): agrupa o excedente de uma lista já ordenada (garantia
+de `graficos_periodo`, seção acima) num único item sintético "Outros (N)" acima de 6 itens — usado
+pelos 3 gráficos de período (`GastosPorCategoriaChart`/`GastosPorCartaoChart`/`GastosPorContaChart`).
+O item "Outros" nunca é clicável (`categoria_id`/`conta_id`/`cartao_id: null` só nesse caso).
+
+**6. Comparação com o mês anterior.** Novo componente `GastosComparativoChart.tsx` — barras
+horizontais agrupadas (mês atual x mês anterior), genérico por `nome`/`total` (mescla as duas listas
+por nome, já que os 3 domínios de id são diferentes entre si). Reaproveitado pelas 3 seções de gasto
+quando o toggle "Comparar com mês anterior" (`Switch` no card de cabeçalho) está ativo — substitui o
+donut/barra específico daquela seção nesse modo; comparação lado a lado não tem um análogo natural
+em donut, então um único componente de barras serve igualmente para as 3 seções. Faz seu próprio
+agrupamento de cauda longa (linhas com 2 totais cada, atual e anterior, não cabem no acessor único
+de `agruparCaudaLonga`).
+
+**Backlog da seção 7 revisado**: com a peça 4, "drill-down" sai da lista de fora-de-escopo. Com a
+peça 6, "comparação ano-a-ano" continua fora de escopo (o que foi pedido e implementado é
+mês-a-mês, não ano-a-ano) — mantido no backlog. "Exportação de gráfico como imagem/PDF" também
+continua fora de escopo (a peça 3 é um atalho de navegação para a exportação TEXTUAL já existente
+de Relatórios, não uma exportação de imagem do gráfico em si).
+
+**Testes**: `agruparCaudaLonga.test.ts` (2), `date.test.ts` ganhou 2 novos (`mesAnterior`),
+`GraficosPage.test.tsx` (novo, 6 testes — total+variação, drill-down de categoria/conta/cartão,
+atalho de relatório, toggle de comparação). Suíte completa (45 testes), `tsc -b` e `vite build`
+revalidados sem regressão.
