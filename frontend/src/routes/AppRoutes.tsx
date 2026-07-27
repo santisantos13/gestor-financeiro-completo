@@ -37,6 +37,9 @@ const CalendarioPage = lazy(() =>
 const GraficosPage = lazy(() =>
   import("../pages/graficos/GraficosPage").then((m) => ({ default: m.GraficosPage })),
 );
+const RelatoriosPage = lazy(() =>
+  import("../pages/relatorios/RelatoriosPage").then((m) => ({ default: m.RelatoriosPage })),
+);
 const FinanciamentosPage = lazy(() =>
   import("../pages/financiamentos/FinanciamentosPage").then((m) => ({ default: m.FinanciamentosPage })),
 );
@@ -174,6 +177,14 @@ export function AppRoutes() {
             element={
               <Suspense fallback={<RouteLoadingFallback />}>
                 <GraficosPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/relatorios"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <RelatoriosPage />
               </Suspense>
             }
           />

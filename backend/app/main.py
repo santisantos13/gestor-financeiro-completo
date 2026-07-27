@@ -34,6 +34,7 @@ from app.api.routes.financiamento import router as financiamento_router
 from app.api.routes.health import router as health_router
 from app.api.routes.meta import router as meta_router
 from app.api.routes.parcelamento import router as parcelamento_router
+from app.api.routes.relatorio import router as relatorio_router
 from app.api.routes.tag import router as tag_router
 from app.api.routes.transacao import router as transacao_router
 from app.api.routes.transferencia import router as transferencia_router
@@ -155,5 +156,6 @@ app.include_router(emprestimo_router)
 app.include_router(meta_router)
 app.include_router(anexo_router)
 app.include_router(alerta_router)
+app.include_router(relatorio_router)
 app.include_router(central_financeira_router)
 app.include_router(health_router)

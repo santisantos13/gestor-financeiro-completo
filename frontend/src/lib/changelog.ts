@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.11.0",
+    data: "2026-07-26",
+    titulo: "Relatórios: exportar resumo do mês em CSV/PDF",
+    itens: [
+      'Nova página "Relatórios": mostra o mesmo resumo de um mês que a página de Gráficos exibe (entradas, saídas, saldo e gastos por categoria/cartão/conta) e permite baixar esse resumo em CSV (para abrir em planilha) ou PDF (para ler/imprimir).',
+      "Nenhum cálculo novo - o arquivo baixado sempre reflete exatamente os mesmos números já exibidos em tela antes do download.",
+    ],
+  },
+  {
     versao: "0.10.0",
     data: "2026-07-26",
     titulo: "Configurações: Notificações",

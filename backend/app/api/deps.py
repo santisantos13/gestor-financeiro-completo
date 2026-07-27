@@ -56,6 +56,7 @@ from app.services.fatura_service import FaturaService
 from app.services.financiamento_service import FinanciamentoService
 from app.services.meta_service import MetaService
 from app.services.parcelamento_service import ParcelamentoService
+from app.services.relatorio_service import RelatorioService
 from app.services.tag_service import TagService
 from app.services.transacao_service import TransacaoService
 from app.services.transferencia_service import TransferenciaService
@@ -366,6 +367,16 @@ def get_central_financeira_service(
         conta_recorrente_service,
         categoria_service,
     )
+
+
+def get_relatorio_service(
+    central_financeira_service: Annotated[CentralFinanceiraService, Depends(get_central_financeira_service)],
+) -> RelatorioService:
+    # RelatorioService NAO recebe nenhum Repository nem Service de domínio
+    # direto - só CentralFinanceiraService, cujos `visao_mensal`/
+    # `graficos_periodo` já são exatamente os dados que o export
+    # reformata (ver docstring do módulo).
+    return RelatorioService(central_financeira_service)
 
 
 # --- Autenticação ------------------------------------------------------------

@@ -6,25 +6,25 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 91,
-    "updatedAt": "2026-07-22T18:35:00-03:00"
+    "overallPercent": 92,
+    "updatedAt": "2026-07-26T23:05:00-03:00"
   },
   "areas": [
     {
       "key": "backend",
       "label": "Backend",
-      "percent": 94,
-      "done": 22,
+      "percent": 100,
+      "done": 23,
       "inProgress": 0,
-      "pending": 1
+      "pending": 0
     },
     {
       "key": "frontend",
       "label": "Frontend",
-      "percent": 93,
-      "done": 28,
+      "percent": 100,
+      "done": 29,
       "inProgress": 0,
-      "pending": 1
+      "pending": 0
     },
     {
       "key": "database",
@@ -102,12 +102,12 @@
     {
       "phase": "Fase 3",
       "title": "Experiência do usuário",
-      "status": "in-progress",
+      "status": "done",
       "items": [
         "Responsividade completa (Sidebar/Header/Dashboard/tabelas/formulários/modais) — concluída na etapa de Refinamento de UI",
         "Animações e microinterações (Framer Motion, docs/motion-principles.md) — concluídas",
         "Organização personalizada da navegação (drag-and-drop + localStorage, Dashboard fixo) — concluída",
-        "Relatórios exportáveis — pendente",
+        "Relatórios exportáveis — concluído (export de CSV/PDF do resumo mensal)",
         "Gráficos avançados no dashboard — concluído (Evolução do saldo, Entradas x Saídas, Gastos por categoria/cartão, Distribuição do saldo por conta — mini-card no Dashboard + página /graficos completa, Recharts)",
         "Home (Dashboard renomeado): personalização corrigida (drag-and-drop e ocultar cards não funcionavam de forma confiável) e ampliada (todos os cards, não só 4) — concluído",
         "Selo de versão + página de changelog (/novidades) no Header — concluído"
@@ -248,9 +248,9 @@
     },
     {
       "name": "Relatórios",
-      "category": "Frontend",
-      "status": "pending",
-      "progress": 10,
+      "category": "Backend + Frontend",
+      "status": "done",
+      "progress": 100,
       "priority": "Média"
     },
     {
@@ -304,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d84",
+        "title": "Relatórios: exportar resumo do mês em CSV/PDF (backend + frontend)",
+        "description": "Último item pendente do roadmap ('pode seguir oq achar melhor' -> 'ok siga', delegação total do usuário). Escopo decidido (não literal - 'export + tela' era vago): exportar o MESMO resumo mensal que a página /graficos já exibe (entradas/saídas/saldo + gastos por categoria/cartão/conta), em CSV (planilha) e PDF (leitura/impressão), sem nenhum cálculo novo em lugar nenhum. Backend: novo RelatorioService (zero agregação própria - só chama CentralFinanceiraService.visao_mensal/graficos_periodo, já existentes, e formata o dict combinado em dois arquivos: csv nativo do Python com delimitador ';' e BOM UTF-8 para abrir certo no Excel pt-BR; reportlab para o PDF, escolhido sobre WeasyPrint por não depender de biblioteca nativa Cairo/Pango no deploy do Render). Novas rotas GET /relatorios/csv e /relatorios/pdf (Content-Disposition com nome do arquivo). Frontend: httpClient.ts ganhou um núcleo comum (fetchComRenovacao) compartilhado entre requisições JSON e a nova requestArquivo (blob), nova página /relatorios com preview dos mesmos números antes de baixar (reaproveita useVisaoMensalQuery/useGraficosPeriodoQuery, mesmo cache de Gráficos, nenhum fetch novo) e dois botões de download (utils/download.ts:baixarBlob). Testes: 4 unitários + 6 de integração no backend (incluindo isolamento entre usuários e propagação correta do ano/mês resolvido); 4 de frontend (RelatoriosPage.test.tsx, mockando os services). Suíte completa do backend (659 unit + toda integração, arquivo por arquivo) e frontend (35 testes, tsc -b, vite build) revalidadas sem regressão. Doc: docs/analise-arquitetural-relatorios.md. Versão 0.10.0 -> 0.11.0 (minor, novo módulo do roadmap). Fecha a Fase 3 (Experiência do usuário) do roadmap.",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-26"
+      },
       {
         "id": "d83",
         "title": "Configurações: Notificações (toggle por tipo de alerta)",
@@ -971,6 +979,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "backend+frontend",
+      "title": "Relatórios: exportar o resumo mensal (mesmos dados de /graficos) em CSV/PDF. Fecha o último item pendente do roadmap (Fase 3 completa). Versão 0.10.0 → 0.11.0"
+    },
     {
       "date": "2026-07-26",
       "type": "frontend",

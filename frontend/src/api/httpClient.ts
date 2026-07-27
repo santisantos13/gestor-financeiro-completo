@@ -109,12 +109,18 @@ async function ensureFreshToken(): Promise<boolean> {
   return refreshPromise;
 }
 
-async function request<T>(
+/** Núcleo comum de `request`/`baixarArquivo` - faz o fetch de verdade,
+ * injeta o header de autenticação, tenta renovar a sessão uma vez em 401 e
+ * normaliza qualquer resposta não-2xx num `ApiError`. Devolve a `Response`
+ * crua (não decide se o corpo é JSON ou binário) - só `request` (JSON) e
+ * `requestArquivo` (blob, ver `baixarArquivo`) sabem disso, evitando
+ * duplicar a lógica de renovação/erro entre os dois. */
+async function fetchComRenovacao(
   method: string,
   path: string,
-  options: RequestOptions = {},
+  options: RequestOptions,
   isRetry = false,
-): Promise<T> {
+): Promise<Response> {
   const accessToken = getAccessToken();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (accessToken) {
@@ -140,7 +146,7 @@ async function request<T>(
   if (response.status === 401 && accessToken && !isRetry) {
     const renewed = await ensureFreshToken();
     if (renewed) {
-      return request<T>(method, path, options, true);
+      return fetchComRenovacao(method, path, options, true);
     }
     onSessionExpired?.();
     const detail = await parseErrorDetail(response);
@@ -154,11 +160,35 @@ async function request<T>(
     throw apiError;
   }
 
+  return response;
+}
+
+async function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await fetchComRenovacao(method, path, options);
   if (response.status === 204) {
     return undefined as T;
   }
-
   return (await response.json()) as T;
+}
+
+/** `Content-Disposition: attachment; filename="x.csv"` (com ou sem aspas)
+ * - `nomePadrao` cobre o caso (nunca esperado de verdade, mas defensivo)
+ * de o backend omitir o header. */
+function extrairNomeArquivo(response: Response, nomePadrao: string): string {
+  const cabecalho = response.headers.get("Content-Disposition") ?? "";
+  const match = /filename="?([^";]+)"?/.exec(cabecalho);
+  return match?.[1]?.trim() ?? nomePadrao;
+}
+
+async function requestArquivo(
+  method: string,
+  path: string,
+  options: RequestOptions,
+  nomePadrao: string,
+): Promise<{ blob: Blob; nomeArquivo: string }> {
+  const response = await fetchComRenovacao(method, path, options);
+  const blob = await response.blob();
+  return { blob, nomeArquivo: extrairNomeArquivo(response, nomePadrao) };
 }
 
 export const httpClient = {
@@ -166,4 +196,12 @@ export const httpClient = {
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, { body }),
   delete: <T>(path: string, params?: QueryParams) => request<T>("DELETE", path, { params }),
+  /** Download de arquivo (Relatórios: CSV/PDF) - único ponto do frontend
+   * que lida com corpo BINÁRIO em vez de JSON. Reaproveita a mesma
+   * renovação de sessão/normalização de erro de `request`, só troca o
+   * parse final (`blob()` em vez de `json()`). Ver
+   * `utils/download.ts:baixarBlob` para o que acontece depois (disparar o
+   * download no navegador). */
+  baixarArquivo: (path: string, params: QueryParams | undefined, nomePadrao: string) =>
+    requestArquivo("GET", path, { params }, nomePadrao),
 };

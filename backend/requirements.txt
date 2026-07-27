@@ -12,3 +12,8 @@ email-validator==2.2.0
 # desenvolvimento local (SQLite, driver embutido no Python) esta lib fica
 # instalada mas simplesmente nao e usada.
 psycopg2-binary==2.9.9
+# Geração de PDF de Relatórios (docs/analise-arquitetural-relatorios.md) -
+# pura Python, sem dependência de biblioteca nativa de sistema (Cairo/
+# Pango) como WeasyPrint exigiria - mais simples de instalar no ambiente
+# de deploy (Render).
+reportlab==4.5.1
