@@ -264,7 +264,7 @@
       "name": "Configurações",
       "category": "Frontend",
       "status": "in-progress",
-      "progress": 55,
+      "progress": 70,
       "priority": "Baixa"
     },
     {
@@ -312,6 +312,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d80",
+        "title": "Configurações: Temas personalizáveis (cor de destaque)",
+        "description": "Usuário pediu para atacar o próximo item do roadmap; investigação revelou que 'Notificações' (que eu tinha avaliado como o próximo mais rápido) na verdade depende do backend de Alertas ainda incompleto (documentado em docs/analise-arquitetural-configuracoes.md desde a etapa de Preferências) - corrigido para o usuário antes de prosseguir, e escolhido 'Temas personalizáveis' por ser 100% frontend e independente. Escopo: NÃO um seletor de cor livre (quebraria a garantia de contraste de --color-text-on-accent, hoje fixa e calculada para o único acento existente) - 5 predefinições curadas (lib/accentThemes.ts), todas na mesma família acinzentado/pastel do azul original, todas reaproveitando o mesmo --color-text-on-accent escuro sem validação de contraste por cor. Mecanismo: novo AccentContext, irmão direto de ThemeContext - grava em localStorage (financas:accent) e seta atributo data-accent no <html>; index.css ganhou um bloco html[data-accent=\"id\"] por predefinição sobrescrevendo --color-accent/-hover/-active/-subtle/-ring (token já idêntico nos dois temas, então nenhuma duplicação por tema). Troca instantânea (sem reload, diferente do formato de data). Novo AccentPicker (swatches redondos, radiogroup) na página de Configurações, logo abaixo do ThemeToggle. index.html ganhou o mesmo tipo de script síncrono do tema, evitando flash da cor padrão. Testes: 2 novos em ConfiguracoesPage.test.tsx (renderização com Azul padrão + troca de cor). Suíte completa validada (tsc -b, vite build, 23 testes) num ambiente auxiliar (mesmo motivo de d79: I/O do diretório montado). Doc: docs/analise-arquitetural-configuracoes.md, seção 7. Versão 0.6.0 -> 0.7.0 (minor, novo item do roadmap de Configurações).",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-26"
+      },
       {
         "id": "d79",
         "title": "Gráficos: novo gráfico \"Gastos por conta\" (em círculo)",
@@ -947,6 +955,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "frontend",
+      "title": "Configurações: cor de destaque personalizável (5 predefinições, troca instantânea). Versão 0.6.0 → 0.7.0"
+    },
     {
       "date": "2026-07-25",
       "type": "backend+frontend",

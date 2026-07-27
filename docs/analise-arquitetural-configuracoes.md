@@ -126,6 +126,47 @@ de verdade, já que isso dispararia o reload real fora do escopo do teste.
 ## 6. Não incluído nesta entrega
 
 Notificações (toggle por `TipoAlerta` — depende do backend de Alertas,
-ainda não implementado) e Temas personalizáveis (mais paletas além do
-claro/escuro atual). Cada uma ganha sua própria entrega, citada em
-`dashboard/project-status.json`.
+ainda não implementado). Ganha sua própria entrega, citada em
+`dashboard/project-status.json`. Temas personalizáveis (mais paletas além
+do claro/escuro) foi entregue — ver seção 7.
+
+## 7. Temas personalizáveis — "Cor de destaque" (2026-07-26)
+
+Pedido original do roadmap: "mais paletas além do claro/escuro atual".
+Decisão de escopo: NÃO um seletor de cor livre (`<input type="color">` ou
+similar) — um seletor de cor arbitrário quebraria a garantia de contraste
+que `--color-text-on-accent` hoje assume (calculada e fixa em #14141a para
+o único acento existente, #b0c4de). Em vez disso, 5 predefinições curadas
+(`lib/accentThemes.ts`), todas deliberadamente na mesma família
+"acinzentado/pastel" do azul original (nunca um tom saturado) — isso
+garante que o MESMO `--color-text-on-accent` escuro funciona para todas,
+sem precisar validar contraste WCAG por predefinição nem adicionar um
+token novo por cor.
+
+**Mecanismo**: irmão direto de `ThemeContext`/`data-theme` — novo
+`AccentContext` grava a escolha em `localStorage` (`financas:accent`) e
+seta o atributo `data-accent` no `<html>`; `index.css` define um bloco
+`html[data-accent="<id>"]` por predefinição, sobrescrevendo
+`--color-accent`/`-hover`/`-active`/`-subtle`/`-ring`. Como esses tokens já
+são idênticos nos blocos `[data-theme="dark"]`/`[data-theme="light"]`
+hoje, um único conjunto de overrides por predefinição cobre os dois temas
+— nenhuma duplicação por tema. Especificidade de `html[data-accent="x"]`
+(0,1,1) é maior que `[data-theme="x"]` (0,1,0), então a cor de destaque
+sempre vence, independente da ordem das regras no arquivo.
+
+Diferente do formato de data (que recarrega a página) e igual ao tema: a
+troca é instantânea — o CSS já repinta tudo que lê `var(--color-accent*)`
+assim que o atributo muda, sem exigir que nenhum componente releia um
+valor "congelado" em memória. `index.html` ganhou o mesmo tipo de script
+síncrono do tema (evita flash da cor padrão antes do primeiro paint).
+
+**UI**: novo `AccentPicker` (swatches redondos com `role="radiogroup"`,
+mesmo indicador animado por `layoutId` de `ThemeToggle`/`DateFormatToggle`)
+na página de Configurações, logo abaixo do `ThemeToggle` — mesmo card
+"Preferências", não um card novo (a cor de destaque é conceitualmente a
+mesma categoria de preferência visual que o tema, só um controle a mais).
+
+Testes: `ConfiguracoesPage.test.tsx` ganhou um teste de renderização (5
+opções, "Azul" ativo por padrão) — clicar de verdade não recarrega a
+página (diferente do formato de data), mas o teste cobre só a
+renderização/estado inicial, mesmo nível dos testes irmãos já existentes.

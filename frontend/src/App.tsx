@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AccentProvider } from "./contexts/AccentContext";
 import { PreferenciasProvider } from "./contexts/PreferenciasContext";
 import { NavOrderProvider } from "./contexts/NavOrderContext";
 import { AppRoutes } from "./routes/AppRoutes";
@@ -56,31 +57,35 @@ export default function App() {
     // componente — docs/motion-principles.md, seção 8.
     <ErrorBoundary>
       <MotionConfig reducedMotion="user">
-        {/* ThemeProvider/PreferenciasProvider/NavOrderProvider fora do
-            QueryClientProvider: são puramente UI local (localStorage), não
-            dependem de nenhuma chamada de rede — ThemeProvider da Etapa de
-            Refinamento Visual, PreferenciasProvider da etapa de
-            Configurações, NavOrderProvider da etapa de Organização da
-            Sidebar, mesmo raciocínio dos três. */}
+        {/* ThemeProvider/AccentProvider/PreferenciasProvider/NavOrderProvider
+            fora do QueryClientProvider: são puramente UI local
+            (localStorage), não dependem de nenhuma chamada de rede —
+            ThemeProvider da Etapa de Refinamento Visual, AccentProvider da
+            etapa de Temas personalizáveis (irmão do ThemeProvider, mesmo
+            mecanismo de atributo no <html>), PreferenciasProvider da etapa
+            de Configurações, NavOrderProvider da etapa de Organização da
+            Sidebar, mesmo raciocínio dos quatro. */}
         <ThemeProvider>
-          <PreferenciasProvider>
-            <NavOrderProvider>
-              <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                  <ToastProvider>
-                    <BrowserRouter>
-                      <AppRoutes />
-                    </BrowserRouter>
-                  </ToastProvider>
-                </AuthProvider>
-                {ReactQueryDevtools && (
-                  <Suspense fallback={null}>
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </Suspense>
-                )}
-              </QueryClientProvider>
-            </NavOrderProvider>
-          </PreferenciasProvider>
+          <AccentProvider>
+            <PreferenciasProvider>
+              <NavOrderProvider>
+                <QueryClientProvider client={queryClient}>
+                  <AuthProvider>
+                    <ToastProvider>
+                      <BrowserRouter>
+                        <AppRoutes />
+                      </BrowserRouter>
+                    </ToastProvider>
+                  </AuthProvider>
+                  {ReactQueryDevtools && (
+                    <Suspense fallback={null}>
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </Suspense>
+                  )}
+                </QueryClientProvider>
+              </NavOrderProvider>
+            </PreferenciasProvider>
+          </AccentProvider>
         </ThemeProvider>
       </MotionConfig>
     </ErrorBoundary>

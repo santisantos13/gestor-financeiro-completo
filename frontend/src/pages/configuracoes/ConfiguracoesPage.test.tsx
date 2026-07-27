@@ -181,4 +181,29 @@ describe("ConfiguracoesPage", () => {
     expect(opcoes[1]).toHaveAttribute("aria-checked", "false");
     expect(opcoes[2]).toHaveAttribute("aria-checked", "false");
   });
+
+  it("mostra as opções de cor de destaque com Azul ativo por padrão", async () => {
+    renderConfiguracoes();
+
+    await screen.findByDisplayValue("Sant");
+    const grupo = screen.getByRole("radiogroup", { name: "Cor de destaque" });
+    const opcoes = within(grupo).getAllByRole("radio");
+    expect(opcoes).toHaveLength(5);
+    expect(opcoes[0]).toHaveAccessibleName("Azul");
+    expect(opcoes[0]).toHaveAttribute("aria-checked", "true");
+    expect(opcoes.slice(1).every((o) => o.getAttribute("aria-checked") === "false")).toBe(true);
+  });
+
+  it("troca a cor de destaque ao clicar numa predefinição, sem recarregar a página", async () => {
+    const user = userEvent.setup();
+    renderConfiguracoes();
+
+    await screen.findByDisplayValue("Sant");
+    const grupo = screen.getByRole("radiogroup", { name: "Cor de destaque" });
+    await user.click(within(grupo).getByRole("radio", { name: "Verde" }));
+
+    expect(within(grupo).getByRole("radio", { name: "Verde" })).toHaveAttribute("aria-checked", "true");
+    expect(within(grupo).getByRole("radio", { name: "Azul" })).toHaveAttribute("aria-checked", "false");
+    expect(document.documentElement.getAttribute("data-accent")).toBe("verde");
+  });
 });

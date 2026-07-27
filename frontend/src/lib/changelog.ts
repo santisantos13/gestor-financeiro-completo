@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.7.0",
+    data: "2026-07-26",
+    titulo: "Configurações: cor de destaque personalizável",
+    itens: [
+      'Nova opção em Configurações → Preferências: escolha entre 5 cores de destaque (Azul, Verde, Rosa, Lilás, Âmbar) - troca instantânea, sem recarregar a página. Funciona igual nos temas claro e escuro.',
+      "Notificações continua pendente (depende do backend de Alertas, ainda não pronto).",
+    ],
+  },
+  {
     versao: "0.6.0",
     data: "2026-07-25",
     titulo: "Gráficos: novo gráfico \"Gastos por conta\"",

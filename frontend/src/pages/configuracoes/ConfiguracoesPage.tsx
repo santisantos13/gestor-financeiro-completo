@@ -8,6 +8,7 @@ import { EmailField } from "../../components/ui/EmailField";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { SubmitButton } from "../../components/ui/SubmitButton";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { AccentPicker } from "../../components/ui/AccentPicker";
 import { DateFormatToggle } from "../../components/ui/DateFormatToggle";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
@@ -25,11 +26,16 @@ const SENHA_VAZIA: TrocarSenhaFormValues = { senha_atual: "", senha_nova: "", se
 /**
  * `/configuracoes` — módulo do roadmap "Configurações". Escopo até agora:
  * Perfil (editar nome/email + trocar senha) e Preferências (formato de
- * data + tema, este último reaproveitando 100% o `ThemeToggle` que já
- * existia no `UserMenu` - não duplicado, só também exposto aqui para quem
- * espera encontrar "Aparência" numa página de Configurações de verdade).
- * Notificações (depende do backend de Alertas) e mais opções de tema
- * chegam em etapas seguintes. Moeda ficou deliberadamente FORA das
+ * data + tema + cor de destaque). Tema reaproveita 100% o `ThemeToggle` que
+ * já existia no `UserMenu` - não duplicado, só também exposto aqui para
+ * quem espera encontrar "Aparência" numa página de Configurações de
+ * verdade. Cor de destaque (`AccentPicker`, etapa "Temas personalizáveis")
+ * é irmã direta do Tema - mesmo mecanismo de atributo em `<html>`, só que
+ * `data-accent` em vez de `data-theme`, reagindo instantaneamente (sem
+ * recarregar a página, diferente do formato de data) - ver
+ * `docs/analise-arquitetural-configuracoes.md`, seção 7. Notificações
+ * (depende do backend de Alertas, ainda não implementado) chega em etapa
+ * seguinte. Moeda ficou deliberadamente FORA das
  * Preferências: um seletor de símbolo (R$/US$/€) sem conversão real de
  * valores arriscaria dar a impressão de que o saldo virou outra moeda de
  * verdade - decisão do usuário, ver docs/analise-arquitetural-configuracoes.md.
@@ -159,6 +165,10 @@ export function ConfiguracoesPage() {
           <div>
             <p className="mb-1.5 text-sm font-medium text-text-secondary">Tema</p>
             <ThemeToggle />
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-text-secondary">Cor de destaque</p>
+            <AccentPicker />
           </div>
         </div>
       </div>

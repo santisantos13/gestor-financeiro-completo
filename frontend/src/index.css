@@ -285,6 +285,60 @@
 }
 
 /* ==========================================================================
+   Cor de destaque personalizável (Configurações → Temas personalizáveis,
+   `lib/accentThemes.ts`/`AccentContext`) — atributo `data-accent`
+   INDEPENDENTE de `data-theme`: `--color-accent` (seção 6.3) já é o MESMO
+   valor nos blocos dark/light acima, então um único conjunto de overrides
+   por predefinição cobre os dois temas, sem duplicar por tema. Todas as 5
+   predefinições ficam na mesma família "acinzentado/pastel" do azul
+   original (nunca um tom saturado) de propósito: `--color-text-on-accent`
+   continua #14141a (escuro) para todas, sem precisar de um valor por
+   predefinição. Especificidade de `html[data-accent="x"]` (0,1,1) é maior
+   que `[data-theme="x"]` (0,1,0) — sempre vence, independente da ordem
+   das regras no arquivo.
+   ========================================================================== */
+
+html[data-accent="azul"] {
+  --color-accent: #b0c4de;
+  --color-accent-hover: #9eb0c8;
+  --color-accent-active: #8d9db2;
+  --color-accent-subtle: rgba(176, 196, 222, 0.12);
+  --color-accent-ring: rgba(176, 196, 222, 0.45);
+}
+
+html[data-accent="verde"] {
+  --color-accent: #a8c9b0;
+  --color-accent-hover: #96b59d;
+  --color-accent-active: #85a28c;
+  --color-accent-subtle: rgba(168, 201, 176, 0.12);
+  --color-accent-ring: rgba(168, 201, 176, 0.45);
+}
+
+html[data-accent="rosa"] {
+  --color-accent: #d9aebb;
+  --color-accent-hover: #c39ca8;
+  --color-accent-active: #ad8b95;
+  --color-accent-subtle: rgba(217, 174, 187, 0.12);
+  --color-accent-ring: rgba(217, 174, 187, 0.45);
+}
+
+html[data-accent="lilas"] {
+  --color-accent: #c2aed9;
+  --color-accent-hover: #ae9cc3;
+  --color-accent-active: #9a8bad;
+  --color-accent-subtle: rgba(194, 174, 217, 0.12);
+  --color-accent-ring: rgba(194, 174, 217, 0.45);
+}
+
+html[data-accent="ambar"] {
+  --color-accent: #d9c299;
+  --color-accent-hover: #c3af89;
+  --color-accent-active: #ad9b7a;
+  --color-accent-subtle: rgba(217, 194, 153, 0.12);
+  --color-accent-ring: rgba(217, 194, 153, 0.45);
+}
+
+/* ==========================================================================
    Base
    ========================================================================== */
 

@@ -27,6 +27,17 @@
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
+        // Cor de destaque (Configurações → Temas personalizáveis) - mesmo
+        // raciocínio do bloco de tema acima, atributo irmão e independente
+        // (`data-accent`), ver AccentContext/index.css.
+        try {
+          var accent = localStorage.getItem("financas:accent");
+          var accentsValidos = ["azul", "verde", "rosa", "lilas", "ambar"];
+          if (accentsValidos.indexOf(accent) === -1) accent = "azul";
+          document.documentElement.setAttribute("data-accent", accent);
+        } catch (e) {
+          document.documentElement.setAttribute("data-accent", "azul");
+        }
       })();
     </script>
     <style>

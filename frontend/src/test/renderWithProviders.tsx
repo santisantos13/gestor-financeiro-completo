@@ -24,6 +24,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import { ToastProvider } from "../contexts/ToastContext";
 import { PreferenciasProvider } from "../contexts/PreferenciasContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import { AccentProvider } from "../contexts/AccentContext";
 
 export function createTestQueryClient(): QueryClient {
   return new QueryClient({
@@ -46,15 +47,17 @@ export function renderWithProviders(ui: ReactElement, options: RenderWithProvide
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <ThemeProvider>
-        <PreferenciasProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <ToastProvider>
-                <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-              </ToastProvider>
-            </AuthProvider>
-          </QueryClientProvider>
-        </PreferenciasProvider>
+        <AccentProvider>
+          <PreferenciasProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <ToastProvider>
+                  <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+                </ToastProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </PreferenciasProvider>
+        </AccentProvider>
       </ThemeProvider>
     );
   }
