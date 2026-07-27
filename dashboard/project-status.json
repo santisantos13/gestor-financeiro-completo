@@ -241,9 +241,9 @@
     },
     {
       "name": "Alertas",
-      "category": "Backend",
-      "status": "pending",
-      "progress": 5,
+      "category": "Backend + Frontend",
+      "status": "in-progress",
+      "progress": 55,
       "priority": "Baixa"
     },
     {
@@ -285,14 +285,6 @@
   "kanban": {
     "backlog": [
       {
-        "id": "t1",
-        "title": "CRUD de Alerta",
-        "description": "Decidir implementar (análise arquitetural + backend + frontend) ou remover formalmente do escopo.",
-        "category": "Backend",
-        "priority": "Baixa",
-        "date": "2026-07-15"
-      },
-      {
         "id": "t2",
         "title": "Rate limiting em /auth/login e /auth/refresh",
         "description": "TODO já identificado no código. Necessário antes de expor o app fora de localhost.",
@@ -312,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d81",
+        "title": "Alertas: backend finalizado (repository/service/schema/router já existiam, faltava conectar)",
+        "description": "Usuário pediu para atacar Alertas. Repository/schema/service já existiam de uma etapa anterior (arquivos untracked há várias sessões), com design coerente (Alerta = regra configurada, não log de notificação; disparado/mensagem calculados em tempo real, mesmo padrão de limite_disponivel/saldo_atual) - mas nunca conectados: sem deps.py, sem router, sem main.py, sem nenhum teste. Trabalho desta sessão: get_alerta_repository/get_alerta_service em deps.py, novo app/api/routes/alerta.py (CRUD REST, sem soft-delete separado - ativo já é campo comum de AlertaUpdate), registro em main.py. Bug real encontrado ao escrever o primeiro teste de integração: AlertaRead.condicao chegava como a string JSON crua da coluna (nunca desserializada de volta para a resposta) - corrigido com um field_validator(mode='before') em AlertaRead (schemas/alerta.py), nunca mutando o atributo mapeado do ORM diretamente (evita risco de o SQLAlchemy tentar persistir um dict na próxima flush). Testes: 20 unitários novos (test_alerta_service.py, fakeia os Services de domínio como test_central_financeira_service.py) + 12 de integração novos (test_alerta_flow.py, incluindo um teste ponta-a-ponta real de LIMITE_CARTAO via Transacao de cartão). Suíte completa (655 unit + toda integração, arquivo por arquivo) revalidada, zero regressão. Doc novo: docs/analise-arquitetural-alertas.md. Frontend (sino + lista) fica para a próxima entrega (t139). Versão 0.7.0 -> 0.8.0 (minor, novo módulo do roadmap).",
+        "category": "Backend",
+        "priority": "Média",
+        "date": "2026-07-26"
+      },
       {
         "id": "d80",
         "title": "Configurações: Temas personalizáveis (cor de destaque)",
@@ -955,6 +955,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "backend",
+      "title": "Alertas: backend finalizado e conectado (CRUD + avaliação em tempo real dos 5 tipos de gatilho) - frontend fica para a próxima entrega. Versão 0.7.0 → 0.8.0"
+    },
     {
       "date": "2026-07-26",
       "type": "frontend",

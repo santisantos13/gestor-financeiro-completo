@@ -20,6 +20,7 @@ from app.core.exceptions import (
     NotFoundError,
 )
 from app.core.logging_config import configurar_logging
+from app.api.routes.alerta import router as alerta_router
 from app.api.routes.anexo import router as anexo_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.cartao import router as cartao_router
@@ -153,5 +154,6 @@ app.include_router(financiamento_router)
 app.include_router(emprestimo_router)
 app.include_router(meta_router)
 app.include_router(anexo_router)
+app.include_router(alerta_router)
 app.include_router(central_financeira_router)
 app.include_router(health_router)

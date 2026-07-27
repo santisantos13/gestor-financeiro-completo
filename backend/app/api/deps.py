@@ -12,7 +12,8 @@ Service de cada entidade de domínio seguem o mesmo padrão já usado por
 `get_cartao_service`/`get_fatura_service`/`get_transacao_service`/
 `get_parcelamento_service`/`get_transferencia_service`/
 `get_conta_recorrente_service`/`get_financiamento_service`/
-`get_emprestimo_service`/`get_meta_service`/`get_anexo_service`.
+`get_emprestimo_service`/`get_meta_service`/`get_anexo_service`/
+`get_alerta_service`.
 """
 import logging
 from typing import Annotated
@@ -26,6 +27,7 @@ from app.core.security import TokenInvalidoError, decodificar_access_token
 from app.db.session import get_db
 from app.models import Usuario
 from app.models.enums import TipoPapel
+from app.repositories.alerta_repository import AlertaRepository
 from app.repositories.anexo_repository import AnexoRepository
 from app.repositories.cartao_repository import CartaoRepository
 from app.repositories.categoria_repository import CategoriaRepository
@@ -41,6 +43,7 @@ from app.repositories.tag_repository import TagRepository
 from app.repositories.transacao_repository import TransacaoRepository
 from app.repositories.transferencia_repository import TransferenciaRepository
 from app.repositories.usuario_repository import UsuarioRepository
+from app.services.alerta_service import AlertaService
 from app.services.anexo_service import AnexoService
 from app.services.auth_service import AuthService
 from app.services.cartao_service import CartaoService
@@ -137,6 +140,10 @@ def get_conta_recorrente_repository(db: DbSession) -> ContaRecorrenteRepository:
 
 def get_meta_repository(db: DbSession) -> MetaRepository:
     return MetaRepository(db)
+
+
+def get_alerta_repository(db: DbSession) -> AlertaRepository:
+    return AlertaRepository(db)
 
 
 def get_fatura_service(
@@ -285,6 +292,24 @@ def get_conta_service(
         emprestimo_service,
         conta_recorrente_service,
         parcelamento_service,
+    )
+
+
+def get_alerta_service(
+    alerta_repo: Annotated[AlertaRepository, Depends(get_alerta_repository)],
+    cartao_service: Annotated[CartaoService, Depends(get_cartao_service)],
+    fatura_service: Annotated[FaturaService, Depends(get_fatura_service)],
+    conta_recorrente_service: Annotated[ContaRecorrenteService, Depends(get_conta_recorrente_service)],
+    meta_service: Annotated[MetaService, Depends(get_meta_service)],
+    conta_service: Annotated[ContaService, Depends(get_conta_service)],
+) -> AlertaService:
+    # Definida só depois de get_conta_service (mesmo raciocínio do
+    # comentário em ContaService acima) - AlertaService reaproveita o
+    # `obter()` de cada Service de domínio para validar posse da entidade
+    # referenciada e ler os campos calculados que a avaliação precisa
+    # (`limite_disponivel`, `saldo_atual`, etc.), nunca duplica essa lógica.
+    return AlertaService(
+        alerta_repo, cartao_service, fatura_service, conta_recorrente_service, meta_service, conta_service
     )
 
 

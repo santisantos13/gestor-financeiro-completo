@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.8.0",
+    data: "2026-07-26",
+    titulo: "Alertas: base pronta nos bastidores (ainda sem tela)",
+    itens: [
+      "Nenhuma mudança visível ainda - trabalho interno. O backend de Alertas (avisos de limite de cartão perto de estourar, fatura/conta recorrente perto de vencer, meta atingida, saldo baixo) foi finalizado e testado.",
+      'Próxima entrega traz a tela (sino de notificações + lista) que finalmente usa isso.',
+    ],
+  },
+  {
     versao: "0.7.0",
     data: "2026-07-26",
     titulo: "Configurações: cor de destaque personalizável",
