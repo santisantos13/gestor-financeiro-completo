@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.10.0",
+    data: "2026-07-26",
+    titulo: "Configurações: Notificações",
+    itens: [
+      'Nova seção "Notificações" em Configurações: escolha quais tipos de alerta (limite de cartão, vencimento de fatura, vencimento de conta recorrente, meta atingida, saldo baixo) contam para o número no sino do cabeçalho.',
+      "Silenciar um tipo aqui não apaga nem pausa nenhum alerta - ele continua aparecendo normalmente na lista do sino, só para de gerar o aviso no contador.",
+    ],
+  },
+  {
     versao: "0.9.0",
     data: "2026-07-26",
     titulo: "Alertas: sino de notificações, lista e criação",

@@ -263,8 +263,8 @@
     {
       "name": "Configurações",
       "category": "Frontend",
-      "status": "in-progress",
-      "progress": 70,
+      "status": "done",
+      "progress": 100,
       "priority": "Baixa"
     },
     {
@@ -304,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d83",
+        "title": "Configurações: Notificações (toggle por tipo de alerta)",
+        "description": "Fecha o último item pendente do módulo Configurações, agora desbloqueado pelo frontend de Alertas (d82). Escopo (não um pedido literal - 'toggle por TipoAlerta' era vago, decisão feita a partir da arquitetura já existente): um interruptor por TipoAlerta (5) que decide se aquele tipo conta para o CONTADOR do sino no Header - nunca pausa/exclui o Alerta em si (isso já é o campo ativo de cada regra, gerenciável na AlertasDrawer). As duas coisas são conceitualmente diferentes: pausar uma regra especifica vs. silenciar uma categoria inteira só no contador (a lista de alertas continua mostrando tudo). Mecanismo: NotificacaoContext, irmão direto de AccentContext - localStorage (financas:notificacoes) + Context reativo (sem reload), merge defensivo contra o padrão (tudo habilitado) ao ler. Header.tsx passou a filtrar quantidadeDisparados por preferencias[alerta.tipo] além de alerta.disparado. Novo card 'Notificações' em /configuracoes com 5 Switch, reaproveitando TIPO_ALERTA_LABEL já existente (lib/alertaDescricao.ts). Testes: 2 novos em ConfiguracoesPage.test.tsx. Suíte completa (31 testes) validada num ambiente auxiliar, tsc -b e vite build limpos. Doc: docs/analise-arquitetural-configuracoes.md, seção 8. Versão 0.9.0 -> 0.10.0 (minor, novo item do roadmap + nova seção de doc). Módulo Configurações fica 100% completo.",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-26"
+      },
       {
         "id": "d82",
         "title": "Alertas: frontend completo (sino + lista + criação/edição)",
@@ -963,6 +971,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "frontend",
+      "title": "Configurações: Notificações (toggle por tipo de alerta que conta para o sino). Módulo Configurações fica 100% completo. Versão 0.9.0 → 0.10.0"
+    },
     {
       "date": "2026-07-26",
       "type": "frontend",

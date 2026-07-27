@@ -1,17 +1,21 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound, Sparkles, User } from "lucide-react";
+import { Bell, KeyRound, Sparkles, User } from "lucide-react";
 import { Form } from "../../components/ui/Form";
 import { TextField } from "../../components/ui/TextField";
 import { EmailField } from "../../components/ui/EmailField";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { SubmitButton } from "../../components/ui/SubmitButton";
+import { Switch } from "../../components/ui/Switch";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { AccentPicker } from "../../components/ui/AccentPicker";
 import { DateFormatToggle } from "../../components/ui/DateFormatToggle";
 import { useAuth } from "../../hooks/useAuth";
+import { useNotificacao } from "../../hooks/useNotificacao";
 import { useToast } from "../../hooks/useToast";
+import { TIPO_ALERTA_LABEL } from "../../lib/alertaDescricao";
+import type { TipoAlerta } from "../../types/alerta";
 import { getErrorMessage, getFieldErrors } from "../../utils/errors";
 import {
   perfilFormSchema,
@@ -33,9 +37,12 @@ const SENHA_VAZIA: TrocarSenhaFormValues = { senha_atual: "", senha_nova: "", se
  * é irmã direta do Tema - mesmo mecanismo de atributo em `<html>`, só que
  * `data-accent` em vez de `data-theme`, reagindo instantaneamente (sem
  * recarregar a página, diferente do formato de data) - ver
- * `docs/analise-arquitetural-configuracoes.md`, seção 7. Notificações
- * (depende do backend de Alertas, ainda não implementado) chega em etapa
- * seguinte. Moeda ficou deliberadamente FORA das
+ * `docs/analise-arquitetural-configuracoes.md`, seção 7. Notificações (novo
+ * card "Notificações", seção 8): um interruptor por `TipoAlerta` que decide
+ * se aquele tipo conta para o contador do sino no `Header` - nunca
+ * pausa/exclui o `Alerta` em si (isso já existe, é o `ativo` de cada regra
+ * na `AlertasDrawer`), a lista de alertas continua mostrando TUDO mesmo com
+ * um tipo silenciado aqui. Moeda ficou deliberadamente FORA das
  * Preferências: um seletor de símbolo (R$/US$/€) sem conversão real de
  * valores arriscaria dar a impressão de que o saldo virou outra moeda de
  * verdade - decisão do usuário, ver docs/analise-arquitetural-configuracoes.md.
@@ -57,8 +64,11 @@ const SENHA_VAZIA: TrocarSenhaFormValues = { senha_atual: "", senha_nova: "", se
  * `UserMenu` (edição imediata, sem confirmação extra) para tudo que é
  * "sobre mim".
  */
+const TIPOS_ALERTA_ORDENADOS = Object.keys(TIPO_ALERTA_LABEL) as TipoAlerta[];
+
 export function ConfiguracoesPage() {
   const { usuario, atualizarPerfil, trocarSenha } = useAuth();
+  const { preferencias, setPreferencia } = useNotificacao();
   const toast = useToast();
 
   const perfilForm = useForm<PerfilFormValues>({
@@ -171,6 +181,29 @@ export function ConfiguracoesPage() {
             <AccentPicker />
           </div>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-surface-2 p-5">
+        <div className="mb-4 flex items-center gap-2 text-text-primary">
+          <Bell size={16} aria-hidden="true" />
+          <h2 className="text-body font-semibold">Notificações</h2>
+        </div>
+        <p className="mb-4 max-w-md text-sm text-text-secondary">
+          Escolha quais tipos de alerta contam para o contador do sino no topo da tela. Alertas silenciados aqui
+          continuam existindo e aparecem normalmente na lista - só param de gerar o aviso.
+        </p>
+        <ul className="max-w-md space-y-3">
+          {TIPOS_ALERTA_ORDENADOS.map((tipo) => (
+            <li key={tipo} className="flex items-center justify-between gap-4">
+              <span className="text-sm text-text-primary">{TIPO_ALERTA_LABEL[tipo]}</span>
+              <Switch
+                checked={preferencias[tipo]}
+                onCheckedChange={(habilitado) => setPreferencia(tipo, habilitado)}
+                aria-label={TIPO_ALERTA_LABEL[tipo]}
+              />
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

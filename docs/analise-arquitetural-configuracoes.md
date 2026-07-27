@@ -125,10 +125,8 @@ de verdade, já que isso dispararia o reload real fora do escopo do teste.
 
 ## 6. Não incluído nesta entrega
 
-Notificações (toggle por `TipoAlerta` — depende do backend de Alertas,
-ainda não implementado). Ganha sua própria entrega, citada em
-`dashboard/project-status.json`. Temas personalizáveis (mais paletas além
-do claro/escuro) foi entregue — ver seção 7.
+Nenhum item de personalização/preferência segue pendente — ver seções 7
+(Temas personalizáveis) e 8 (Notificações), ambas entregues.
 
 ## 7. Temas personalizáveis — "Cor de destaque" (2026-07-26)
 
@@ -170,3 +168,49 @@ Testes: `ConfiguracoesPage.test.tsx` ganhou um teste de renderização (5
 opções, "Azul" ativo por padrão) — clicar de verdade não recarrega a
 página (diferente do formato de data), mas o teste cobre só a
 renderização/estado inicial, mesmo nível dos testes irmãos já existentes.
+
+## 8. Notificações (2026-07-26)
+
+Item que ficava explicitamente bloqueado desde a etapa de Preferências —
+"depende do backend de Alertas, ainda não implementado" (antiga seção 6).
+Com o backend (docs/analise-arquitetural-alertas.md, seções 1-7) e o
+frontend completo de Alertas (seção 8 daquele mesmo documento) já prontos,
+o bloqueio caiu.
+
+**Escopo decidido** (não pedido literal do usuário — "toggle por
+`TipoAlerta`" é vago o suficiente para admitir leituras bem diferentes;
+escolha feita a partir da arquitetura já existente, documentada aqui em vez
+de re-perguntar): um interruptor por `TipoAlerta` (5 no total) que decide
+se aquele TIPO conta para o CONTADOR do sino no `Header` — nunca pausa nem
+exclui nenhum `Alerta` de verdade. Isso já existe e é o campo `ativo` de
+cada regra individual, gerenciável na `AlertasDrawer` (`docs/analise-arquitetural-alertas.md`,
+seção 8). As duas coisas são conceitualmente diferentes: pausar uma REGRA
+específica ("não me avise mais sobre ESTE cartão") vs. silenciar uma
+CATEGORIA inteira só no contador ("pare de me interromper com qualquer
+coisa de vencimento de fatura, mas eu ainda quero ver na lista se abrir o
+sino"). A `AlertasDrawer` continua mostrando TODOS os alertas
+independentemente desta preferência — silenciar não remove nada da lista,
+só do contador.
+
+**Mecanismo**: irmão direto de `AccentContext` — `NotificacaoContext`
+(`lib/notificacaoPreferencias.ts` faz o papel de `lib/accentThemes.ts`)
+grava um `Record<TipoAlerta, boolean>` em `localStorage`
+(`financas:notificacoes`), com merge defensivo contra o padrão
+(`PREFERENCIAS_PADRAO`, tudo habilitado) ao ler — um `tipo` novo que passe
+a existir no futuro nasce habilitado para quem já tem a chave salva no
+navegador, nunca `undefined`. Reage instantaneamente (Context, sem
+`window.location.reload()`) — igual à cor de destaque, diferente do
+formato de data. Nada é enviado ao backend: é puramente uma preferência de
+EXIBIÇÃO local, o mesmo alerta persiste e é reavaliado do mesmo jeito nas
+próximas leituras de `GET /alertas`, só o `Header` decide se conta ele no
+badge.
+
+**UI**: novo card "Notificações" em `/configuracoes`, abaixo de
+"Preferências" — 5 `Switch` (um por `TipoAlerta`, rótulo de
+`lib/alertaDescricao.ts:TIPO_ALERTA_LABEL`, já existente, reaproveitado sem
+duplicar a lista de labels). `Header.tsx` passou a filtrar
+`quantidadeDisparados` por `preferencias[alerta.tipo]` além de
+`alerta.disparado`.
+
+Testes: `ConfiguracoesPage.test.tsx` ganhou 2 testes (todos os 5 tipos
+habilitados por padrão; silenciar um tipo não afeta os demais).

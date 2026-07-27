@@ -206,4 +206,30 @@ describe("ConfiguracoesPage", () => {
     expect(within(grupo).getByRole("radio", { name: "Azul" })).toHaveAttribute("aria-checked", "false");
     expect(document.documentElement.getAttribute("data-accent")).toBe("verde");
   });
+
+  it("mostra os 5 tipos de alerta com notificação habilitada por padrão", async () => {
+    renderConfiguracoes();
+
+    await screen.findByDisplayValue("Sant");
+    expect(screen.getByRole("switch", { name: "Limite do cartão" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: "Vencimento de fatura" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: "Vencimento de conta recorrente" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByRole("switch", { name: "Meta atingida" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: "Saldo baixo" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("silencia um tipo de alerta ao clicar no interruptor", async () => {
+    const user = userEvent.setup();
+    renderConfiguracoes();
+
+    await screen.findByDisplayValue("Sant");
+    await user.click(screen.getByRole("switch", { name: "Saldo baixo" }));
+
+    expect(screen.getByRole("switch", { name: "Saldo baixo" })).toHaveAttribute("aria-checked", "false");
+    // As demais permanecem habilitadas - o toggle é por tipo, não global.
+    expect(screen.getByRole("switch", { name: "Limite do cartão" })).toHaveAttribute("aria-checked", "true");
+  });
 });

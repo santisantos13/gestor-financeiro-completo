@@ -6,6 +6,7 @@ import { MobileNav } from "./MobileNav";
 import { AtividadesRecentesDrawer } from "../domain/dashboard/AtividadesRecentesDrawer";
 import { AlertasDrawer } from "../domain/alerta/AlertasDrawer";
 import { useAlertas } from "../../hooks/useAlertaQueries";
+import { useNotificacao } from "../../hooks/useNotificacao";
 import { APP_VERSION } from "../../version";
 
 /**
@@ -30,7 +31,11 @@ export function Header() {
   // cache do React Query, sem requisição extra) - aqui só para o
   // contador do sino, que precisa existir mesmo com o Drawer fechado.
   const { data: alertas } = useAlertas(false);
-  const quantidadeDisparados = (alertas ?? []).filter((a) => a.disparado).length;
+  // Configurações → Notificações: silenciar um `tipo` tira ele da CONTAGEM
+  // do sino, mas o alerta continua existindo e aparece normalmente na
+  // lista (AlertasDrawer) - ver docs/analise-arquitetural-configuracoes.md.
+  const { preferencias } = useNotificacao();
+  const quantidadeDisparados = (alertas ?? []).filter((a) => a.disparado && preferencias[a.tipo]).length;
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg/80 px-4 backdrop-blur-sm sm:px-6">
