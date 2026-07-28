@@ -296,7 +296,7 @@
       {
         "id": "t8",
         "title": "Pipeline de CI",
-        "description": "Rodar a suíte de 1087 testes (622 unit + 465 integração) automaticamente a cada mudança, em vez de manual.",
+        "description": "Rodar a suíte de 1151 testes backend (659 unit + 492 integração) + 45 testes frontend automaticamente a cada mudança, em vez de manual.",
         "category": "DevOps",
         "priority": "Média",
         "date": "2026-07-15"
@@ -1545,16 +1545,16 @@
   },
   "quality": {
     "testCoverage": {
-      "backend": "1087 testes (622 unit + 465 integração), 100% passando — incl. Contas Recorrentes (cursor+status+projeção), migração para Postgres validada, cascata de exclusão de Cartão/Conta (Parcelamento/ContaRecorrente), corte data_fim em Transações recentes, categoria própria de Financiamento/Empréstimo no Calendário e os 2 endpoints agregadores de Gráficos (tendências/período)",
-      "frontend": "9 testes (Vitest + Testing Library) cobrindo os 3 fluxos críticos: autenticação (LoginPage), formulário (TagFormDialog) e tabela (DataTable) - busca, ordenação, paginação"
+      "backend": "1151 testes (659 unit + 492 integração), 100% passando — contagem exata via `pytest --collect-only` em 2026-07-28. Cobre todas as 14 entidades de domínio, Central Financeira, Alertas, Relatórios (CSV/PDF) e os endpoints agregadores de Gráficos (tendências/período)",
+      "frontend": "45 testes (Vitest + Testing Library) cobrindo autenticação, formulários (Tag/Alerta/Configurações), tabela (DataTable), fluxos de Alertas, Relatórios e Gráficos (drill-down, comparação, agrupamento)"
     },
     "technicalDebt": 5,
     "featuresRatio": {
       "done": 14,
-      "total": 15,
+      "total": 14,
       "label": "entidades de domínio no backend"
     },
     "documentation": 95,
-    "security": 60
+    "security": 75
   }
 }
