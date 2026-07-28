@@ -17,9 +17,15 @@ import pytest
 
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.models import Tag, Transacao
-from app.models.enums import StatusFatura, StatusTransacao, TipoCategoria, TipoTransacao
+from app.models.enums import (
+    EscopoOperacaoParcela,
+    StatusFatura,
+    StatusTransacao,
+    TipoCategoria,
+    TipoTransacao,
+)
 from app.schemas.transacao import TransacaoCreate, TransacaoUpdate
-from app.services.transacao_service import EscopoOperacaoParcela, TransacaoService
+from app.services.transacao_service import TransacaoService
 
 
 class FakeTransacaoRepository:
@@ -1289,23 +1295,76 @@ def test_excluir_a_parcela_clicada_com_fatura_fechada_ainda_levanta_business_rul
         service.excluir(parcela.id, usuario_id=1)
 
 
-def test_aplicar_exclusao_de_parcela_com_escopo_esta_parcela_levanta_not_implemented(
-    service, cartao_repo
+# --- excluir: escopo ESTA_PARCELA (2026-07-28) ---------------------------
+# Segunda opção de EscopoOperacaoParcela, implementada de verdade (antes só
+# TODO_PARCELAMENTO existia - ver docs/analise-arquitetural-escopo-
+# parcelamento.md, seção 7). Remove só a parcela clicada, nunca as demais.
+
+def test_excluir_com_escopo_esta_parcela_remove_so_a_parcela_clicada(
+    service, transacao_repo, parcelamento_repo, cartao_repo
 ):
-    """Trava do ponto de extensão centralizado (ver docstring de
-    `EscopoOperacaoParcela` em transacao_service.py): hoje só
-    `TODO_PARCELAMENTO` é suportado - `ESTA_PARCELA` é só o nome reservado
-    para uma funcionalidade futura (renegociação/edição avançada), NUNCA
-    implementado nesta etapa. `NotImplementedError` explícito (em vez de
-    silenciosamente cair para outro comportamento) garante que, se algum
-    dia um caller chamar isto por engano antes da funcionalidade existir de
-    verdade, o erro é óbvio e imediato."""
+    cartao_repo.adicionar(cartao_id=10, usuario_id=1)
+    parcela1 = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/3)"
+    )
+    parcela2 = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=2, descricao="Compra (2/3)"
+    )
+    parcela3 = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=3, descricao="Compra (3/3)"
+    )
+
+    service.excluir(parcela2.id, usuario_id=1, escopo=EscopoOperacaoParcela.ESTA_PARCELA)
+
+    assert transacao_repo.get(parcela1.id) is not None
+    assert transacao_repo.get(parcela2.id) is None
+    assert transacao_repo.get(parcela3.id) is not None
+    # ainda restam parcelas - a compra continua em vigor.
+    assert parcelamento_repo.get(1).ativo is True
+
+
+def test_excluir_com_escopo_esta_parcela_cancela_parcelamento_quando_era_a_ultima(
+    service, transacao_repo, parcelamento_repo, cartao_repo
+):
+    cartao_repo.adicionar(cartao_id=10, usuario_id=1)
+    unica = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/1)"
+    )
+
+    service.excluir(unica.id, usuario_id=1, escopo=EscopoOperacaoParcela.ESTA_PARCELA)
+
+    assert transacao_repo.get(unica.id) is None
+    assert parcelamento_repo.get(1).ativo is False
+
+
+def test_excluir_com_escopo_esta_parcela_respeita_fatura_fechada_da_propria_parcela(
+    service, cartao_repo, fatura_repo
+):
     cartao_repo.adicionar(cartao_id=10, usuario_id=1)
     parcela = _criar(
         service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/2)"
     )
+    fatura_repo.get(parcela.fatura_id).status = StatusFatura.FECHADA
 
-    with pytest.raises(NotImplementedError):
-        service._aplicar_exclusao_de_parcela(
-            parcela, usuario_id=1, escopo=EscopoOperacaoParcela.ESTA_PARCELA
-        )
+    with pytest.raises(BusinessRuleError):
+        service.excluir(parcela.id, usuario_id=1, escopo=EscopoOperacaoParcela.ESTA_PARCELA)
+
+
+def test_excluir_com_escopo_default_continua_cancelando_todo_parcelamento(
+    service, transacao_repo, parcelamento_repo, cartao_repo
+):
+    # nenhum caller que ainda nao foi atualizado para passar `escopo`
+    # explicitamente pode ter seu comportamento mudado por essa adicao.
+    cartao_repo.adicionar(cartao_id=10, usuario_id=1)
+    parcela1 = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=1, descricao="Compra (1/2)"
+    )
+    parcela2 = _criar(
+        service, conta_id=None, cartao_id=10, parcelamento_id=1, numero_parcela=2, descricao="Compra (2/2)"
+    )
+
+    service.excluir(parcela1.id, usuario_id=1)
+
+    assert transacao_repo.get(parcela1.id) is None
+    assert transacao_repo.get(parcela2.id) is None
+    assert parcelamento_repo.get(1).ativo is False

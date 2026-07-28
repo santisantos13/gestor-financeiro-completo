@@ -233,3 +233,80 @@ Backend: 1 teste unitário novo (`test_visao_mensal_com_apenas_conta_exclui_comp
 massa de dados (uma despesa de Conta + uma de Cartão), `apenas_conta=false` soma as duas e
 `apenas_conta=true` só a de Conta. Suíte completa (634 unit + toda integração) revalidada.
 Frontend: `tsc -b`, `vite build` e suíte de 21 testes revalidados.
+
+## 7. `ESTA_PARCELA` deixa de ser reservado: excluir só uma parcela (2026-07-28)
+
+Pedido do usuário: fechar o ponto de extensão que a seção 2 deixou pronto, mas não implementado
+- "excluir só esta parcela" de uma compra parcelada, sem cancelar as outras N-1 (diferente do
+único comportamento existente até aqui, `TODO_PARCELAMENTO`, que sempre cancela a compra
+inteira). Caso de uso real: lançamento duplicado por engano numa parcela específica, ou uma
+parcela isolada que precisa ser corrigida sem mexer no resto da compra.
+
+### Backend
+
+`EscopoOperacaoParcela` **promovido** de enum interno de `transacao_service.py` para
+`app/models/enums.py` - deixou de ser "decisão só de Service" (docstring antiga) no momento em
+que passou a ser aceito de verdade via query string (`DELETE /transacoes/{id}?escopo=...`),
+virando vocabulário de API. Mesma dupla de valores de sempre (`TODO_PARCELAMENTO`/
+`ESTA_PARCELA`), sem nenhuma mudança de nome ou semântica do que já existia.
+
+`TransacaoService.excluir()` ganhou o parâmetro opcional `escopo: EscopoOperacaoParcela =
+TODO_PARCELAMENTO` - default preserva 100% do comportamento anterior para qualquer chamador que
+não foi atualizado (nenhuma chamada interna existente precisou mudar). `_aplicar_exclusao_de_
+parcela` deixou de levantar `NotImplementedError` para `ESTA_PARCELA` e passou a delegar para um
+novo método, `_excluir_apenas_esta_parcela`:
+
+- Remove só a `Transacao` clicada (`transacao_repo.delete`), nunca as demais - diferente de
+  `cancelar_parcelas_do_parcelamento`, que sempre cancela a compra inteira.
+- `Parcelamento.valor_total`/`num_parcelas` NUNCA são recalculados - permanecem o registro
+  histórico da compra original, mesmo raciocínio já usado por `cancelar_parcelas_do_
+  parcelamento` (que também nunca toca `valor_total`). Excluir uma parcela por engano/duplicidade
+  não reescreve "quantas parcelas a compra tinha".
+- `Parcelamento.ativo` só vira `False` se esta era a ÚLTIMA parcela restante (nenhuma outra
+  sobrando, de qualquer status) - idempotente, mesmo padrão de `cancelar_parcelas_do_
+  parcelamento`.
+- A checagem "não mexe em fatura fechada" da parcela clicada continua rodando em `excluir()`
+  ANTES da decisão de escopo (nenhuma duplicação) - ou seja, `ESTA_PARCELA` numa parcela já
+  travada continua bloqueada com `BusinessRuleError`/422, igual `TODO_PARCELAMENTO` sempre foi.
+
+`GET /transacoes` e o resto da cadeia (Fatura/Cartão/Central Financeira) não mudam - a exclusão
+de uma parcela via `ESTA_PARCELA` é, do ponto de vista de todo o resto do sistema, indistinguível
+de excluir qualquer outra `Transacao` avulsa (o cálculo de limite/fatura já é 100% derivado,
+recalcula sozinho).
+
+### Frontend
+
+`transacaoService.excluir(id, escopo?)` repassa `escopo` como query param só quando informado
+(`httpClient.delete` já ignora chaves `undefined`). `useExcluirTransacao`/`useExcluirCompra`
+(dentro de `FaturaDrawer`) trocaram a assinatura da `mutationFn` de `(id: number)` para
+`({ id, escopo? })` - único jeito de aceitar um segundo argumento opcional dentro de
+`mutateAsync` sem quebrar a API de hooks do React Query (que só aceita 1 argumento de variables).
+
+`ConfirmAction` (design system, Tier 2) ganhou uma segunda ação de confirmação opcional
+(`secondaryConfirmLabel`/`onConfirmSecondary`/`secondaryLoading`) - primeiro caso do app com DUAS
+variações de "confirmar" igualmente válidas. Nenhum `ConfirmAction` existente precisou mudar
+(campos opcionais, default nenhum botão extra).
+
+Os dois lugares onde uma parcela pode ser excluída pelo usuário ganharam a escolha:
+
+- `TransacoesPage` (parcelamento de Conta, já que `/transacoes` nunca mostra compra de cartão -
+  ver seção 14 de `docs/analise-arquitetural-transacao-frontend.md`): `ConfirmAction` mostra
+  "Compra inteira" (ação principal, `TODO_PARCELAMENTO`, preserva o rótulo/comportamento visual de
+  sempre para quem não usa parcelamento) e "Só esta parcela" (`ESTA_PARCELA`, novo botão
+  secundário) só quando a transação tem `parcelamento_id`.
+- `FaturaDrawer` → "Compras desta fatura" (parcelamento de Cartão): mesmo par de botões, dentro do
+  bloco de confirmação inline já existente (não um `ConfirmAction` separado - continua valendo a
+  regra de nunca empilhar dois Tier 2 com backdrop próprio, ver seção 2 acima).
+
+Nenhuma transação sem `parcelamento_id` ganha o botão extra em nenhum dos dois lugares - o fluxo
+de exclusão simples continua idêntico ao de sempre.
+
+### Validação
+
+Backend: 4 testes unitários novos (remove só a clicada; cancela o parcelamento quando era a
+última parcela restante; ainda bloqueia fatura fechada da própria parcela; escopo default
+continua cancelando tudo) substituindo o teste antigo que só verificava o `NotImplementedError` +
+3 testes de integração novos (mesmos 3 cenários via `DELETE /transacoes/{id}?escopo=ESTA_PARCELA`
+de ponta a ponta). Suíte completa (1157 testes) revalidada. Frontend: `tsc -b` limpo (build de
+produção via Vite não pôde ser revalidado nesta sessão por limitação do sandbox - ver relato ao
+usuário).

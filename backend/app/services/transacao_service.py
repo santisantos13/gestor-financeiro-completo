@@ -45,13 +45,18 @@ docs/analise-arquitetural-financiamento.md. Mesmo espírito arquitetural já
 usado para `cartao_id` (status sempre forçado/travado), aplicado agora
 também a contrato de crédito.
 """
-import enum
 from datetime import date
 from decimal import Decimal
 
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.models import Categoria, Cartao, Tag, Transacao
-from app.models.enums import StatusFatura, StatusTransacao, TipoCategoria, TipoTransacao
+from app.models.enums import (
+    EscopoOperacaoParcela,
+    StatusFatura,
+    StatusTransacao,
+    TipoCategoria,
+    TipoTransacao,
+)
 from app.repositories.cartao_repository import CartaoRepository
 from app.repositories.categoria_repository import CategoriaRepository
 from app.repositories.conta_recorrente_repository import ContaRecorrenteRepository
@@ -72,37 +77,6 @@ from app.services.fatura_service import FaturaService
 # vinculadas a fatura fechada"). cartao_id não entra aqui porque já é
 # estruturalmente imutável (nem aparece em TransacaoUpdate).
 _CAMPOS_TRAVADOS_EM_FATURA_FECHADA = {"valor", "data", "parcelamento_id"}
-
-
-class EscopoOperacaoParcela(str, enum.Enum):
-    """Escopo de uma operação (hoje só exclusão) sobre uma parcela que
-    pertence a um `Parcelamento` - ponto único de decisão "o que fazer com
-    as OUTRAS parcelas quando esta é afetada", centralizado aqui em vez de
-    espalhado como um `if transacao.parcelamento_id is not None` inline em
-    cada método que precisar dessa regra (ver
-    docs/analise-arquitetural-escopo-parcelamento.md).
-
-    Interno ao Service - deliberadamente NÃO é um enum de
-    `app/models/enums.py` (que reúne vocabulário exposto via schema/API):
-    nenhum destes valores é aceito num payload de cliente ainda, e não deve
-    virar um até a funcionalidade abaixo ser implementada de verdade
-    (YAGNI - ver docstring de `TransacaoService._aplicar_exclusao_de_parcela`).
-
-    - TODO_PARCELAMENTO: único comportamento suportado hoje e sempre usado,
-      independente de o cliente pedir ou não - excluir qualquer parcela
-      cancela a compra inteira (`cancelar_parcelas_do_parcelamento`).
-      Motivo: uma parcela isolada não é uma despesa própria, é 1/N de uma
-      única compra - deixar as outras N-1 "penduradas" corrompe o valor
-      real da compra em faturas futuras (bug real corrigido em 2026-07-20).
-    - ESTA_PARCELA: reservado para uma futura ação "excluir só esta
-      parcela" (ex: renegociação, edição avançada) - NÃO implementado.
-      Chamar `_aplicar_exclusao_de_parcela` com este valor levanta
-      `NotImplementedError` de propósito, em vez de silenciosamente cair
-      para outro comportamento - mais seguro do que fingir suporte que
-      não existe."""
-
-    ESTA_PARCELA = "ESTA_PARCELA"
-    TODO_PARCELAMENTO = "TODO_PARCELAMENTO"
 
 
 class TransacaoService:
@@ -440,7 +414,13 @@ class TransacaoService:
         self._marcar_parcelamento_cancelado([transacao])
         return transacao
 
-    def excluir(self, transacao_id: int, usuario_id: int) -> None:
+    def excluir(
+        self,
+        transacao_id: int,
+        usuario_id: int,
+        *,
+        escopo: EscopoOperacaoParcela = EscopoOperacaoParcela.TODO_PARCELAMENTO,
+    ) -> None:
         """Sem soft delete: Transacao é lançamento de livro-razão, não
         cadastro - uma transação errada é removida de verdade (ver
         docs/analise-arquitetural-transacao.md). Única restrição: uma
@@ -461,13 +441,19 @@ class TransacaoService:
         continuava `True` mesmo sem mais nenhuma parcela "atual" fazendo
         sentido. Corrigido delegando para `_aplicar_exclusao_de_parcela`
         sempre que a transação pertence a um parcelamento - ver docstring
-        de `EscopoOperacaoParcela` para a regra centralizada."""
+        de `EscopoOperacaoParcela` (app/models/enums.py) para a regra
+        centralizada.
+
+        `escopo` só importa quando a transação pertence a um
+        `Parcelamento` - é ignorado (via `_buscar_da_propriedade_do_usuario`
+        + o `if` abaixo) para qualquer outra transação, então o valor
+        default (`TODO_PARCELAMENTO`) preserva 100% do comportamento
+        anterior para quem não passa o parâmetro (ex: qualquer chamada
+        interna que ainda não foi atualizada)."""
         transacao = self._buscar_da_propriedade_do_usuario(transacao_id, usuario_id)
         self._impedir_escrita_em_fatura_fechada(transacao)
         if transacao.parcelamento_id is not None:
-            self._aplicar_exclusao_de_parcela(
-                transacao, usuario_id, escopo=EscopoOperacaoParcela.TODO_PARCELAMENTO
-            )
+            self._aplicar_exclusao_de_parcela(transacao, usuario_id, escopo=escopo)
             return
         self.transacao_repo.delete(transacao)
 
@@ -477,19 +463,42 @@ class TransacaoService:
         """Ponto único de decisão "o que fazer quando UMA parcela de
         Parcelamento é excluída" - existe como método próprio (em vez de
         inline em `excluir()`) para que a regra de negócio cresça num único
-        lugar quando uma segunda opção de `escopo` for implementada de
-        verdade (ver docstring de `EscopoOperacaoParcela` e
+        lugar quando uma nova opção de `escopo` for implementada (ver
+        docstring de `EscopoOperacaoParcela` e
         docs/analise-arquitetural-escopo-parcelamento.md), sem precisar
-        redesenhar `excluir()` nem duplicar a checagem em outro método.
+        redesenhar `excluir()` nem duplicar a checagem em outro método."""
+        if escopo is EscopoOperacaoParcela.TODO_PARCELAMENTO:
+            self.cancelar_parcelas_do_parcelamento(transacao.parcelamento_id, usuario_id)
+            return
+        self._excluir_apenas_esta_parcela(transacao, usuario_id)
 
-        Hoje só `TODO_PARCELAMENTO` é aceito - qualquer outro valor
-        levanta `NotImplementedError` de propósito (nunca cai
-        silenciosamente para um comportamento parecido, mas errado)."""
-        if escopo is not EscopoOperacaoParcela.TODO_PARCELAMENTO:
-            raise NotImplementedError(
-                f"Escopo de exclusão de parcela ainda não suportado: {escopo.value}."
-            )
-        self.cancelar_parcelas_do_parcelamento(transacao.parcelamento_id, usuario_id)
+    def _excluir_apenas_esta_parcela(self, transacao: Transacao, usuario_id: int) -> None:
+        """Motor do escopo `EscopoOperacaoParcela.ESTA_PARCELA` (2026-07-28)
+        - remove só a parcela clicada, nunca as outras N-1 (diferente de
+        `cancelar_parcelas_do_parcelamento`, que cancela a compra inteira).
+        A checagem de fatura fechada da parcela clicada já rodou em
+        `excluir()` antes de chegar aqui - por isso este método não repete
+        `_impedir_escrita_em_fatura_fechada` nem é exposto fora do Service.
+
+        `valor_total`/`num_parcelas` do `Parcelamento` NÃO são recalculados:
+        são o registro histórico da compra original (mesmo raciocínio de
+        `cancelar_parcelas_do_parcelamento` nunca tocar `valor_total`) -
+        excluir uma parcela por engano/duplicidade não reescreve quantas
+        parcelas a compra original tinha. `Parcelamento.ativo` só vira
+        `False` se esta era a ÚLTIMA parcela restante (nenhuma outra
+        parcela sobrando, de qualquer status) - idempotente com o resto do
+        arquivo, mesmo raciocínio de `cancelar_parcelas_do_parcelamento`."""
+        parcelamento_id = transacao.parcelamento_id
+        self.transacao_repo.delete(transacao)
+        restantes = self.transacao_repo.listar_do_usuario(
+            usuario_id, parcelamento_id=parcelamento_id, limit=1
+        )
+        if restantes:
+            return
+        parcelamento = self.parcelamento_repo.get(parcelamento_id)
+        if parcelamento is not None and parcelamento.ativo:
+            parcelamento.ativo = False
+            self.parcelamento_repo.update(parcelamento)
 
     def cancelar_parcelas_do_parcelamento(self, parcelamento_id: int, usuario_id: int) -> None:
         """Motor real do escopo `EscopoOperacaoParcela.TODO_PARCELAMENTO` -

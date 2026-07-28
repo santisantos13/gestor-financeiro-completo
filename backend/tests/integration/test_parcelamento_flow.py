@@ -353,6 +353,72 @@ def test_excluir_uma_parcela_pelo_endpoint_generico_preserva_a_que_ja_esta_em_fa
     assert next(p for p in todos if p["id"] == parcelamento["id"])["ativo"] is False
 
 
+# --- DELETE /transacoes/{id}?escopo=ESTA_PARCELA (2026-07-28) ------------
+# Segunda opção de escopo, implementada de verdade (antes só o cascata
+# acima existia) - ver docs/analise-arquitetural-escopo-parcelamento.md,
+# seção 7. Remove só a parcela clicada, preservando as demais intactas.
+
+def test_excluir_com_escopo_esta_parcela_remove_so_a_clicada(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    parcelamento = _criar_parcelamento(
+        client, headers, cartao_id=cartao["id"], conta_id=None, num_parcelas=3, data_inicio="2026-07-15"
+    ).json()
+    parcelas = client.get(f"/transacoes?parcelamento_id={parcelamento['id']}", headers=headers).json()
+    parcela_do_meio = next(p for p in parcelas if p["numero_parcela"] == 2)
+
+    resposta = client.delete(
+        f"/transacoes/{parcela_do_meio['id']}", params={"escopo": "ESTA_PARCELA"}, headers=headers
+    )
+    assert resposta.status_code == 204
+
+    parcelas_restantes = client.get(
+        f"/transacoes?parcelamento_id={parcelamento['id']}", headers=headers
+    ).json()
+    assert sorted(p["numero_parcela"] for p in parcelas_restantes) == [1, 3]
+
+    # a compra continua em vigor - só uma parcela sumiu, não o parcelamento.
+    todos = client.get("/parcelamentos?apenas_ativos=false", headers=headers).json()
+    assert next(p for p in todos if p["id"] == parcelamento["id"])["ativo"] is True
+
+
+def test_excluir_com_escopo_esta_parcela_cancela_parcelamento_se_era_a_ultima(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"])
+    parcelamento = _criar_parcelamento(
+        client, headers, cartao_id=cartao["id"], conta_id=None, num_parcelas=2, data_inicio="2026-07-15"
+    ).json()
+    parcelas = client.get(f"/transacoes?parcelamento_id={parcelamento['id']}", headers=headers).json()
+
+    for parcela in parcelas:
+        resposta = client.delete(
+            f"/transacoes/{parcela['id']}", params={"escopo": "ESTA_PARCELA"}, headers=headers
+        )
+        assert resposta.status_code == 204
+
+    todos = client.get("/parcelamentos?apenas_ativos=false", headers=headers).json()
+    assert next(p for p in todos if p["id"] == parcelamento["id"])["ativo"] is False
+
+
+def test_excluir_com_escopo_esta_parcela_ainda_bloqueia_fatura_fechada(client):
+    headers = _registrar_e_logar(client)
+    conta = _criar_conta(client, headers)
+    cartao = _criar_cartao(client, headers, conta["id"], dia_fechamento=10, dia_vencimento=17)
+    parcelamento = _criar_parcelamento(
+        client, headers, cartao_id=cartao["id"], conta_id=None, num_parcelas=2, data_inicio="2026-07-15"
+    ).json()
+    parcelas = client.get(f"/transacoes?parcelamento_id={parcelamento['id']}", headers=headers).json()
+    primeira_parcela = next(p for p in parcelas if p["numero_parcela"] == 1)
+    client.post(f"/faturas/{primeira_parcela['fatura_id']}/fechar", headers=headers)
+
+    resposta = client.delete(
+        f"/transacoes/{primeira_parcela['id']}", params={"escopo": "ESTA_PARCELA"}, headers=headers
+    )
+    assert resposta.status_code == 422
+
+
 def test_parcela_de_parcelamento_ainda_ativo_nao_tem_flag_parcelamento_cancelado(client):
     headers = _registrar_e_logar(client)
     conta = _criar_conta(client, headers)

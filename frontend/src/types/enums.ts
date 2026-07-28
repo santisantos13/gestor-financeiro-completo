@@ -113,3 +113,10 @@ export type CategoriaMovimentacaoConta =
   | "PAGAMENTO_FATURA"
   | "PAGAMENTO_FINANCIAMENTO"
   | "PAGAMENTO_EMPRESTIMO";
+
+/** Escopo de `DELETE /transacoes/{id}?escopo=...` quando a transação
+ * pertence a um Parcelamento (2026-07-28) — espelha `EscopoOperacaoParcela`
+ * (backend, `models/enums.py`). TODO_PARCELAMENTO (default do backend se
+ * omitido) cancela a compra inteira; ESTA_PARCELA remove só a parcela
+ * clicada. Ver docs/analise-arquitetural-escopo-parcelamento.md, seção 7. */
+export type EscopoOperacaoParcela = "ESTA_PARCELA" | "TODO_PARCELAMENTO";

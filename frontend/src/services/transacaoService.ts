@@ -14,6 +14,7 @@
  */
 import { httpClient } from "../api/httpClient";
 import type { TransacaoCreate, TransacaoFiltros, TransacaoRead, TransacaoUpdate } from "../types/transacao";
+import type { EscopoOperacaoParcela } from "../types/enums";
 
 export const transacaoService = {
   listar: (filtros: TransacaoFiltros = {}) =>
@@ -28,6 +29,13 @@ export const transacaoService = {
 
   /** `DELETE /transacoes/{id}` — sempre definitivo, sem soft delete
    * (Transação é lançamento de livro-razão real, não há `ativo`/
-   * "/permanente" nesta entidade — seção 1 do documento). */
-  excluir: (id: number) => httpClient.delete<void>(`/transacoes/${id}`),
+   * "/permanente" nesta entidade — seção 1 do documento).
+   *
+   * `escopo` só importa quando a transação pertence a um Parcelamento
+   * (ignorado pelo backend em qualquer outro caso) - omitido, o backend
+   * assume `TODO_PARCELAMENTO` (cancela a compra inteira, comportamento
+   * de sempre). `ESTA_PARCELA` (2026-07-28) remove só esta parcela, ver
+   * docs/analise-arquitetural-escopo-parcelamento.md, seção 7. */
+  excluir: (id: number, escopo?: EscopoOperacaoParcela) =>
+    httpClient.delete<void>(`/transacoes/${id}`, escopo ? { escopo } : undefined),
 };

@@ -25,6 +25,7 @@ import { getErrorMessage } from "../../utils/errors";
 import { intervaloDoMes } from "../../utils/date";
 import { formatMoney } from "../../utils/format";
 import type { TransacaoRead, TransacaoFiltros } from "../../types/transacao";
+import type { EscopoOperacaoParcela } from "../../types/enums";
 import type { RowAction } from "../../types/table";
 
 interface EstadoDialogoTransacao {
@@ -148,10 +149,10 @@ export function TransacoesPage() {
     setDialogo((atual) => ({ ...atual, aberto: false }));
   }
 
-  async function confirmarExclusao() {
+  async function confirmarExclusao(escopo?: EscopoOperacaoParcela) {
     if (!transacaoParaExcluir) return;
     try {
-      await excluirTransacao.mutateAsync(transacaoParaExcluir.id);
+      await excluirTransacao.mutateAsync({ id: transacaoParaExcluir.id, escopo });
       toast.success(`Transação "${transacaoParaExcluir.descricao}" excluída.`);
       setTransacaoParaExcluir(null);
     } catch (error) {
@@ -250,14 +251,21 @@ export function TransacoesPage() {
         description={
           transacaoParaExcluir
             ? transacaoParaExcluir.parcelamento_id != null
-              ? `Esta compra possui ${parcelamentoParaExcluir?.num_parcelas ?? "várias"} parcelas. Ao excluí-la, todas as parcelas serão removidas permanentemente (as que já estiverem em faturas fechadas são preservadas como histórico). Esta ação não pode ser desfeita.`
+              ? `Esta compra possui ${parcelamentoParaExcluir?.num_parcelas ?? "várias"} parcelas. "Só esta parcela" remove apenas esta linha, mantendo as demais intactas. "Compra inteira" cancela todas as parcelas ainda destravadas (as que já estiverem em faturas fechadas são preservadas como histórico). Esta ação não pode ser desfeita.`
               : `Esta ação é permanente e não pode ser desfeita. O valor de ${formatMoney(transacaoParaExcluir.valor)} deixa de contar no saldo/limite da origem.`
             : ""
         }
-        confirmLabel="Excluir definitivamente"
+        confirmLabel={transacaoParaExcluir?.parcelamento_id != null ? "Compra inteira" : "Excluir definitivamente"}
+        secondaryConfirmLabel={transacaoParaExcluir?.parcelamento_id != null ? "Só esta parcela" : undefined}
         tone="danger"
-        loading={excluirTransacao.isPending}
-        onConfirm={confirmarExclusao}
+        loading={excluirTransacao.isPending && excluirTransacao.variables?.escopo !== "ESTA_PARCELA"}
+        secondaryLoading={excluirTransacao.isPending && excluirTransacao.variables?.escopo === "ESTA_PARCELA"}
+        onConfirm={() =>
+          confirmarExclusao(transacaoParaExcluir?.parcelamento_id != null ? "TODO_PARCELAMENTO" : undefined)
+        }
+        onConfirmSecondary={
+          transacaoParaExcluir?.parcelamento_id != null ? () => confirmarExclusao("ESTA_PARCELA") : undefined
+        }
         onCancel={() => setTransacaoParaExcluir(null)}
       />
     </div>

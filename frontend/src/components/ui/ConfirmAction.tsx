@@ -15,6 +15,16 @@ export interface ConfirmActionProps {
   loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Segunda ação de confirmação opcional (2026-07-28) — para o único
+   * caso do app com DUAS variações de "confirmar" igualmente válidas (ex.:
+   * excluir uma parcela de Parcelamento: "só esta parcela" x "a compra
+   * inteira" — ver docs/analise-arquitetural-escopo-parcelamento.md, seção
+   * 7). Renderiza um terceiro botão entre Cancelar e o botão principal só
+   * quando ambos os campos são informados juntos; nenhum `ConfirmAction`
+   * existente precisa mudar (opcional, default nenhum). */
+  secondaryConfirmLabel?: string;
+  onConfirmSecondary?: () => void;
+  secondaryLoading?: boolean;
 }
 
 /** Modal de confirmação genérico — visual de `DeleteDialog`
@@ -36,6 +46,9 @@ export function ConfirmAction({
   loading = false,
   onConfirm,
   onCancel,
+  secondaryConfirmLabel,
+  onConfirmSecondary,
+  secondaryLoading = false,
 }: ConfirmActionProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -87,10 +100,20 @@ export function ConfirmAction({
                 {description && <p className="mt-1 text-sm text-text-secondary">{description}</p>}
               </div>
             </div>
-            <div className="mt-5 flex justify-end gap-2">
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
               <Button ref={cancelRef} variant="secondary" size="sm" onClick={onCancel}>
                 {cancelLabel}
               </Button>
+              {secondaryConfirmLabel && onConfirmSecondary && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={secondaryLoading}
+                  onClick={onConfirmSecondary}
+                >
+                  {secondaryConfirmLabel}
+                </Button>
+              )}
               <Button
                 variant={tone === "danger" ? "danger" : "primary"}
                 size="sm"

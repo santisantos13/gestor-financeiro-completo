@@ -12,10 +12,10 @@ docs/analise-arquitetural-transacao.md).
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import CurrentUser, get_transacao_service
-from app.models.enums import StatusTransacao, TipoTransacao
+from app.models.enums import EscopoOperacaoParcela, StatusTransacao, TipoTransacao
 from app.schemas.transacao import TransacaoCreate, TransacaoRead, TransacaoUpdate
 from app.services.transacao_service import TransacaoService
 
@@ -96,6 +96,18 @@ def atualizar_transacao(
 
 @router.delete("/{transacao_id}", status_code=status.HTTP_204_NO_CONTENT)
 def excluir_transacao(
-    transacao_id: int, usuario_atual: CurrentUser, transacao_service: TransacaoServiceDep
+    transacao_id: int,
+    usuario_atual: CurrentUser,
+    transacao_service: TransacaoServiceDep,
+    escopo: Annotated[
+        EscopoOperacaoParcela,
+        Query(
+            description=(
+                "Só importa quando a transação pertence a um Parcelamento: "
+                "TODO_PARCELAMENTO (default) cancela a compra inteira, "
+                "ESTA_PARCELA remove só esta parcela."
+            )
+        ),
+    ] = EscopoOperacaoParcela.TODO_PARCELAMENTO,
 ) -> None:
-    transacao_service.excluir(transacao_id, usuario_atual.id)
+    transacao_service.excluir(transacao_id, usuario_atual.id, escopo=escopo)

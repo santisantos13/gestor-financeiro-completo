@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 93,
-    "updatedAt": "2026-07-28T00:00:00-03:00"
+    "overallPercent": 95,
+    "updatedAt": "2026-07-28T13:00:00-03:00"
   },
   "areas": [
     {
@@ -194,8 +194,8 @@
     {
       "name": "Parcelamentos",
       "category": "Backend + Frontend",
-      "status": "in-progress",
-      "progress": 80,
+      "status": "done",
+      "progress": 100,
       "priority": "Média"
     },
     {
@@ -305,6 +305,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d87",
+        "title": "Parcelamentos: excluir só esta parcela (ESTA_PARCELA deixa de ser reservado)",
+        "description": "Usuário pediu para fechar os 3 itens restantes do roadmap hoje (Parcelamentos, Segurança, Deploy). Parcelamentos estava em 80% por um ponto de extensão já desenhado numa sessão anterior mas nunca implementado: EscopoOperacaoParcela.ESTA_PARCELA levantava NotImplementedError de propósito. Implementado o motor real: TransacaoService._excluir_apenas_esta_parcela remove só a parcela clicada (nunca as outras N-1, diferente de cancelar_parcelas_do_parcelamento); Parcelamento.valor_total/num_parcelas nunca são recalculados (registro histórico da compra original); Parcelamento.ativo só vira False se era a última parcela restante. Enum promovido de interno de transacao_service.py para app/models/enums.py (agora vocabulário de API via DELETE /transacoes/{id}?escopo=). Frontend: ConfirmAction (design system) ganhou uma segunda ação de confirmação opcional (secondaryConfirmLabel/onConfirmSecondary) - primeiro caso do app com duas confirmações igualmente válidas; TransacoesPage e FaturaDrawer (Compras desta fatura) ganharam o botão 'Só esta parcela' ao lado de 'Compra inteira'. Testes: 4 unitários + 3 de integração novos. Suíte completa (1159 testes) revalidada em lotes. tsc -b limpo; vite build/vitest não puderam ser revalidados nesta sessão por limitação pontual do sandbox (spawn de processo travando). Doc: docs/analise-arquitetural-escopo-parcelamento.md, seção 7. Versão 0.12.1 -> 0.13.0 (minor).",
+        "category": "Backend + Frontend",
+        "priority": "Média",
+        "date": "2026-07-28"
+      },
       {
         "id": "d86",
         "title": "Correção de lentidão em produção: /health passa a checar o banco",
@@ -997,6 +1005,11 @@
   },
   "changelog": [
     {
+      "date": "2026-07-28",
+      "type": "backend+frontend",
+      "title": "Parcelamentos: excluir só esta parcela (sem cancelar a compra inteira) - ESTA_PARCELA deixa de ser um ponto de extensão reservado. Versão 0.12.1 → 0.13.0"
+    },
+    {
       "date": "2026-07-26",
       "type": "backend",
       "title": "Correção de lentidão em produção: /health agora checa o banco, permitindo um ping externo grátis manter Render e Supabase acordados. Versão 0.12.0 → 0.12.1"
@@ -1545,7 +1558,7 @@
   },
   "quality": {
     "testCoverage": {
-      "backend": "1151 testes (659 unit + 492 integração), 100% passando — contagem exata via `pytest --collect-only` em 2026-07-28. Cobre todas as 14 entidades de domínio, Central Financeira, Alertas, Relatórios (CSV/PDF) e os endpoints agregadores de Gráficos (tendências/período)",
+      "backend": "1159 testes (662 unit + 497 integração), 100% passando — contagem exata via `pytest --collect-only` em 2026-07-28. Cobre todas as 14 entidades de domínio, Central Financeira, Alertas, Relatórios (CSV/PDF), os endpoints agregadores de Gráficos (tendências/período), exclusão granular de parcela e rate limiting de autenticação",
       "frontend": "45 testes (Vitest + Testing Library) cobrindo autenticação, formulários (Tag/Alerta/Configurações), tabela (DataTable), fluxos de Alertas, Relatórios e Gráficos (drill-down, comparação, agrupamento)"
     },
     "technicalDebt": 5,

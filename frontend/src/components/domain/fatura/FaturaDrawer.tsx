@@ -38,6 +38,7 @@ import {
   type AjustePosFechamentoFormValues,
 } from "../../../schemas/fatura";
 import type { TransacaoRead } from "../../../types/transacao";
+import type { EscopoOperacaoParcela } from "../../../types/enums";
 
 export interface FaturaDrawerProps {
   cartaoId: number;
@@ -224,10 +225,10 @@ export function FaturaDrawer({ cartaoId, contaPagamentoId, faturaId, onClose, on
     }
   }
 
-  async function confirmarExcluirCompra() {
+  async function confirmarExcluirCompra(escopo?: EscopoOperacaoParcela) {
     if (!compraParaExcluir) return;
     try {
-      await excluirCompra.mutateAsync(compraParaExcluir.id);
+      await excluirCompra.mutateAsync({ id: compraParaExcluir.id, escopo });
       toast.success(`Transação "${compraParaExcluir.descricao}" excluída.`);
       setCompraParaExcluir(null);
     } catch (error) {
@@ -397,20 +398,34 @@ export function FaturaDrawer({ cartaoId, contaPagamentoId, faturaId, onClose, on
                           >
                             <p className="text-caption text-text-primary">
                               {compraParaExcluir.parcelamento_id != null
-                                ? `Excluir "${compraParaExcluir.descricao}"? Esta compra possui ${parcelamentoDaCompra?.num_parcelas ?? "várias"} parcelas — todas serão removidas permanentemente (as já em faturas fechadas ficam preservadas como histórico).`
+                                ? `Excluir "${compraParaExcluir.descricao}"? Esta compra possui ${parcelamentoDaCompra?.num_parcelas ?? "várias"} parcelas. "Só esta parcela" remove só esta linha; "Compra inteira" cancela todas as parcelas ainda destravadas (as já em faturas fechadas ficam preservadas como histórico).`
                                 : `Excluir "${compraParaExcluir.descricao}"? Esta ação é permanente — o valor de ${formatMoney(compraParaExcluir.valor)} deixa de contar no limite do cartão.`}
                             </p>
-                            <div className="flex justify-end gap-2">
+                            <div className="flex flex-wrap justify-end gap-2">
                               <Button variant="secondary" size="sm" onClick={() => setCompraParaExcluir(null)}>
                                 Cancelar
                               </Button>
+                              {compraParaExcluir.parcelamento_id != null && (
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  loading={excluirCompra.isPending && excluirCompra.variables?.escopo === "ESTA_PARCELA"}
+                                  onClick={() => confirmarExcluirCompra("ESTA_PARCELA")}
+                                >
+                                  Só esta parcela
+                                </Button>
+                              )}
                               <Button
                                 variant="danger"
                                 size="sm"
-                                loading={excluirCompra.isPending}
-                                onClick={confirmarExcluirCompra}
+                                loading={excluirCompra.isPending && excluirCompra.variables?.escopo !== "ESTA_PARCELA"}
+                                onClick={() =>
+                                  confirmarExcluirCompra(
+                                    compraParaExcluir.parcelamento_id != null ? "TODO_PARCELAMENTO" : undefined,
+                                  )
+                                }
                               >
-                                Excluir
+                                {compraParaExcluir.parcelamento_id != null ? "Compra inteira" : "Excluir"}
                               </Button>
                             </div>
                           </li>

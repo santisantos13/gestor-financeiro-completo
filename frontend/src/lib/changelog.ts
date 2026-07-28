@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.13.0",
+    data: "2026-07-28",
+    titulo: "Parcelamentos: excluir só esta parcela (sem cancelar a compra inteira)",
+    itens: [
+      'Ao excluir uma parcela de uma compra parcelada (Transações ou dentro do Cartão), agora é possível escolher entre "Só esta parcela" (remove só aquela linha, mantendo as demais) e "Compra inteira" (cancela todas as parcelas ainda destravadas, comportamento de sempre).',
+      "Nenhuma parcela já paga/travada (fatura fechada) pode ser excluída por nenhuma das duas opções - continua protegida como antes.",
+    ],
+  },
+  {
     versao: "0.12.1",
     data: "2026-07-26",
     titulo: "Correção de lentidão em produção",

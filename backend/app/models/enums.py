@@ -258,6 +258,35 @@ class CategoriaEventoCalendario(str, enum.Enum):
     EMPRESTIMO = "EMPRESTIMO"
 
 
+class EscopoOperacaoParcela(str, enum.Enum):
+    """Escopo de uma exclusão sobre uma parcela que pertence a um
+    `Parcelamento` - ponto único de decisão "o que fazer com as OUTRAS
+    parcelas quando esta é afetada", usado por
+    `TransacaoService._aplicar_exclusao_de_parcela` (ver
+    docs/analise-arquitetural-escopo-parcelamento.md).
+
+    Promovido de um enum interno de `transacao_service.py` para cá
+    (2026-07-28, ver docs/analise-arquitetural-escopo-parcelamento.md, seção
+    7) quando `ESTA_PARCELA` deixou de ser um valor reservado/
+    `NotImplementedError` e passou a ser aceito de verdade via query string
+    de `DELETE /transacoes/{id}?escopo=...` - vocabulário de API, não mais
+    decisão só de Service.
+
+    - TODO_PARCELAMENTO (default, comportamento de sempre): excluir
+      qualquer parcela cancela TODAS as parcelas ainda destravadas do
+      mesmo `Parcelamento` (preserva as já em fatura fechada). Motivo:
+      uma parcela isolada não é uma despesa própria, é 1/N de uma única
+      compra - deixar as outras N-1 "penduradas" corrompe o valor real da
+      compra em faturas futuras (bug real corrigido em 2026-07-20).
+    - ESTA_PARCELA: remove só a parcela clicada, sem tocar nas demais -
+      para quando o usuário sabe que só aquela parcela específica está
+      errada (ex: lançamento duplicado por engano) e quer corrigir sem
+      cancelar a compra inteira."""
+
+    ESTA_PARCELA = "ESTA_PARCELA"
+    TODO_PARCELAMENTO = "TODO_PARCELAMENTO"
+
+
 class CategoriaMovimentacaoConta(str, enum.Enum):
     """Discriminador de exibição/filtro do extrato de uma Conta
     (`ContaService.extrato`, docs/analise-arquitetural-extrato-conta.md) -

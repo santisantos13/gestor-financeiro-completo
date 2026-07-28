@@ -40,6 +40,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClie
 import { queryKeys } from "../api/queryKeys";
 import { transacaoService } from "../services/transacaoService";
 import type { TransacaoCreate, TransacaoFiltros, TransacaoRead, TransacaoUpdate } from "../types/transacao";
+import type { EscopoOperacaoParcela } from "../types/enums";
 
 export function invalidarTransacoes(
   queryClient: QueryClient,
@@ -166,7 +167,8 @@ export function useAtualizarTransacao(contaId?: number | null, cartaoId?: number
 export function useExcluirTransacao(contaId?: number | null, cartaoId?: number | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => transacaoService.excluir(id),
+    mutationFn: ({ id, escopo }: { id: number; escopo?: EscopoOperacaoParcela }) =>
+      transacaoService.excluir(id, escopo),
     onSuccess: () => invalidarTransacoes(queryClient, contaId, cartaoId),
   });
 }
