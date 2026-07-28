@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 92,
-    "updatedAt": "2026-07-26T23:50:00-03:00"
+    "overallPercent": 93,
+    "updatedAt": "2026-07-28T00:00:00-03:00"
   },
   "areas": [
     {
@@ -53,18 +53,18 @@
     {
       "key": "security",
       "label": "Segurança",
-      "percent": 60,
+      "percent": 75,
       "done": 3,
       "inProgress": 0,
-      "pending": 2
+      "pending": 1
     },
     {
       "key": "deploy",
       "label": "Deploy",
-      "percent": 55,
-      "done": 2,
+      "percent": 80,
+      "done": 4,
       "inProgress": 0,
-      "pending": 2
+      "pending": 1
     }
   ],
   "roadmap": [
@@ -81,13 +81,13 @@
     {
       "phase": "Fase 2",
       "title": "Core financeiro (telas)",
-      "status": "in-progress",
+      "status": "done",
       "items": [
         "Design System documentado e implementado em código — tokens, motion, componentes base, Sidebar/Header",
         "Sistema de formulários reutilizável (React Hook Form + Zod, FormDialog) — concluído",
         "Sistema de tabelas reutilizável (DataTable) — concluído",
         "Dashboard financeiro real (Central Financeira, Bento Grid) — concluído",
-        "CRUD de entidade no frontend: 13 de 14 concluidas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta, Conta Recorrente, Parcelamento via toggle, Anexo via Drawer escopado por Transacao) - resta só Alerta (nao iniciado, aguardando decisao de escopo). Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Conta Recorrente ganhou modulo completo: cursor+status, pausar/reativar/encerrar/sincronizar, projecao no Calendario Financeiro (90 dias).",
+        "CRUD de entidade no frontend: 14 de 14 concluídas (Conta, Categoria, Tag, Cartao, Fatura, Transacao, Transferencia, Financiamento, Emprestimo, Meta, Conta Recorrente, Parcelamento via toggle, Anexo via Drawer escopado por Transacao, Alerta via sino/drawer) - módulo 100% completo. Meta ganhou exclusao definitiva (hard delete) alem do soft delete. Conta Recorrente ganhou modulo completo: cursor+status, pausar/reativar/encerrar/sincronizar, projecao no Calendario Financeiro (90 dias).",
         "Revisão de UX/UI de toda a aplicação (Dashboard + Cartões) antes de seguir para Fatura/Transação — concluída",
         "Etapa F10 — CRUD de Fatura + página de detalhes do Cartão (/cartoes/:id) + padrão único de overlays (Drawer/RichPicker) + exclusão definitiva (hard delete) em 4 entidades — concluída",
         "Revisão de UX final do módulo de Cartões (grid de mini dashboards clicáveis, Action Bar, correção de cor semântica, correção de performance) — concluída",
@@ -120,8 +120,9 @@
       "items": [
         "Migração para PostgreSQL (produção) + adaptação de backend/frontend para URL de API configurável — concluída",
         "Deploy real em produção no Render (HTTPS por padrão) — concluído, com correções pós-deploy reais (pooler IPv6, escape de % na DATABASE_URL do Alembic, CORS exato)",
+        "Testes automatizados de frontend (Vitest + Testing Library, 45 testes) — concluído",
+        "Correção de lentidão pós-deploy: /health passa a checar o banco, permitindo ping externo grátis manter Render e Supabase acordados — concluído",
         "Rate limiting em /auth/login e /auth/refresh — pendente",
-        "Testes automatizados de frontend — pendente",
         "CI/CD — pendente"
       ]
     }
@@ -271,14 +272,14 @@
       "name": "Segurança",
       "category": "Backend",
       "status": "in-progress",
-      "progress": 60,
+      "progress": 75,
       "priority": "Alta"
     },
     {
       "name": "Deploy",
       "category": "DevOps",
       "status": "in-progress",
-      "progress": 65,
+      "progress": 80,
       "priority": "Alta"
     }
   ],
