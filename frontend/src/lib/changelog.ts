@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.15.0",
+    data: "2026-07-28",
+    titulo: "Deploy: pipeline de CI (GitHub Actions)",
+    itens: [
+      "Nenhuma mudança visível para quem usa o app - trabalho interno de infraestrutura.",
+      "Toda mudança no código agora roda automaticamente a suíte de testes de backend e frontend (GitHub Actions) antes de qualquer coisa - reduz o risco de um erro passar despercebido até chegar em produção.",
+    ],
+  },
+  {
     versao: "0.14.0",
     data: "2026-07-28",
     titulo: "Segurança: limite de tentativas em login e renovação de sessão",

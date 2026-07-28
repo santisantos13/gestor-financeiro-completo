@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 97,
-    "updatedAt": "2026-07-28T14:00:00-03:00"
+    "overallPercent": 100,
+    "updatedAt": "2026-07-28T15:00:00-03:00"
   },
   "areas": [
     {
@@ -61,10 +61,10 @@
     {
       "key": "deploy",
       "label": "Deploy",
-      "percent": 80,
-      "done": 4,
+      "percent": 100,
+      "done": 5,
       "inProgress": 0,
-      "pending": 1
+      "pending": 0
     }
   ],
   "roadmap": [
@@ -116,7 +116,7 @@
     {
       "phase": "Fase 4",
       "title": "Produção",
-      "status": "in-progress",
+      "status": "done",
       "items": [
         "Migração para PostgreSQL (produção) + adaptação de backend/frontend para URL de API configurável — concluída",
         "Deploy real em produção no Render (HTTPS por padrão) — concluído, com correções pós-deploy reais (pooler IPv6, escape de % na DATABASE_URL do Alembic, CORS exato)",
@@ -279,25 +279,24 @@
     {
       "name": "Deploy",
       "category": "DevOps",
-      "status": "in-progress",
-      "progress": 80,
+      "status": "done",
+      "progress": 100,
       "priority": "Alta"
     }
   ],
   "kanban": {
-    "backlog": [
-      {
-        "id": "t8",
-        "title": "Pipeline de CI",
-        "description": "Rodar a suíte de 1151 testes backend (659 unit + 492 integração) + 45 testes frontend automaticamente a cada mudança, em vez de manual.",
-        "category": "DevOps",
-        "priority": "Média",
-        "date": "2026-07-15"
-      }
-    ],
+    "backlog": [],
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d89",
+        "title": "Deploy: pipeline de CI (GitHub Actions)",
+        "description": "Fecha o backlog t8 (Média prioridade) e o último item pendente do roadmap - fecha a Fase 4 (Produção) inteira, deixando o projeto 100% no dashboard. Novo .github/workflows/ci.yml, dois jobs paralelos: backend (pip install -r requirements-dev.txt + pytest -q, Python 3.11.9 igual ao render.yaml) e frontend (npm ci + npx tsc -b + npm test + npm run build). Gatilho: todo push em main e toda abertura/atualização de Pull Request. Deliberadamente NÃO faz deploy (continua manual via git push, disparando o auto-deploy já configurado no Render) nem calcula cobertura/lint (nenhum gate desse tipo foi pedido - YAGNI). SECRET_KEY (obrigatória, sem default em app/core/config.py) recebe uma string qualquer só para os testes rodarem no CI, nunca o segredo real de produção. Nenhum teste novo (o próprio pipeline É a validação). Confirmado localmente antes do push: pytest -q (1159 testes) e tsc -b passam limpos; npm test/npm run build não puderam ser revalidados nesta sessão por uma limitação pontual do sandbox (spawn de processo travando ao rodar Vitest/esbuild aqui - não é um problema do código). Doc: docs/analise-arquitetural-ci.md. Versão 0.14.0 -> 0.15.0 (minor, trabalho interno sem mudança visível).",
+        "category": "DevOps",
+        "priority": "Média",
+        "date": "2026-07-28"
+      },
       {
         "id": "d88",
         "title": "Segurança: rate limiting em /auth/login e /auth/refresh",
@@ -1005,6 +1004,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-28",
+      "type": "devops",
+      "title": "Deploy: pipeline de CI (GitHub Actions) - suíte de testes de backend e frontend roda automaticamente a cada mudança. Fecha a Fase 4 (Produção) do roadmap. Versão 0.14.0 → 0.15.0"
+    },
     {
       "date": "2026-07-28",
       "type": "backend",
