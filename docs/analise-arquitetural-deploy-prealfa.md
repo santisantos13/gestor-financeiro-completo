@@ -209,3 +209,35 @@ precisar de outra instância):
 Com os três ajustes, o deploy ficou estável: backend e frontend "Live" no
 Render, login/registro funcionando de ponta a ponta contra o Postgres do
 Supabase.
+
+## 8. Lentidão em produção — dois "adormecimentos" da infraestrutura gratuita (2026-07-26)
+
+Usuário reportou o site "muito lento". Causa: dois mecanismos INDEPENDENTES
+de economia de recursos dos dois serviços gratuitos usados, nenhum bug de
+código.
+
+1. **Render (plano free)**: o serviço web adormece após 15 minutos sem
+   nenhuma requisição HTTP - a próxima requisição paga um "cold start" de
+   ~30-60s (o processo inteiro precisa subir de novo) antes de responder.
+   Isso é o comportamento documentado/esperado do plano gratuito, não um
+   defeito - a única forma paga de eliminar é um plano com instância
+   sempre ativa.
+2. **Supabase (plano free)**: o projeto inteiro PAUSA depois de 7 dias
+   corridos sem NENHUMA atividade no banco - diferente do Render, isso não
+   é um "cold start" rápido, é uma pausa completa que exige reativação
+   manual no painel do Supabase (nenhuma conexão é aceita enquanto pausado).
+
+**Correção aplicada, sem custo**: um ping HTTP externo e periódico (a cada
+poucos minutos, de um serviço tipo UptimeRobot/cron-job.org - grátis, roda
+24h por dia independente do computador do usuário estar ligado) contra
+`GET /health` resolve os dois problemas ao mesmo tempo, DESDE QUE o próprio
+`/health` toque o banco - um ping "vazio" manteria o Render acordado mas
+deixaria o Supabase pausar do mesmo jeito. Por isso `app/api/routes/health.py`
+passou a rodar um `SELECT 1` real (consulta trivial, custo desprezível)
+antes de responder `{"status": "ok"}`, em vez de só devolver a constante.
+
+Não implementado automaticamente por este assistente: a tarefa agendada
+nativa deste ambiente (Cowork) só dispara enquanto o app estiver aberto no
+computador do usuário, o que não serve para manter um servidor 24h no ar -
+por isso a recomendação é um serviço de ping externo de verdade (grátis),
+configurado pelo próprio usuário (fora do escopo de código deste projeto).

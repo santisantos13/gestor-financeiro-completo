@@ -7,7 +7,7 @@
       "label": "Desenvolvimento ativo"
     },
     "overallPercent": 92,
-    "updatedAt": "2026-07-26T23:35:00-03:00"
+    "updatedAt": "2026-07-26T23:50:00-03:00"
   },
   "areas": [
     {
@@ -304,6 +304,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d86",
+        "title": "Correção de lentidão em produção: /health passa a checar o banco",
+        "description": "Usuário reportou o site 'muito lento' em produção. Causa: dois mecanismos INDEPENDENTES de economia de recursos gratuitos, nenhum bug de código. (1) Render (plano free): o serviço web adormece após 15 min sem tráfego, cold start de ~30-60s na próxima requisição. (2) Supabase (plano free, banco escolhido pelo usuário): o projeto PAUSA por completo após 7 dias corridos sem atividade - diferente do Render, não acorda sozinho, exige reativação manual no painel. Pesquisa web confirmou os números atuais (2026) e que não há alternativa 100% gratuita e livre de cold start para um backend persistente. Correção sem custo: um ping HTTP externo periódico (UptimeRobot/cron-job.org, grátis, roda 24h independente do computador do usuário - a tarefa agendada nativa deste app só dispara com o app aberto, não serve aqui) contra GET /health resolve os dois problemas ao mesmo tempo, DESDE QUE o endpoint toque o banco - um ping vazio deixaria o Supabase pausar do mesmo jeito. app/api/routes/health.py passou a rodar um SELECT 1 real antes de responder (custo desprezível). Teste de integração existente (test_health_endpoint.py) revalidado sem alteração necessária; suíte unit completa (659 testes) revalidada. Doc: docs/analise-arquitetural-deploy-prealfa.md, seção 8. Próximo passo (fora do escopo de código): usuário configurar o ping externo grátis apontando para a URL pública do backend. Versão 0.12.0 -> 0.12.1 (patch).",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-26"
+      },
       {
         "id": "d85",
         "title": "Gráficos: total do mês com variação, seletor unificado, drill-down, \"Outros\" e comparação",
@@ -987,6 +995,11 @@
     ]
   },
   "changelog": [
+    {
+      "date": "2026-07-26",
+      "type": "backend",
+      "title": "Correção de lentidão em produção: /health agora checa o banco, permitindo um ping externo grátis manter Render e Supabase acordados. Versão 0.12.0 → 0.12.1"
+    },
     {
       "date": "2026-07-26",
       "type": "frontend",

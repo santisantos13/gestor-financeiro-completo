@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.12.1",
+    data: "2026-07-26",
+    titulo: "Correção de lentidão em produção",
+    itens: [
+      'O endpoint "/health" passou a checar o banco de verdade - necessário para um ping externo periódico (configurado fora do app) evitar tanto o "sono" do servidor gratuito quanto a pausa do banco gratuito por inatividade.',
+    ],
+  },
+  {
     versao: "0.12.0",
     data: "2026-07-26",
     titulo: "Gráficos: total do mês com variação, drill-down, comparação e mais",
