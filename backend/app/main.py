@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -20,6 +21,7 @@ from app.core.exceptions import (
     NotFoundError,
 )
 from app.core.logging_config import configurar_logging
+from app.core.rate_limit import limiter
 from app.api.routes.alerta import router as alerta_router
 from app.api.routes.anexo import router as anexo_router
 from app.api.routes.auth import router as auth_router
@@ -45,6 +47,12 @@ configurar_logging()
 
 # instancia unica do app - o titulo aparece na documentacao automatica (/docs)
 app = FastAPI(title=settings.PROJECT_NAME)
+
+# Rate limiting (docs/analise-arquitetural-rate-limiting.md) - `app.state.
+# limiter` e o unico lugar que o `slowapi` exige encontrar a instancia; os
+# decorators `@limiter.limit(...)` propriamente ditos ficam nas rotas
+# sensiveis (`app/api/routes/auth.py`), nao aqui.
+app.state.limiter = limiter
 
 # CORS: permite que o frontend (rodando em outra porta/origem, ex: localhost:5173)
 # chame esta API do navegador. allow_origins vem de settings.CORS_ORIGINS para nao
@@ -104,6 +112,19 @@ async def nao_autenticado_handler(request: Request, exc: NaoAutenticadoError) ->
 @app.exception_handler(AcessoNegadoError)
 async def acesso_negado_handler(request: Request, exc: AcessoNegadoError) -> JSONResponse:
     return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    # Handler proprio (em vez do `_rate_limit_exceeded_handler` padrao do
+    # slowapi) so para manter o mesmo envelope `{"detail": ...}` de todo
+    # handler acima - o padrao do slowapi devolve `{"error": "..."}`, uma
+    # segunda convencao que o frontend (`ApiError.detail`, `httpClient.ts`)
+    # nao entenderia.
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Muitas tentativas em pouco tempo. Aguarde um momento e tente novamente."},
+    )
 
 
 # --- rede de seguranca contra excecao nao mapeada --------------------------

@@ -242,3 +242,45 @@ def test_trocar_senha_com_senha_atual_incorreta_retorna_401(client):
         headers=_auth_header(tokens),
     )
     assert resposta.status_code == 401
+
+
+# --- rate limiting (2026-07-28) -------------------------------------------
+# /auth/login e /auth/refresh sao sensiveis a forca bruta (credenciais ou
+# refresh token vazado testados em loop) - ver docs/analise-arquitetural-
+# rate-limiting.md. Limite por IP (TestClient sempre reporta "testclient"),
+# armazenamento em memoria do processo - por isso `client` (fixture,
+# conftest.py) chama `limiter.reset()` antes de cada teste, senao os 10/20
+# por minuto se acumulariam entre testes desta mesma suite.
+
+def test_login_bloqueia_apos_exceder_o_limite_por_minuto(client):
+    _registrar(client)
+
+    # as primeiras 10 (mesmo com senha errada - o rate limit conta a
+    # REQUISICAO, nao so tentativa invalida) ainda passam pela logica de
+    # autenticacao normalmente.
+    for _ in range(10):
+        resposta = client.post("/auth/login", json={"email": "ana@example.com", "senha": "senhaerrada"})
+        assert resposta.status_code == 401
+
+    # a 11a e bloqueada ANTES de chegar no AuthService.
+    resposta_bloqueada = client.post("/auth/login", json={"email": "ana@example.com", "senha": "senhaerrada"})
+    assert resposta_bloqueada.status_code == 429
+    assert "detail" in resposta_bloqueada.json()
+
+    # mesmo a senha CERTA e bloqueada agora - o limite e por IP, nao por
+    # credencial (protege contra o proprio dono da conta sendo usado como
+    # oraculo por um invasor testando senhas).
+    resposta_senha_certa = client.post("/auth/login", json={"email": "ana@example.com", "senha": "12345678"})
+    assert resposta_senha_certa.status_code == 429
+
+
+def test_refresh_bloqueia_apos_exceder_o_limite_por_minuto(client):
+    _registrar(client)
+    tokens = _login(client)
+
+    for _ in range(20):
+        resposta = client.post("/auth/refresh", json={"refresh_token": "nunca-existiu"})
+        assert resposta.status_code == 401
+
+    resposta_bloqueada = client.post("/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+    assert resposta_bloqueada.status_code == 429

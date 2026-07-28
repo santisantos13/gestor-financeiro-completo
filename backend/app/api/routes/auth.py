@@ -16,6 +16,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status
 
 from app.api.deps import CurrentUser, get_auth_service
+from app.core.rate_limit import limiter
 from app.schemas.auth import (
     LoginRequest,
     LogoutRequest,
@@ -47,18 +48,24 @@ def registrar(dados: UsuarioCreate, auth_service: AuthServiceDep) -> UsuarioRead
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("10/minute")
 def login(dados: LoginRequest, request: Request, auth_service: AuthServiceDep) -> TokenResponse:
-    # TODO(rate-limit): endpoint sensível a força bruta de credenciais.
-    # Quando o rate limiting for implementado, a dependency entra aqui,
-    # ex: `Depends(rate_limit("5/minute", chave=dados.email))`, seguindo o
-    # mesmo padrão de injeção de dependência já usado no resto do projeto.
+    # Rate limit por IP (docs/analise-arquitetural-rate-limiting.md):
+    # endpoint sensível a força bruta de credenciais. `request` já era
+    # obrigatório aqui antes disso (contexto de sessão) - o decorator do
+    # `slowapi` só exige que o parâmetro exista com esse nome, nenhuma
+    # mudança de assinatura foi necessária.
     return auth_service.autenticar(dados, _contexto(request))
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit("20/minute")
 def refresh(dados: RefreshRequest, request: Request, auth_service: AuthServiceDep) -> TokenResponse:
-    # TODO(rate-limit): mesmo motivo do /login - um refresh token vazado
-    # não deveria poder ser testado em loop sem limite.
+    # Rate limit por IP, mesmo motivo do /login - um refresh token vazado
+    # não deveria poder ser testado em loop sem limite. Limite mais alto
+    # que /login (uso legítimo é mais frequente: cada expiração de access
+    # token, a cada 15min, dispara um refresh automático por dispositivo
+    # aberto - ver `ACCESS_TOKEN_EXPIRE_MINUTES`).
     # contexto vem da requisicao de refresh ATUAL, nunca da sessao antiga
     # (ver docstring de AuthService.renovar) - por isso Request é
     # obrigatório aqui, igual em /login.

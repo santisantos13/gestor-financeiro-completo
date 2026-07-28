@@ -17,3 +17,8 @@ psycopg2-binary==2.9.9
 # Pango) como WeasyPrint exigiria - mais simples de instalar no ambiente
 # de deploy (Render).
 reportlab==4.5.1
+# Rate limiting de /auth/login e /auth/refresh (docs/analise-arquitetural-
+# rate-limiting.md) - armazenamento em memória do próprio processo
+# (default do slowapi/limits), suficiente para a única instância do
+# Render free tier; nunca precisou de Redis/storage compartilhado.
+slowapi==0.1.10

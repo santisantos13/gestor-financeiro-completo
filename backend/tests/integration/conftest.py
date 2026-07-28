@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401 - garante que todas as tabelas sejam registradas em Base.metadata
+from app.core.rate_limit import limiter
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -49,7 +50,17 @@ def client(db_session):
     """TestClient do FastAPI com o banco real substituído pelo de teste via
     dependency override - as rotas continuam usando `Depends(get_db)`
     normalmente, sem saber que estão sendo testadas.
+
+    `limiter.reset()` (docs/analise-arquitetural-rate-limiting.md): o
+    `Limiter` de `/auth/login`/`/auth/refresh` guarda contagem em memória
+    do PRÓPRIO PROCESSO, e `app` (import de `app.main`) é o mesmo objeto
+    reusado por toda a suíte - sem resetar aqui, o contador se acumularia
+    entre testes (o `TestClient` sempre reporta o mesmo IP, "testclient")
+    e um teste no meio da suíte estouraria o limite por causa de logins de
+    testes ANTERIORES, não dos seus próprios. Reset ANTES de cada teste
+    (não depois) garante que mesmo o primeiro teste comece limpo.
     """
+    limiter.reset()
 
     def _override_get_db():
         yield db_session

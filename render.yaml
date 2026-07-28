@@ -26,7 +26,22 @@ services:
     # `alembic upgrade head` roda a cada deploy, antes do servidor subir -
     # mesmo efeito de rodar a migration manualmente após cada `git push`,
     # só que automático. Idempotente (alembic só aplica o que falta).
-    startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    #
+    # `--proxy-headers --forwarded-allow-ips='*'` (2026-07-28, rate limiting
+    # de /auth/login e /auth/refresh - docs/analise-arquitetural-rate-
+    # limiting.md): o Render sempre fica na frente do uvicorn como proxy
+    # reverso - sem essas flags, TODA requisição chega ao uvicorn com o IP
+    # interno do proxy do Render como `request.client.host`, nunca o IP real
+    # de quem está usando o site. O rate limiter (por IP) trataria TODOS os
+    # usuários como uma única origem, e um usuário legítimo fazendo várias
+    # tentativas de login bloquearia todo mundo. Com as flags, o uvicorn lê
+    # o cabeçalho `X-Forwarded-For` (que o proxy do Render já preenche
+    # corretamente) e expõe o IP real do visitante. `forwarded-allow-ips='*'`
+    # é seguro aqui porque o Render controla o único caminho de entrada
+    # (plano free não expõe a instância diretamente) - confiar em QUALQUER
+    # proxy à frente do app só seria um risco se o tráfego pudesse chegar
+    # por outra rota além do proxy do Render.
+    startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'"
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

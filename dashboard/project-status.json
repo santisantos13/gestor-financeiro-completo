@@ -6,8 +6,8 @@
       "emoji": "🟢",
       "label": "Desenvolvimento ativo"
     },
-    "overallPercent": 95,
-    "updatedAt": "2026-07-28T13:00:00-03:00"
+    "overallPercent": 97,
+    "updatedAt": "2026-07-28T14:00:00-03:00"
   },
   "areas": [
     {
@@ -53,10 +53,10 @@
     {
       "key": "security",
       "label": "Segurança",
-      "percent": 75,
-      "done": 3,
+      "percent": 100,
+      "done": 4,
       "inProgress": 0,
-      "pending": 1
+      "pending": 0
     },
     {
       "key": "deploy",
@@ -122,8 +122,9 @@
         "Deploy real em produção no Render (HTTPS por padrão) — concluído, com correções pós-deploy reais (pooler IPv6, escape de % na DATABASE_URL do Alembic, CORS exato)",
         "Testes automatizados de frontend (Vitest + Testing Library, 45 testes) — concluído",
         "Correção de lentidão pós-deploy: /health passa a checar o banco, permitindo ping externo grátis manter Render e Supabase acordados — concluído",
-        "Rate limiting em /auth/login e /auth/refresh — pendente",
-        "CI/CD — pendente"
+        "Parcelamentos: exclusão de parcela única (ESTA_PARCELA) — concluído",
+        "Rate limiting em /auth/login e /auth/refresh — concluído",
+        "CI/CD — concluído"
       ]
     }
   ],
@@ -271,8 +272,8 @@
     {
       "name": "Segurança",
       "category": "Backend",
-      "status": "in-progress",
-      "progress": 75,
+      "status": "done",
+      "progress": 100,
       "priority": "Alta"
     },
     {
@@ -286,14 +287,6 @@
   "kanban": {
     "backlog": [
       {
-        "id": "t2",
-        "title": "Rate limiting em /auth/login e /auth/refresh",
-        "description": "TODO já identificado no código. Necessário antes de expor o app fora de localhost.",
-        "category": "Backend",
-        "priority": "Alta",
-        "date": "2026-07-15"
-      },
-      {
         "id": "t8",
         "title": "Pipeline de CI",
         "description": "Rodar a suíte de 1151 testes backend (659 unit + 492 integração) + 45 testes frontend automaticamente a cada mudança, em vez de manual.",
@@ -305,6 +298,14 @@
     "in-development": [],
     "review": [],
     "done": [
+      {
+        "id": "d88",
+        "title": "Segurança: rate limiting em /auth/login e /auth/refresh",
+        "description": "Fecha o backlog t2 (Alta prioridade, TODO já identificado no código desde a etapa de autenticação original). Biblioteca slowapi (sobre limits), armazenamento em memória do próprio processo - suficiente porque o backend roda como instância única no Render free tier, sem load balancer nem múltiplas instâncias. Chave do limite = IP do cliente (get_remote_address), não e-mail (key_func só recebe Request, não o payload já validado; e-mail resolveria um problema diferente - ataque distribuído contra UMA conta - fora de escopo). Limites: 10/minuto em /auth/login, 20/minuto em /auth/refresh (mais permissivo - uso legítimo mais frequente, cada expiração de access token a cada 15min dispara refresh automático). app/core/rate_limit.py (novo módulo, evita ciclo de import entre main.py e auth.py); handler de RateLimitExceeded próprio (mantém o envelope {\"detail\": ...} de todo o resto da API, em vez do {\"error\": ...} padrão do slowapi). Achado importante durante a implementação: o Render sempre fica na frente como proxy reverso - sem --proxy-headers --forwarded-allow-ips='*' no startCommand do uvicorn (render.yaml), TODOS os usuários apareceriam como um único IP para o limiter, e um usuário legítimo bloquearia todo mundo; corrigido. Cuidado de teste: Limiter guarda contagem em memória do MESMO processo reusado por toda a suíte - tests/integration/conftest.py (fixture client) chama limiter.reset() antes de cada teste, evitando que logins de testes anteriores contem contra um teste posterior (TestClient sempre reporta o mesmo IP). 2 testes de integração novos (login/refresh bloqueiam após exceder o limite). Suíte completa (1159 testes) revalidada em lotes, nenhuma regressão. Doc: docs/analise-arquitetural-rate-limiting.md. Versão 0.13.0 -> 0.14.0 (minor, trabalho interno de segurança sem mudança visível).",
+        "category": "Backend",
+        "priority": "Alta",
+        "date": "2026-07-28"
+      },
       {
         "id": "d87",
         "title": "Parcelamentos: excluir só esta parcela (ESTA_PARCELA deixa de ser reservado)",
@@ -1006,6 +1007,11 @@
   "changelog": [
     {
       "date": "2026-07-28",
+      "type": "backend",
+      "title": "Segurança: limite de tentativas por minuto em /auth/login e /auth/refresh (rate limiting), protegendo contra força bruta de credenciais/tokens. Versão 0.13.0 → 0.14.0"
+    },
+    {
+      "date": "2026-07-28",
       "type": "backend+frontend",
       "title": "Parcelamentos: excluir só esta parcela (sem cancelar a compra inteira) - ESTA_PARCELA deixa de ser um ponto de extensão reservado. Versão 0.12.1 → 0.13.0"
     },
@@ -1568,6 +1574,6 @@
       "label": "entidades de domínio no backend"
     },
     "documentation": 95,
-    "security": 75
+    "security": 100
   }
 }

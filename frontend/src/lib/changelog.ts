@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.14.0",
+    data: "2026-07-28",
+    titulo: "Segurança: limite de tentativas em login e renovação de sessão",
+    itens: [
+      "Nenhuma mudança visível para quem usa o app normalmente - trabalho interno de segurança.",
+      'Login e renovação de sessão ("/auth/login"/"/auth/refresh") agora têm um limite de tentativas por minuto, dificultando tentativas automatizadas de adivinhar senha ou testar um token roubado em loop.',
+    ],
+  },
+  {
     versao: "0.13.0",
     data: "2026-07-28",
     titulo: "Parcelamentos: excluir só esta parcela (sem cancelar a compra inteira)",
