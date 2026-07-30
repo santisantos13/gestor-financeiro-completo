@@ -290,6 +290,14 @@
     "review": [],
     "done": [
       {
+        "id": "d91",
+        "title": "Aviso de \"servidor acordando\" em Home/Calendário (evita parecer travado)",
+        "description": "Usuário reportou /calendario, depois /home, \"carregando infinito\". Investigado com Chrome real (Network + Console, não suposição): nenhuma requisição travava de fato - todas completavam com 200, só que em série durante cold start (Render free tier dormindo + pool de conexão do Supabase esquentando), levando 40-60s no total. Não é bug de código das 3 entregas de hoje (nenhuma toca cartão/home/calendário) - é o mesmo cold start já documentado na seção 8 de docs/analise-arquitetural-deploy-prealfa.md, só que sem nenhum aviso visual: o LoadingCard (skeleton escuro sobre fundo escuro) fica visualmente indistinguível de \"travado\" depois de alguns segundos. Corrigido com novo frontend/src/components/layout/ColdStartBanner.tsx: se useIsFetching() (React Query) ficar > 0 por mais de 6s seguidos, aparece uma faixa fina abaixo do Header explicando a espera; nunca aparece numa carga normal. Montado uma vez em AppLayout - vale para toda rota autenticada. tsc -b limpo. Doc: docs/analise-arquitetural-deploy-prealfa.md, seção 9 (inclui nota de que, se o ping externo de keep-alive ainda não foi configurado pelo usuário, o Supabase pode pausar por completo e alongar bem mais o cold start - fora do alcance de qualquer mudança de código). Versão 0.15.0 -> 0.15.1 (patch).",
+        "category": "Frontend",
+        "priority": "Média",
+        "date": "2026-07-30"
+      },
+      {
         "id": "d90",
         "title": "Dashboard: zerar pendências fantasmas de Banco de dados e UX/UI",
         "description": "Usuário perguntou se o projeto estava totalmente fechado após as 3 entregas de hoje (d87-d89) e pediu para conferir. Investigação (git log --follow do dashboard desde o commit inicial 4aed904) mostrou que as áreas \"Banco de dados\" (90%, 1 pendente) e \"UX/UI\" (95%, 1 pendente) tinham esse mesmo 1 pendente parado desde o PRIMEIRO commit do projeto, nunca associado a nenhum item do roadmap, kanban, changelog ou doc - diferente de backend/frontend/testes/segurança/deploy, que foram todos zerados conforme features reais fechavam. Nenhum item concreto foi encontrado em lugar nenhum do histórico. Conclusão: placeholder esquecido na estrutura inicial do dashboard, não trabalho real pendente. Corrigido: database e ux agora em 100%/0 pendentes, consistente com overallPercent (100) e com roadmap/features/kanban, que já mostravam tudo concluído. Nenhuma mudança de código - só metadata do dashboard, sem bump de versão (mesmo padrão dos commits 743a0aa/585cd7d).",

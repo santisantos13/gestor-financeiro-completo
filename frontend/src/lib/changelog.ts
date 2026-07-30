@@ -14,6 +14,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.15.1",
+    data: "2026-07-30",
+    titulo: "Aviso de servidor acordando (evita parecer travado após um tempo sem uso)",
+    itens: [
+      "Home e Calendário podiam parecer travados (tela escura, sem nenhum indício de progresso) por até ~1 minuto quando o app é aberto depois de um tempo sem uso - não era um bug, era o servidor gratuito 'acordando', só que sem nenhum aviso visual.",
+      "Agora, se o carregamento inicial passar de alguns segundos, aparece uma faixa explicando que o servidor está acordando - some sozinha assim que os dados chegam.",
+    ],
+  },
+  {
     versao: "0.15.0",
     data: "2026-07-28",
     titulo: "Deploy: pipeline de CI (GitHub Actions)",

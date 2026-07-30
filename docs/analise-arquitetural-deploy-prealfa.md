@@ -241,3 +241,49 @@ nativa deste ambiente (Cowork) só dispara enquanto o app estiver aberto no
 computador do usuário, o que não serve para manter um servidor 24h no ar -
 por isso a recomendação é um serviço de ping externo de verdade (grátis),
 configurado pelo próprio usuário (fora do escopo de código deste projeto).
+
+## 9. "Carregando infinito" em Home/Calendário era o mesmo cold start, sem aviso visual (2026-07-30)
+
+Usuário reportou `/calendario` (e depois `/home`) "carregando infinito" -
+tela escura, sem nenhum indício de progresso. Investigado com o Chrome
+(Network + Console reais, não suposição): TODAS as requisições completavam
+com 200 eventualmente - nenhuma travava de verdade. O que aconteceu foi o
+mesmo cold start da seção 8 (o app tinha ficado parado desde o último
+deploy desta sessão), só que desta vez levando a suíte inteira de
+requisições paralelas de uma página (~9-10 chamadas simultâneas ao abrir
+Home/Calendário) a se resolver em série conforme o pool de conexão do
+Postgres gerenciado (Supabase) esquentava - total observado em torno de
+40-60s até a página terminar de carregar por completo.
+
+Duas causas de por que isso PARECE pior do que é:
+
+1. `LoadingCard` (design-system.md, 20.3: skeleton é o padrão de carga de
+   seção, nunca Spinner central) é escuro sobre fundo escuro - visualmente
+   quase indistinguível de "nada acontecendo" quando a espera passa de
+   poucos segundos e vira dezenas de segundos.
+2. `retry` do React Query (`App.tsx`) tenta de novo automaticamente
+   qualquer falha de rede/5xx - normal e correto, mas durante cold start
+   isso soma mais uma rodada de espera às requisições que chegam antes do
+   servidor estar pronto, alongando ainda mais o total percebido.
+
+**Não é um bug de código introduzido pelas entregas de hoje** (Parcelamentos/
+Segurança/Deploy) - nenhuma delas toca cartão, home ou calendário.
+Confirmado via `git log`/leitura de código que nenhuma rota nova ficou mais
+lenta; o comportamento é 100% explicado pela seção 8, já documentada antes
+de qualquer mudança desta sessão.
+
+**Correção aplicada** (`frontend/src/components/layout/ColdStartBanner.tsx`):
+se `useIsFetching()` (React Query, conta requisições em voo de qualquer
+página) ficar maior que zero por mais de 6 segundos seguidos, aparece uma
+faixa fina abaixo do Header explicando "Conectando ao servidor — pode levar
+até 1 minuto após um tempo sem uso (plano gratuito)". Numa carga normal
+(rápida) nunca aparece. Monta uma vez em `AppLayout`, visível em toda rota
+autenticada - não só Home/Calendário.
+
+**Não resolvido por código** (é limitação de infraestrutura gratuita, não
+bug): se o ping externo de keep-alive (seção 8, item final) ainda não foi
+configurado pelo usuário, o Supabase pode estar pausando por completo
+depois de dias sem uso, tornando o cold start bem mais longo que os 40-60s
+observados nesta investigação (que partiu de um Render "só" dormindo, não
+de um Supabase pausado). Verificar isso é uma ação do usuário, fora do
+alcance de qualquer mudança de código.

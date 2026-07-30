@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { Header } from "../components/layout/Header";
 import { CommandPalette } from "../components/layout/CommandPalette";
+import { ColdStartBanner } from "../components/layout/ColdStartBanner";
 import { useSincronizarRecorrentesAoAbrir } from "../hooks/useContaRecorrenteQueries";
 
 /**
@@ -25,6 +26,7 @@ export function AppLayout() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
+        <ColdStartBanner />
         <main className="flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
