@@ -14,6 +14,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    versao: "0.15.2",
+    data: "2026-07-30",
+    titulo: "Cartões: valor da fatura junto do status Aberta/Fechada",
+    itens: [
+      "O card de cada cartão em /cartoes agora mostra o valor da próxima fatura ao lado do status (Aberta/Fechada/Atrasada), não só o prazo de vencimento.",
+    ],
+  },
+  {
     versao: "0.15.1",
     data: "2026-07-30",
     titulo: "Aviso de servidor acordando (evita parecer travado após um tempo sem uso)",

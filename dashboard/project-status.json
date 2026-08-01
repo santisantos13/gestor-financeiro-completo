@@ -290,6 +290,14 @@
     "review": [],
     "done": [
       {
+        "id": "d92",
+        "title": "Cartões: valor da fatura junto do status Aberta/Fechada",
+        "description": "Usuário pediu para mostrar o valor da fatura junto do status Aberta/Fechada no grid de /cartoes. CartaoResumoCard.tsx já calculava `proximaFatura` (selecionarProximaFatura) mas só exibia o FinancialBadge(status) + prazo de vencimento - agora mostra também formatMoney(proximaFatura.valor_total) ao lado do badge. Usuário também reportou 'está aparecendo aberta em todas, não fechada' - investigado abrindo /cartoes/:id de um cartão real: não é bug, é o dado real (FaturaService.fechar só transiciona ABERTA -> FECHADA via ação manual explícita, nunca automaticamente pela data - decisão arquitetural já documentada). Neste caso todas as faturas passadas do usuário já estão Pagas e a única relevante de cada cartão é o ciclo atual, ainda dentro do prazo - por isso Aberta é o status correto a aparecer. Nenhuma mudança de comportamento além da exibição do valor. tsc -b limpo. Versão 0.15.1 -> 0.15.2 (patch).",
+        "category": "Frontend",
+        "priority": "Baixa",
+        "date": "2026-07-30"
+      },
+      {
         "id": "d91",
         "title": "Aviso de \"servidor acordando\" em Home/Calendário (evita parecer travado)",
         "description": "Usuário reportou /calendario, depois /home, \"carregando infinito\". Investigado com Chrome real (Network + Console, não suposição): nenhuma requisição travava de fato - todas completavam com 200, só que em série durante cold start (Render free tier dormindo + pool de conexão do Supabase esquentando), levando 40-60s no total. Não é bug de código das 3 entregas de hoje (nenhuma toca cartão/home/calendário) - é o mesmo cold start já documentado na seção 8 de docs/analise-arquitetural-deploy-prealfa.md, só que sem nenhum aviso visual: o LoadingCard (skeleton escuro sobre fundo escuro) fica visualmente indistinguível de \"travado\" depois de alguns segundos. Corrigido com novo frontend/src/components/layout/ColdStartBanner.tsx: se useIsFetching() (React Query) ficar > 0 por mais de 6s seguidos, aparece uma faixa fina abaixo do Header explicando a espera; nunca aparece numa carga normal. Montado uma vez em AppLayout - vale para toda rota autenticada. tsc -b limpo. Doc: docs/analise-arquitetural-deploy-prealfa.md, seção 9 (inclui nota de que, se o ping externo de keep-alive ainda não foi configurado pelo usuário, o Supabase pode pausar por completo e alongar bem mais o cold start - fora do alcance de qualquer mudança de código). Versão 0.15.0 -> 0.15.1 (patch).",

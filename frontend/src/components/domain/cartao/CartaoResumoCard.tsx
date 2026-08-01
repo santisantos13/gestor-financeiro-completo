@@ -13,6 +13,7 @@ import { lerVariantePreferida } from "../../../lib/cardThemes";
 import { selecionarProximaFatura } from "../../../utils/fatura";
 import { diferencaEmDias } from "../../../utils/date";
 import { tonePorUtilizacao, tonePorPrazo, TEXT_TONE_CLASS } from "../../../utils/status";
+import { formatMoney } from "../../../utils/format";
 import type { CartaoRead } from "../../../types/cartao";
 
 export interface CartaoResumoCardProps {
@@ -114,7 +115,10 @@ export function CartaoResumoCard({ cartao, onEditar, onDesativar, onReativar, on
         <Skeleton className="h-9 w-full" />
       ) : proximaFatura && diferencaVencimento != null ? (
         <div className="flex items-center justify-between gap-2 rounded-md border border-border-subtle bg-surface-1 px-3 py-2 text-sm">
-          <FinancialBadge status={proximaFatura.status} />
+          <div className="flex items-center gap-2">
+            <FinancialBadge status={proximaFatura.status} />
+            <span className="font-medium text-text-primary">{formatMoney(proximaFatura.valor_total)}</span>
+          </div>
           <span className={`font-medium ${TEXT_TONE_CLASS[toneVencimento]}`}>
             {proximaFatura.status === "ATRASADA"
               ? `Atrasada há ${Math.abs(diferencaVencimento)}d`
